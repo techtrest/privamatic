@@ -1,0 +1,111 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) 2026 Privacy Guard Contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+TERMS AND CONDITIONS
+
+0. Definitions.
+
+"This License" refers to version 3 of the GNU General Public License.
+
+"Copyright" also means copyright-like laws that apply to other kinds of works, such as semiconductor masks.
+
+"The Program" refers to any copyrightable work licensed under this License.
+
+"You" means an individual or organization exercising permissions granted by this License.
+
+"Modified Version" means a derivative work of the Program.
+
+"Covered Work" means either the unmodified Program or a work based on the Program.
+
+"Propagate" a work means to do anything with it that, without permission, would make you directly or secondarily liable for infringement under applicable copyright law.
+
+"Convey" means any kind of propagation that enables other parties to make or receive copies.
+
+1. Source Code.
+
+The "source code" for a work means the preferred form of the work for making modifications to it.
+
+2. Basic Permissions.
+
+All rights granted under this License are granted for the term of copyright on the Program, and are irrevocable provided the stated conditions are met.
+
+3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+No covered work shall be deemed part of an effective technological measure under any applicable law fulfilling obligations under article 11 of the WIPO copyright treaty adopted on 20 December 1996, or similar laws prohibiting or restricting circumvention of such measures.
+
+4. Conveying Verbatim Copies.
+
+You may convey verbatim copies of the Program's source code as you receive it, in any medium, provided that you conspicuously and appropriately publish on each copy an appropriate copyright notice; keep intact all notices stating that this License and any non-permissive terms added in accord with section 7 apply to the code; keep intact all notices of the absence of any warranty; and give all recipients a copy of this License along with the Program.
+
+5. Conveying Modified Source Versions.
+
+You may convey a work based on the Program, or the modifications to produce it from the Program, in source code form under the terms of section 4, provided that you also meet all of these conditions:
+
+a) The work must carry prominent notices stating that you modified it, and giving a relevant date.
+
+b) The work must carry prominent notices stating that it is released under this License and any conditions added under section 7.
+
+c) You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy.
+
+6. Conveying Non-Source Forms.
+
+You may convey a covered work in object code form under the terms of sections 4 and 5, provided that you also convey the machine-readable Corresponding Source.
+
+7. Additional Terms.
+
+Additional permissions that supplement the terms of this License may be added. Such permissions can be removed by any party receiving the work.
+
+8. Termination.
+
+You may not propagate or modify a covered work except as expressly provided under this License. Any attempt otherwise to propagate or modify it is void, and will automatically terminate your rights under this License.
+
+9. Acceptance Not Required for Having Copies.
+
+You are not required to accept this License in order to receive or run a copy of the Program.
+
+10. Automatic Licensing of Downstream Recipients.
+
+Each time you convey a covered work, the recipient automatically receives a license from the original licensors, to run, modify and propagate that work, subject to this License.
+
+11. Patents.
+
+A contributor's "essential patent claims" are all patent claims owned or controlled by the contributor that would be infringed by some manner, permitted by this License, of making, using, or selling the Program.
+
+12. No Surrender of Others' Freedom.
+
+If conditions are imposed on you that contradict the conditions of this License, they do not excuse you from the conditions of this License.
+
+For the complete and legally binding text of the GNU General Public License v3.0,
+please visit: https://www.gnu.org/licenses/gpl-3.0.html
+
+---
+
+PRIVACY GUARD SPECIFIC NOTES:
+
+This license was chosen to ensure that Privacy Guard and all derivative works remain
+open source and transparent. Privacy-focused tools should never become closed-source.
+
+Key implications:
+- ✅ Free to use, modify, and distribute
+- ✅ Commercial use permitted
+- ⚠️ Modified versions must also be open source (copyleft)
+- ⚠️ Changes must be documented
+
+For questions about licensing, please open a GitHub issue.
