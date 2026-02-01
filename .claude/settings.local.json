@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(adb devices:*)",
+      "Bash(~/Android/Sdk/platform-tools/adb devices)",
+      "Bash(./gradlew assembleDebug:*)"
+    ]
+  }
+}
