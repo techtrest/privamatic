@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +49,17 @@ fun ActionsScreen(
     privacyScore: PrivacyScore,
     modifier: Modifier = Modifier
 ) {
-    val quickWins = remember(privacyScore) {
-        QuickWinsDetector.detectQuickWins(privacyScore)
+    val context = LocalContext.current
+    val maintenanceManager = remember { com.techtrest.privacywidget.data.maintenance.MaintenanceManager(context) }
+    
+    // Manual checks state
+    val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
+    
+    // Quick Wins state (combine regular + manual check wins)
+    val quickWins = remember(privacyScore, checkStates) {
+        val regularWins = QuickWinsDetector.detectQuickWins(privacyScore)
+        val manualWins = QuickWinsDetector.detectManualCheckWins(checkStates)
+        regularWins + manualWins
     }
 
     var selectedQuickWin by remember { mutableStateOf<QuickWin?>(null) }

@@ -31,10 +31,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
+import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.ui.components.AboutDialog
 import com.techtrest.privacywidget.ui.components.BottomNavigationBar
 import com.techtrest.privacywidget.ui.components.PrivacyNavigationDrawer
@@ -42,6 +45,9 @@ import com.techtrest.privacywidget.ui.components.PrivacyTopAppBar
 import com.techtrest.privacywidget.ui.components.ScoringInfoDialog
 import com.techtrest.privacywidget.ui.navigation.NavigationTab
 import com.techtrest.privacywidget.ui.navigation.rememberAppNavigationState
+import com.techtrest.privacywidget.ui.screens.guides.CameraMicGuide
+import com.techtrest.privacywidget.ui.screens.guides.LocationAlwaysOnGuide
+import com.techtrest.privacywidget.ui.screens.guides.UnusedAppsGuide
 import com.techtrest.privacywidget.ui.viewmodel.PrivacyScanState
 import com.techtrest.privacywidget.ui.viewmodel.PrivacyViewModel
 import kotlinx.coroutines.launch
@@ -49,6 +55,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+    val context = LocalContext.current
+    val maintenanceManager = remember { MaintenanceManager(context) }
     val scanState by viewModel.scanState.collectAsState()
     val navigationState = rememberAppNavigationState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -58,6 +66,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showAboutDialog by remember { mutableStateOf(false) }
     var showScoringSystemScreen by remember { mutableStateOf(false) }
     var showManualChecksScreen by remember { mutableStateOf(false) }
+    var showGuideScreen by remember { mutableStateOf<ManualCheckType?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
     PrivacyNavigationDrawer(
@@ -167,7 +176,10 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     onRefresh = {
                                         viewModel.performScan()
                                     },
-                                    isRefreshing = scanState is PrivacyScanState.Scanning
+                                    isRefreshing = scanState is PrivacyScanState.Scanning,
+                                    onNavigateToManualChecks = {
+                                        showManualChecksScreen = true
+                                    }
                                 )
                             }
 
@@ -254,7 +266,48 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     // Manual Checks Screen
     if (showManualChecksScreen) {
         ManualChecksScreen(
-            onBackClick = { showManualChecksScreen = false }
+            onBackClick = { showManualChecksScreen = false },
+            onNavigateToGuide = { checkType ->
+                showGuideScreen = checkType
+            }
         )
+    }
+
+    // Guide Screens
+    when (showGuideScreen) {
+        ManualCheckType.LOCATION_ALWAYS_ON -> {
+            LocationAlwaysOnGuide(
+                onBackClick = { showGuideScreen = null },
+                onMarkDone = {
+                    scope.launch {
+                        maintenanceManager.markCheckCompleted(ManualCheckType.LOCATION_ALWAYS_ON)
+                        showGuideScreen = null
+                    }
+                }
+            )
+        }
+        ManualCheckType.CAMERA_MIC_ACCESS -> {
+            CameraMicGuide(
+                onBackClick = { showGuideScreen = null },
+                onMarkDone = {
+                    scope.launch {
+                        maintenanceManager.markCheckCompleted(ManualCheckType.CAMERA_MIC_ACCESS)
+                        showGuideScreen = null
+                    }
+                }
+            )
+        }
+        ManualCheckType.UNUSED_APPS -> {
+            UnusedAppsGuide(
+                onBackClick = { showGuideScreen = null },
+                onMarkDone = {
+                    scope.launch {
+                        maintenanceManager.markCheckCompleted(ManualCheckType.UNUSED_APPS)
+                        showGuideScreen = null
+                    }
+                }
+            )
+        }
+        null -> { /* No guide screen shown */ }
     }
 }

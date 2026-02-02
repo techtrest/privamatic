@@ -7,23 +7,31 @@ import kotlin.math.max
 object PrivacyScoreCalculator {
 
     private const val MAX_SCORE = 100
+    private const val MAX_MANUAL_CHECK_POINTS = 15
 
     /**
-     * Calculates the privacy score based on detected issues.
+     * Calculates the privacy score based on detected issues and manual check completion.
      *
      * Starts from a maximum score of 100 and deducts points for each insecure issue.
+     * Adds points for completed (non-overdue) manual checks.
      * The score is floored at 0 and cannot go negative.
      *
      * @param issues List of privacy issues detected by scanners
+     * @param manualCheckPoints Points earned from completed manual checks (0-15)
      * @return Calculated privacy score with all issues and timestamp
      */
-    fun calculateScore(issues: List<PrivacyIssue>): PrivacyScore {
+    fun calculateScore(issues: List<PrivacyIssue>, manualCheckPoints: Int = 0): PrivacyScore {
         val totalDeductions = issues
             .filter { !it.isSecure }
             .sumOf { it.pointDeduction }
 
-        // Floor at 0 - score cannot go below 0
-        val score = max(0, MAX_SCORE - totalDeductions)
+        // Calculate deductions from incomplete manual checks
+        val manualCheckDeductions = MAX_MANUAL_CHECK_POINTS - manualCheckPoints
+
+        // Start with MAX_SCORE (100), subtract both privacy issues and manual check deductions
+        // Fresh install: 100 - 0 - 15 = 85/100 (all checks incomplete)
+        // All completed: 100 - 0 - 0 = 100/100 (full points)
+        val score = max(0, MAX_SCORE - totalDeductions - manualCheckDeductions)
 
         return PrivacyScore(
             score = score,

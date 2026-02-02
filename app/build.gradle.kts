@@ -75,6 +75,9 @@ dependencies {
     // Google Play Services - for advertising ID check
     implementation("com.google.android.gms:play-services-ads-identifier:18.1.0")
 
+    // DataStore for preferences persistence
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     // Legacy Android UI (can be removed if fully migrating to Compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

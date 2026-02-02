@@ -1,6 +1,7 @@
 package com.techtrest.privacywidget.data.scanner
 
 import android.content.Context
+import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
 import com.techtrest.privacywidget.data.model.PrivacyIssue
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.scanner.checks.DefaultAppsChecker
@@ -12,6 +13,7 @@ import com.techtrest.privacywidget.data.scanner.checks.NetworkSecurityChecker
 import com.techtrest.privacywidget.data.scanner.checks.SecuritySettingsChecker
 import com.techtrest.privacywidget.data.scanner.checks.SystemServicesChecker
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class PrivacyScanner(private val context: Context) {
@@ -24,6 +26,7 @@ class PrivacyScanner(private val context: Context) {
     private val googleServicesChecker = GoogleServicesChecker(context)
     private val defaultAppsChecker = DefaultAppsChecker(context)
     private val installedAppsChecker = InstalledAppsChecker(context)
+    private val maintenanceManager = MaintenanceManager(context)
 
     suspend fun performCompleteScan(): PrivacyScore = withContext(Dispatchers.IO) {
         val issues = mutableListOf<PrivacyIssue>()
@@ -97,7 +100,10 @@ class PrivacyScanner(private val context: Context) {
         issues.add(installedAppsChecker.checkTwitterInstalled())
         issues.add(installedAppsChecker.checkRedditInstalled())
 
+        // Get manual check points
+        val manualCheckPoints = maintenanceManager.getTotalPoints().first()
+
         // Calculate final score
-        PrivacyScoreCalculator.calculateScore(issues)
+        PrivacyScoreCalculator.calculateScore(issues, manualCheckPoints)
     }
 }

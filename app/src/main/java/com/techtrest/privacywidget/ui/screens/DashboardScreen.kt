@@ -8,27 +8,38 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.TipsAndUpdates
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.techtrest.privacywidget.data.QuickWinsDetector
+import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
 import com.techtrest.privacywidget.data.model.PrivacyCategory
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.model.getSecurityIssuesCount
@@ -46,12 +57,23 @@ fun DashboardScreen(
     navigationState: AppNavigationState,
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
+    onNavigateToManualChecks: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Quick Wins state
-    val quickWins = remember(privacyScore) {
-        QuickWinsDetector.detectQuickWins(privacyScore)
+    val context = LocalContext.current
+    val maintenanceManager = remember { MaintenanceManager(context) }
+
+    // Manual checks state
+    val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
+    val dueSoonCount = checkStates.count { !it.isOverdue && it.daysRemaining <= 7 }
+
+    // Quick Wins state (combine regular + manual check wins)
+    val quickWins = remember(privacyScore, checkStates) {
+        val regularWins = QuickWinsDetector.detectQuickWins(privacyScore)
+        val manualWins = QuickWinsDetector.detectManualCheckWins(checkStates)
+        regularWins + manualWins
     }
+    val overdueCount = QuickWinsDetector.getOverdueManualChecksCount(checkStates)
 
     // Swipe refresh state
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
@@ -71,7 +93,15 @@ fun DashboardScreen(
         // 1. Score Card
         ScoreCard(privacyScore = privacyScore)
 
-        // 2. Summary Cards (no header)
+        // 2. Maintenance Reminder Card (if checks due soon)
+        if (dueSoonCount > 0) {
+            MaintenanceReminderCard(
+                dueSoonCount = dueSoonCount,
+                onNavigateToManualChecks = onNavigateToManualChecks
+            )
+        }
+
+        // 3. Summary Cards (no header)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -112,7 +142,7 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f)
             )
 
-            // Quick Wins (with actual count) - THIRD
+            // Quick Wins (already includes manual check wins) - THIRD
             val quickWinsSubtitle = getIssueCountSubtitle(
                 count = quickWins.size,
                 zeroText = "All Done!",
@@ -131,10 +161,70 @@ fun DashboardScreen(
             )
         }
 
-        // 3. Device Info Card
+        // 4. Device Info Card
         DeviceInfoCard()
 
         Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+/**
+ * Card reminding user about upcoming manual checks.
+ * Shows when checks have ≤7 days remaining but are not overdue.
+ */
+@Composable
+private fun MaintenanceReminderCard(
+    dueSoonCount: Int,
+    onNavigateToManualChecks: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Maintenance Due Soon",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+
+            // Description
+            Text(
+                text = "$dueSoonCount privacy ${if (dueSoonCount == 1) "check needs" else "checks need"} review within the next week",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+
+            // Action Button
+            OutlinedButton(
+                onClick = onNavigateToManualChecks,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Manual Checks")
+            }
         }
     }
 }

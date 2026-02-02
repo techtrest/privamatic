@@ -39,7 +39,7 @@ enum class PrivacyCheck(
     ),
     NOTIFICATION_LISTENER(
         displayName = "Notification Listener Access",
-        pointDeduction = 7,
+        pointDeduction = 5,
         description = "Apps with notification listener permission can read ALL notifications including 2FA codes and messages",
         recommendation = "Review and revoke notification access for non-essential apps in Settings > Apps > Special app access > Notification access."
     ),

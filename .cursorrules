@@ -1,97 +1,37 @@
-# Privacy Guard - Cursor AI Rules
+# Privacy Guard - Essential Rules (Optimized for Token Efficiency)
 
-## Critical: Read First
-ALWAYS read and follow CONVENTIONS.md before making ANY changes.
-Path: /home/techtrest/AndroidStudioProjects/PrivacyWidget/CONVENTIONS.md
+## Material Design 3 - STRICT
+Typography: MaterialTheme.typography ONLY (displayLarge, headlineMedium, titleLarge, bodyMedium)
+Colors: MaterialTheme.colorScheme - Primary: British Racing Green (#0B4619)
+Spacing: 4/8/12/16/24/32dp scale ONLY
+Icons: Material Icons (Icons.Default.*), NO emoji
+Components: Material 3 only, NO custom clickables
 
-## Code Generation Standards
+## Compose - REQUIRED
+Modifier: Last parameter, always `= Modifier` default
+State: Stateless composables, hoist up
+remember: Include dependencies - `remember(key) { }`
+NO business logic in @Composable
 
-### Before Writing Code
-1. Read CONVENTIONS.md completely
-2. Review similar existing code for patterns
-3. Identify potential code duplication
-4. Plan extraction of reusable logic
+## Kotlin Style
+val over var | when over if-else | Immutable data classes
+Extension functions for type-specific logic
+PascalCase classes | camelCase functions | UPPER_SNAKE_CASE constants
 
-### While Writing Code
-- Extract repeated calculations to functions
-- Use extension functions for type-specific operations
-- Memoize expensive operations with remember(dependencies)
-- Never use magic strings or numbers
-- Always use MaterialTheme.typography and colorScheme
-- Follow Material Design spacing scale (4, 8, 12, 16, 24, 32 dp)
+## Architecture
+UI: ui/screens, ui/components (stateless)
+Logic: data/scanner (PrivacyScoreCalculator, QuickWinsDetector as objects)
+Models: data/model (immutable)
 
-### Kotlin Style Requirements
-- Prefer `val` over `var`
-- Use `when` expressions over if-else chains
-- Data classes must be immutable (no `var`)
-- Extension functions for type-specific logic
-- Objects for stateless utilities (Calculator, Detector)
+## Anti-Patterns - REJECT
+❌ Arbitrary fontSize/spacing/colors
+❌ var in data classes
+❌ Business logic in Composables
+❌ Duplicated detection logic (extract to extension function)
+❌ Magic numbers (use named constants)
+❌ Modifier without default
 
-### Compose Requirements
-- Modifier ALWAYS last parameter with `= Modifier` default
-- Composables must be stateless - hoist state up
-- Use `remember(key1, key2) { }` with dependencies explicitly listed
-- NO business logic in Composables - delegate to Calculators
-- Use Material 3 components only (Card, Button, etc.)
-
-### Anti-Patterns to Reject
-- ❌ Duplicated calculation logic (extract to function)
-- ❌ Magic numbers (extract to const val)
-- ❌ Hardcoded colors (#RRGGBB) - use theme
-- ❌ Arbitrary fontSize - use MaterialTheme.typography
-- ❌ Custom spacing - use Material scale
-- ❌ Business logic in Composables
-- ❌ Nullable types without reason
-
-### File Organization
-- Screens: ui/screens/XxxScreen.kt
-- Components: ui/components/XxxComponent.kt
-- Models: data/model/Xxx.kt
-- Logic: data/scanner/ (Calculator, Detector objects)
-
-### Quality Checks Before Completing
-1. No code duplication? (Check for repeated patterns)
-2. No magic strings/numbers? (All extracted to constants)
-3. Follows naming conventions? (PascalCase, camelCase, UPPER_SNAKE_CASE)
-4. Uses theme colors/typography? (No hardcoded values)
-5. Proper Modifier usage? (Last param, default value)
-6. State properly hoisted? (Composables stateless)
-7. Business logic separated? (Not in Composables)
-
-### When Stuck or Unsure
-- Review existing similar code in codebase
-- Check CONVENTIONS.md for specific guidance
-- Ask for clarification rather than guessing
-- Suggest refactoring if existing code violates conventions
-
-## Testing Requirements
-- Code must build successfully
-- No linter warnings
-- Test on actual device/emulator when possible
-- Verify UI matches Material Design 3
-
-## Project-Specific Rules
-
-### Privacy Philosophy
-- Minimal permissions (never request invasive permissions)
-- Transparent about limitations
-- No tracking or analytics
-- F-Droid compatible (no proprietary dependencies)
-
-### Scoring System
-- All point deductions defined in PrivacyCheck enum
-- Use PrivacyScoreCalculator for calculations
-- Never hardcode point values in UI
-- Floor score at 0 (no negative scores)
-
-### UI Design
-- British Racing Green primary color
-- Card-based layouts with 12dp corners, 2dp elevation
-- Consistent iconography (Material Icons)
-- Professional, clean aesthetic
-- No emoji in production UI
-
-## Remember
-Code quality matters. Take time to do it right.
-Consistency across the codebase is more important than individual cleverness.
-When in doubt, follow existing patterns or ask for guidance.
+## Privacy Guard Specific
+Minimal permissions | No tracking | F-Droid compatible
+All points in PrivacyCheck enum | Use PrivacyScoreCalculator
+British Racing Green | Cards: 12dp corners, 2dp elevation
