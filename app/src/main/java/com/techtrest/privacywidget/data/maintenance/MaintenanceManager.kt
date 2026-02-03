@@ -10,7 +10,10 @@ import com.techtrest.privacywidget.data.model.ManualCheckState
 import com.techtrest.privacywidget.data.model.ManualCheckType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.concurrent.TimeUnit
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.math.max
 
 // Top-level DataStore singleton
@@ -57,6 +60,7 @@ class MaintenanceManager(private val context: Context) {
 
     /**
      * Calculate the current state for a manual check.
+     * Uses calendar days (midnight-based) rather than 24-hour periods.
      */
     private fun calculateCheckState(
         type: ManualCheckType,
@@ -65,15 +69,27 @@ class MaintenanceManager(private val context: Context) {
         val key = longPreferencesKey("manual_check_${type.name}_timestamp")
         val lastCompletedTimestamp = preferences[key] ?: 0L
 
-        val currentTime = System.currentTimeMillis()
+        val currentDate = LocalDate.now()
         val daysSinceCompleted = if (lastCompletedTimestamp == 0L) {
             type.periodDays // If never completed, treat as overdue
         } else {
-            TimeUnit.MILLISECONDS.toDays(currentTime - lastCompletedTimestamp).toInt()
+            // Convert timestamp to LocalDate and calculate calendar days between
+            val lastCompletedDate = Instant.ofEpochMilli(lastCompletedTimestamp)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            ChronoUnit.DAYS.between(lastCompletedDate, currentDate).toInt()
         }
 
         val daysRemaining = max(0, type.periodDays - daysSinceCompleted)
-        val fillPercentage = (daysSinceCompleted.toFloat() / type.periodDays.toFloat()).coerceIn(0f, 1f)
+
+        // Calculate fill percentage (0.0 = just completed, 1.0 = due/overdue)
+        // Explicitly handle 0 days to ensure exactly 0.0f with no floating point errors
+        val fillPercentage = if (daysSinceCompleted == 0) {
+            0f
+        } else {
+            (daysSinceCompleted.toFloat() / type.periodDays.toFloat()).coerceIn(0f, 1f)
+        }
+
         val isOverdue = fillPercentage >= 1f
 
         return ManualCheckState(

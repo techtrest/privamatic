@@ -294,6 +294,9 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
             onBackClick = { showManualChecksScreen = false },
             onNavigateToGuide = { checkType ->
                 showGuideScreen = checkType
+            },
+            onRefresh = {
+                viewModel.performScan()
             }
         )
     }
@@ -306,6 +309,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 onMarkDone = {
                     scope.launch {
                         maintenanceManager.markCheckCompleted(ManualCheckType.LOCATION_ALWAYS_ON)
+                        viewModel.performScan()
                         showGuideScreen = null
                     }
                 }
@@ -317,6 +321,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 onMarkDone = {
                     scope.launch {
                         maintenanceManager.markCheckCompleted(ManualCheckType.CAMERA_MIC_ACCESS)
+                        viewModel.performScan()
                         showGuideScreen = null
                     }
                 }
@@ -328,6 +333,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 onMarkDone = {
                     scope.launch {
                         maintenanceManager.markCheckCompleted(ManualCheckType.UNUSED_APPS)
+                        viewModel.performScan()
                         showGuideScreen = null
                     }
                 }

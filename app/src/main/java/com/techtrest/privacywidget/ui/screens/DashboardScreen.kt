@@ -65,15 +65,17 @@ fun DashboardScreen(
 
     // Manual checks state
     val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
+    val overdueCount = checkStates.count { it.isOverdue }
     val dueSoonCount = checkStates.count { !it.isOverdue && it.daysRemaining <= 7 }
+    val overduePoints = checkStates.filter { it.isOverdue }.sumOf { it.type.pointValue }
+    val hasOverdueChecks = overdueCount > 0
+    val hasDueSoon = dueSoonCount > 0
+    val showReminderCard = hasOverdueChecks || hasDueSoon
 
-    // Quick Wins state (combine regular + manual check wins)
-    val quickWins = remember(privacyScore, checkStates) {
-        val regularWins = QuickWinsDetector.detectQuickWins(privacyScore)
-        val manualWins = QuickWinsDetector.detectManualCheckWins(checkStates)
-        regularWins + manualWins
+    // Quick Wins state (only actionable privacy settings, no manual checks)
+    val quickWins = remember(privacyScore) {
+        QuickWinsDetector.detectQuickWins(privacyScore)
     }
-    val overdueCount = QuickWinsDetector.getOverdueManualChecksCount(checkStates)
 
     // Swipe refresh state
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
@@ -93,9 +95,12 @@ fun DashboardScreen(
         // 1. Score Card
         ScoreCard(privacyScore = privacyScore)
 
-        // 2. Maintenance Reminder Card (if checks due soon)
-        if (dueSoonCount > 0) {
+        // 2. Maintenance Reminder Card (if checks overdue or due soon)
+        if (showReminderCard) {
             MaintenanceReminderCard(
+                hasOverdueChecks = hasOverdueChecks,
+                overdueCount = overdueCount,
+                overduePoints = overduePoints,
                 dueSoonCount = dueSoonCount,
                 onNavigateToManualChecks = onNavigateToManualChecks
             )
@@ -170,19 +175,42 @@ fun DashboardScreen(
 }
 
 /**
- * Card reminding user about upcoming manual checks.
- * Shows when checks have ≤7 days remaining but are not overdue.
+ * Card reminding user about manual privacy checks.
+ * Shows when checks are overdue OR have ≤7 days remaining.
+ * Context-aware messaging based on fresh install vs overdue checks.
  */
 @Composable
 private fun MaintenanceReminderCard(
+    hasOverdueChecks: Boolean,
+    overdueCount: Int,
+    overduePoints: Int,
     dueSoonCount: Int,
     onNavigateToManualChecks: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Determine if this is a fresh install (all checks overdue with max points possible)
+    val isFreshInstall = overdueCount == 3 && overduePoints == 15
+
+    val (title, description) = when {
+        isFreshInstall -> {
+            "Privacy Reviews Available" to "Complete 3 initial privacy reviews to earn +15 points"
+        }
+        hasOverdueChecks -> {
+            "Maintenance Overdue" to "Complete $overdueCount overdue privacy ${if (overdueCount == 1) "review" else "reviews"} to restore +$overduePoints points"
+        }
+        else -> {
+            "Maintenance Due Soon" to "$dueSoonCount privacy ${if (dueSoonCount == 1) "check needs" else "checks need"} review within the next week"
+        }
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = if (hasOverdueChecks) {
+                MaterialTheme.colorScheme.tertiaryContainer
+            } else {
+                MaterialTheme.colorScheme.secondaryContainer
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -200,22 +228,34 @@ private fun MaintenanceReminderCard(
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    tint = if (hasOverdueChecks) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    },
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Maintenance Due Soon",
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = if (hasOverdueChecks) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    }
                 )
             }
 
             // Description
             Text(
-                text = "$dueSoonCount privacy ${if (dueSoonCount == 1) "check needs" else "checks need"} review within the next week",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = if (hasOverdueChecks) {
+                    MaterialTheme.colorScheme.onTertiaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                }
             )
 
             // Action Button

@@ -50,16 +50,10 @@ fun ActionsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val maintenanceManager = remember { com.techtrest.privacywidget.data.maintenance.MaintenanceManager(context) }
-    
-    // Manual checks state
-    val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
-    
-    // Quick Wins state (combine regular + manual check wins)
-    val quickWins = remember(privacyScore, checkStates) {
-        val regularWins = QuickWinsDetector.detectQuickWins(privacyScore)
-        val manualWins = QuickWinsDetector.detectManualCheckWins(checkStates)
-        regularWins + manualWins
+
+    // Quick Wins state (only actionable privacy settings)
+    val quickWins = remember(privacyScore) {
+        QuickWinsDetector.detectQuickWins(privacyScore)
     }
 
     var selectedQuickWin by remember { mutableStateOf<QuickWin?>(null) }

@@ -1,7 +1,5 @@
 package com.techtrest.privacywidget.data
 
-import com.techtrest.privacywidget.data.model.ManualCheckState
-import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.data.model.PrivacyCheck
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.model.QuickWin
@@ -104,44 +102,5 @@ object QuickWinsDetector {
      */
     private fun extractAppName(status: String): String? {
         return status.removePrefix("Using ").takeIf { it != status }
-    }
-
-    /**
-     * Generate QuickWin items for overdue manual checks.
-     * These appear in the Quick Wins list alongside regular improvements.
-     */
-    fun detectManualCheckWins(checkStates: List<ManualCheckState>): List<QuickWin> {
-        return checkStates.filter { it.isOverdue }.map { state ->
-            QuickWin(
-                type = when (state.type) {
-                    ManualCheckType.LOCATION_ALWAYS_ON -> QuickWinType.MANUAL_LOCATION_CHECK
-                    ManualCheckType.CAMERA_MIC_ACCESS -> QuickWinType.MANUAL_CAMERA_MIC_CHECK
-                    ManualCheckType.UNUSED_APPS -> QuickWinType.MANUAL_UNUSED_APPS_CHECK
-                },
-                relatedCheck = null,
-                manualCheckPoints = state.type.pointValue
-            )
-        }
-    }
-
-    /**
-     * Get count of overdue manual checks that need attention.
-     * These should be displayed alongside regular Quick Wins.
-     *
-     * @param checkStates Current state of all manual checks
-     * @return Count of overdue checks
-     */
-    fun getOverdueManualChecksCount(checkStates: List<ManualCheckState>): Int {
-        return checkStates.count { it.isOverdue }
-    }
-
-    /**
-     * Get total potential points from overdue manual checks.
-     *
-     * @param checkStates Current state of all manual checks
-     * @return Total points that could be gained
-     */
-    fun getOverdueManualChecksPoints(checkStates: List<ManualCheckState>): Int {
-        return checkStates.filter { it.isOverdue }.sumOf { it.type.pointValue }
     }
 }

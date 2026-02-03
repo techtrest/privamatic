@@ -3,15 +3,19 @@ package com.techtrest.privacywidget.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -21,8 +25,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -107,16 +111,30 @@ fun ManualCheckCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Progress Bar
+            // Custom progress bar without rounded caps to avoid visual dot
+            // Fill direction: Left-to-right as time passes toward deadline
+            // - 0% (just completed): Completely grey, no green visible
+            // - 50% (halfway to deadline): Half green (left side), half grey (right side)
+            // - 100% (due/overdue): Completely green from left to right
             val progressColor = getProgressColor(checkState)
-            LinearProgressIndicator(
-                progress = { checkState.fillPercentage },
+            val progressValue = checkState.fillPercentage.coerceIn(0f, 1f)
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp),
-                color = progressColor,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                if (progressValue > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(progressValue)
+                            .background(progressColor)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

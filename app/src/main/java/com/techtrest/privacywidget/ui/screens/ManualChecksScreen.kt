@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
  *
  * @param onBackClick Callback when back button is clicked
  * @param onNavigateToGuide Callback to navigate to a specific guide screen
+ * @param onRefresh Callback to refresh the dashboard score after marking checks as done
  * @param modifier Modifier for the screen
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 fun ManualChecksScreen(
     onBackClick: () -> Unit,
     onNavigateToGuide: (ManualCheckType) -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -105,6 +107,7 @@ fun ManualChecksScreen(
                     onMarkDone = {
                         scope.launch {
                             maintenanceManager.markCheckCompleted(checkState.type)
+                            onRefresh()
                         }
                     }
                 )

@@ -156,68 +156,13 @@ enum class QuickWinType(
 
             After completing this, rescan to see your improved score!
         """.trimIndent()
-    ),
-
-    MANUAL_LOCATION_CHECK(
-        title = "Review Always-On Location Access",
-        description = "Check which apps have 24/7 location access",
-        timeEstimate = "3 minutes",
-        icon = Icons.Default.LocationOff,
-        instructions = """
-            Some apps request "Always Allow" location access, tracking you 24/7 even when not using the app.
-
-            Steps:
-            1. Open Privacy Guard
-            2. Go to 'Manual Checks' tab
-            3. Tap 'Location Always-On Apps'
-            4. Follow the guide to review and restrict location permissions
-
-            This manual check awards +5 points when completed!
-        """.trimIndent()
-    ),
-
-    MANUAL_CAMERA_MIC_CHECK(
-        title = "Review Camera & Microphone Permissions",
-        description = "Audit which apps can access camera and microphone",
-        timeEstimate = "3 minutes",
-        icon = Icons.Default.PhoneAndroid,
-        instructions = """
-            Many apps request camera and microphone permissions they don't actually need.
-
-            Steps:
-            1. Open Privacy Guard
-            2. Go to 'Manual Checks' tab
-            3. Tap 'Camera & Mic Access'
-            4. Follow the guide to review and revoke unnecessary permissions
-
-            This manual check awards +5 points when completed!
-        """.trimIndent()
-    ),
-
-    MANUAL_UNUSED_APPS_CHECK(
-        title = "Review Unused Apps",
-        description = "Find and remove apps you no longer use",
-        timeEstimate = "5 minutes",
-        icon = Icons.Default.PhoneAndroid,
-        instructions = """
-            Unused apps still have permissions and can collect data in the background.
-
-            Steps:
-            1. Open Privacy Guard
-            2. Go to 'Manual Checks' tab
-            3. Tap 'Unused Apps Audit'
-            4. Follow the guide to identify and uninstall unused apps
-
-            This manual check awards +5 points when completed!
-        """.trimIndent()
     )
 }
 
 data class QuickWin(
     val type: QuickWinType,
     val relatedCheck: PrivacyCheck?,
-    val currentAppName: String? = null,
-    val manualCheckPoints: Int = 0
+    val currentAppName: String? = null
 ) {
     /**
      * Get dynamic title based on current app name
@@ -232,9 +177,9 @@ data class QuickWin(
         }
 
     /**
-     * Get impact (point value) from the related PrivacyCheck or manual check points
+     * Get impact (point value) from the related PrivacyCheck
      * This ensures synchronization across all displays - the PrivacyCheck enum is the single source of truth
      */
     val impact: Int
-        get() = relatedCheck?.pointDeduction ?: manualCheckPoints
+        get() = relatedCheck?.pointDeduction ?: 0
 }

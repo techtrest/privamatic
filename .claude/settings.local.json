@@ -7,7 +7,8 @@
       "Bash(./gradlew lintDebug:*)",
       "WebFetch(domain:www.gnu.org)",
       "Bash(./gradlew build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(./gradlew compileDebugKotlin:*)"
     ]
   }
 }
