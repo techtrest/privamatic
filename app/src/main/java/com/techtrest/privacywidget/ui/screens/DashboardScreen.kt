@@ -77,6 +77,11 @@ fun DashboardScreen(
         QuickWinsDetector.detectQuickWins(privacyScore)
     }
 
+    // Total actionable items (Quick Wins + overdue Manual Checks)
+    val totalActions = remember(quickWins, overdueCount) {
+        quickWins.size + overdueCount
+    }
+
     // Swipe refresh state
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
@@ -147,17 +152,17 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f)
             )
 
-            // Quick Wins (already includes manual check wins) - THIRD
-            val quickWinsSubtitle = getIssueCountSubtitle(
-                count = quickWins.size,
+            // Actions (Quick Wins + overdue Manual Checks) - THIRD
+            val actionsSubtitle = getIssueCountSubtitle(
+                count = totalActions,
                 zeroText = "All Done!",
-                singleText = "1 Available",
-                pluralSuffix = "Available"
+                singleText = "1 Total",
+                pluralSuffix = "Total"
             )
 
             SummaryCard(
-                title = "Quick Wins",
-                subtitle = quickWinsSubtitle,
+                title = "Actions",
+                subtitle = actionsSubtitle,
                 icon = Icons.Default.TipsAndUpdates,
                 onClick = {
                     navigationState.selectTab(NavigationTab.ACTIONS)
