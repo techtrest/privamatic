@@ -8,7 +8,10 @@
       "WebFetch(domain:www.gnu.org)",
       "Bash(./gradlew build:*)",
       "Bash(grep:*)",
-      "Bash(./gradlew compileDebugKotlin:*)"
+      "Bash(./gradlew compileDebugKotlin:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFeature: Rename Dashboard Quick Wins tile to Actions with combined count\n\nUpdate Dashboard''s third summary tile to better reflect its purpose as an\naction queue preview. The \"Actions\" tile now shows the total count of all\nactionable items \\(Quick Wins + overdue Manual Checks\\) instead of just\nQuick Wins.\n\nChanges:\n- Rename tile from \"Quick Wins\" to \"Actions\"\n- Calculate total actionable items: Quick Wins + overdue Manual Checks\n- Update subtitle to show \"X Total\" \\(was \"X Available\"\\)\n- Maintain \"All Done!\" display when no actions pending\n- Navigation to Actions tab remains unchanged\n\nThis aligns with the Dashboard''s UX philosophy as a status display that\npreviews work available in the Actions tab.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)"
     ]
   }
 }
