@@ -63,6 +63,9 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Manual checks state (needed for Actions tab)
+    val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
+
     var showInfoDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showScoringSystemScreen by remember { mutableStateOf(false) }
@@ -210,7 +213,17 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
                             NavigationTab.ACTIONS -> {
                                 ActionsScreen(
-                                    privacyScore = state.privacyScore
+                                    privacyScore = state.privacyScore,
+                                    checkStates = checkStates,
+                                    onNavigateToGuide = { checkType ->
+                                        showGuideScreen = checkType
+                                    },
+                                    onMarkCheckDone = { checkType ->
+                                        scope.launch {
+                                            maintenanceManager.markCheckCompleted(checkType)
+                                            viewModel.performScan()
+                                        }
+                                    }
                                 )
                             }
 
