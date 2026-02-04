@@ -20,6 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.TipsAndUpdates
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,18 +38,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.QuickWinsDetector
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.model.QuickWin
 import com.techtrest.privacywidget.data.model.QuickWinType
+import com.techtrest.privacywidget.data.model.ManualCheckState
+import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.ui.components.InstructionsDialog
+import com.techtrest.privacywidget.ui.components.ManualCheckCard
 import com.techtrest.privacywidget.ui.components.PrivacyWins
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun ActionsScreen(
     privacyScore: PrivacyScore,
+    checkStates: List<ManualCheckState>,
+    onNavigateToGuide: (ManualCheckType) -> Unit,
+    onMarkCheckDone: (ManualCheckType) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -65,7 +80,36 @@ fun ActionsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Quick Wins Section Card
+        // 1. Status & Notifications Tile
+        StatusNotificationsTile(
+            checkStates = checkStates,
+            quickWinsCount = quickWins.size
+        )
+
+        // 2. Regular Maintenance Section
+        Text(
+            text = "Regular Maintenance",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "Review these privacy settings regularly:",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Manual Check Cards
+        checkStates.forEach { checkState ->
+            ManualCheckCard(
+                checkState = checkState,
+                onViewGuide = { onNavigateToGuide(checkState.type) },
+                onMarkDone = { onMarkCheckDone(checkState.type) }
+            )
+        }
+
+        // 3. Quick Wins Section Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -153,7 +197,7 @@ fun ActionsScreen(
             }
         }
 
-        // Privacy Wins Section
+        // 4. Privacy Wins Section
         PrivacyWins(
             privacyScore = privacyScore,
             initialExpanded = true
@@ -241,3 +285,158 @@ private fun QuickWinItem(
         }
     }
 }
+
+/**
+ * Adaptive status tile that changes based on actionable items state.
+ * Shows different messages and colors based on priority:
+ * 1. Manual checks overdue (red/urgent)
+ * 2. Manual checks due soon (yellow/warning)
+ * 3. Quick wins available (blue/informational)
+ * 4. Everything complete (green/success)
+ *
+ * @param checkStates List of manual check states
+ * @param quickWinsCount Number of available quick wins
+ * @param modifier Modifier for the card
+ */
+@Composable
+private fun StatusNotificationsTile(
+    checkStates: List<ManualCheckState>,
+    quickWinsCount: Int,
+    modifier: Modifier = Modifier
+) {
+    val overdueCount = checkStates.count { it.isOverdue }
+    val dueSoonCount = checkStates.count { !it.isOverdue && it.daysRemaining <= 7 }
+    val overduePoints = checkStates.filter { it.isOverdue }.sumOf { it.type.pointValue }
+    val hasOverdueChecks = overdueCount > 0
+    val hasDueSoon = dueSoonCount > 0
+    val hasQuickWins = quickWinsCount > 0
+
+    // Calculate next review date (earliest non-overdue check)
+    val nextReviewDate = remember(checkStates) {
+        checkStates
+            .filter { !it.isOverdue && it.lastCompletedTimestamp > 0 }
+            .minByOrNull { it.daysRemaining }
+            ?.let { state ->
+                val completedDate = Instant.ofEpochMilli(state.lastCompletedTimestamp)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                completedDate.plusDays(state.type.periodDays.toLong())
+                    .format(DateTimeFormatter.ofPattern("MMMM d, yyyy"))
+            }
+    }
+
+    // Determine tile state based on priority
+    val tileState = when {
+        hasOverdueChecks -> TileState.OVERDUE
+        hasDueSoon -> TileState.DUE_SOON
+        hasQuickWins -> TileState.QUICK_WINS_AVAILABLE
+        else -> TileState.ALL_COMPLETE
+    }
+
+    // Get appropriate content based on state
+    val (icon, title, description, containerColor, contentColor) = when (tileState) {
+        TileState.OVERDUE -> {
+            val pointText = if (overduePoints > 0) "$overduePoints points" else "points"
+            TileContent(
+                icon = Icons.Default.ErrorOutline,
+                title = "Manual Checks Overdue",
+                description = "Your privacy score has been reduced by $pointText. Complete reviews to restore your score.",
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        }
+        TileState.DUE_SOON -> {
+            val daysText = if (dueSoonCount == 1) {
+                val state = checkStates.first { !it.isOverdue && it.daysRemaining <= 7 }
+                if (state.daysRemaining == 1) "1 day" else "${state.daysRemaining} days"
+            } else {
+                "7 days"
+            }
+            TileContent(
+                icon = Icons.Default.Warning,
+                title = "Manual Checks Due Soon",
+                description = "$dueSoonCount ${if (dueSoonCount == 1) "review" else "reviews"} needed in $daysText to maintain your +15 point bonus.",
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+        TileState.QUICK_WINS_AVAILABLE -> {
+            TileContent(
+                icon = Icons.Default.TipsAndUpdates,
+                title = "Quick Wins Available",
+                description = "$quickWinsCount easy privacy ${if (quickWinsCount == 1) "improvement is" else "improvements are"} ready to boost your score.",
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+        TileState.ALL_COMPLETE -> {
+            val nextReviewText = nextReviewDate?.let { "Next manual review: $it" } ?: "Keep up the great work!"
+            TileContent(
+                icon = Icons.Default.CheckCircle,
+                title = "All Caught Up!",
+                description = "Great privacy hygiene! $nextReviewText",
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(32.dp)
+            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = contentColor
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor
+                )
+            }
+        }
+    }
+}
+
+/**
+ * States for the status notifications tile.
+ */
+private enum class TileState {
+    OVERDUE,
+    DUE_SOON,
+    QUICK_WINS_AVAILABLE,
+    ALL_COMPLETE
+}
+
+/**
+ * Data class holding tile content.
+ */
+private data class TileContent(
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val title: String,
+    val description: String,
+    val containerColor: Color,
+    val contentColor: Color
+)
