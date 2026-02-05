@@ -70,6 +70,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showInfoDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showScoringSystemScreen by remember { mutableStateOf(false) }
+    var showManualCheckDetail by remember { mutableStateOf<ManualCheckType?>(null) }
     var showGuideScreen by remember { mutableStateOf<ManualCheckType?>(null) }
     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
     val sheetState = rememberModalBottomSheetState()
@@ -207,7 +208,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     privacyScore = state.privacyScore,
                                     checkStates = checkStates,
                                     onNavigateToGuide = { checkType ->
-                                        showGuideScreen = checkType
+                                        showManualCheckDetail = checkType
                                     },
                                     onMarkCheckDone = { checkType ->
                                         scope.launch {
@@ -293,6 +294,28 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
         ScoringSystemScreen(
             onBackClick = { showScoringSystemScreen = false }
         )
+    }
+
+    // Manual Check Detail Screen
+    showManualCheckDetail?.let { checkType ->
+        val checkState = checkStates.find { it.type == checkType }
+        checkState?.let { state ->
+            ManualCheckDetailScreen(
+                checkState = state,
+                onBackClick = { showManualCheckDetail = null },
+                onViewGuide = {
+                    showManualCheckDetail = null
+                    showGuideScreen = checkType
+                },
+                onMarkDone = {
+                    scope.launch {
+                        maintenanceManager.markCheckCompleted(checkType)
+                        viewModel.performScan()
+                        showManualCheckDetail = null
+                    }
+                }
+            )
+        }
     }
 
     // Guide Screens
