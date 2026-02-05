@@ -1,7 +1,5 @@
 package com.techtrest.privacywidget.ui.screens
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,13 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -36,14 +30,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.QuickWinsDetector
 import com.techtrest.privacywidget.data.model.PrivacyScore
@@ -53,7 +45,6 @@ import com.techtrest.privacywidget.data.model.ManualCheckState
 import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.ui.components.InstructionsDialog
 import com.techtrest.privacywidget.ui.components.ManualCheckCard
-import kotlinx.coroutines.launch
 
 @Composable
 fun ActionsScreen(
@@ -65,8 +56,6 @@ fun ActionsScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
-    val density = LocalDensity.current
 
     // Quick Wins state (only actionable privacy settings)
     val quickWins = remember(privacyScore) {
@@ -75,14 +64,6 @@ fun ActionsScreen(
 
     var selectedQuickWin by remember { mutableStateOf<QuickWin?>(null) }
 
-    // Calculate estimated scroll position for Quick Wins section
-    // Hero (~200dp) + spacing (16dp) + title (28dp) + spacing (16dp) + manual checks (~150dp each collapsed) + spacing (16dp per card)
-    val quickWinsScrollTarget = remember(checkStates.size) {
-        with(density) {
-            (200.dp + 16.dp + 28.dp + 16.dp + (150 * checkStates.size).dp + (16 * checkStates.size).dp).toPx().toInt()
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -90,39 +71,7 @@ fun ActionsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Hero Section - Actions Overview
-        ActionsOverviewHero(
-            quickWinsCount = quickWins.size,
-            checkStates = checkStates,
-            onScrollToQuickWins = {
-                coroutineScope.launch {
-                    scrollState.animateScrollTo(
-                        value = quickWinsScrollTarget,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        )
-                    )
-                }
-            }
-        )
-
-        // 2. Manual Checks Section - Expandable Cards
-        Text(
-            text = "Manual Checks",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        checkStates.forEach { checkState ->
-            ManualCheckCard(
-                checkState = checkState,
-                onViewGuide = { onNavigateToGuide(checkState.type) },
-                onMarkDone = { onMarkCheckDone(checkState.type) }
-            )
-        }
-
-        // 3. Quick Wins Section
+        // 1. Quick Wins Section
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -213,6 +162,21 @@ fun ActionsScreen(
                 }
             }
         }
+
+        // 2. Manual Checks Section
+        Text(
+            text = "Manual Checks",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        checkStates.forEach { checkState ->
+            ManualCheckCard(
+                checkState = checkState,
+                onViewGuide = { onNavigateToGuide(checkState.type) },
+                onMarkDone = { onMarkCheckDone(checkState.type) }
+            )
+        }
     }
 
     // Show Instructions Dialog
@@ -221,137 +185,6 @@ fun ActionsScreen(
             quickWin = quickWin,
             onDismiss = { selectedQuickWin = null }
         )
-    }
-}
-
-/**
- * Card-in-card hero section showing Actions Overview.
- * Outer card with header, inner card with status and adaptive messaging.
- * Includes scroll anchor to jump to Quick Wins section.
- */
-@Composable
-private fun ActionsOverviewHero(
-    quickWinsCount: Int,
-    checkStates: List<ManualCheckState>,
-    onScrollToQuickWins: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val overdueCount = checkStates.count { it.isOverdue }
-    val dueSoonCount = checkStates.count { !it.isOverdue && it.daysRemaining <= 7 }
-
-    // Determine state priority
-    val hasOverdueChecks = overdueCount > 0
-    val hasDueSoon = dueSoonCount > 0
-    val hasQuickWins = quickWinsCount > 0
-
-    // Get manual checks status text
-    val checksStatusText = when {
-        hasOverdueChecks -> "$overdueCount overdue"
-        hasDueSoon -> "$dueSoonCount due soon"
-        else -> "All complete"
-    }
-
-    // Get adaptive message and inner card colors
-    val (message, innerContainerColor) = when {
-        hasOverdueChecks -> Pair(
-            "Complete overdue checks to restore your privacy score.",
-            MaterialTheme.colorScheme.errorContainer
-        )
-        hasDueSoon -> Pair(
-            "Stay on top of reviews to maintain your +15 point bonus.",
-            MaterialTheme.colorScheme.tertiaryContainer
-        )
-        hasQuickWins -> Pair(
-            "Complete Quick Wins to boost your privacy score.",
-            MaterialTheme.colorScheme.primaryContainer
-        )
-        else -> Pair(
-            "Great privacy hygiene! Keep up the excellent work.",
-            MaterialTheme.colorScheme.secondaryContainer
-        )
-    }
-
-    // Outer card (like Quick Wins section)
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Header with title and scroll anchor
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Bolt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Actions Overview",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-                if (quickWinsCount > 0) {
-                    IconButton(
-                        onClick = onScrollToQuickWins,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Scroll to Quick Wins",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Inner content card (like Quick Wins items)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                color = innerContainerColor
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Quick Wins count
-                    Text(
-                        text = "Quick Wins: $quickWinsCount available",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    // Manual Checks status
-                    Text(
-                        text = "Manual Checks: $checksStatusText",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Adaptive message
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
     }
 }
 
