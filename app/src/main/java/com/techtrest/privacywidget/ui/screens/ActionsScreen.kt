@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.QuickWinsDetector
 import com.techtrest.privacywidget.data.model.PrivacyScore
@@ -108,15 +109,12 @@ fun ActionsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            checkStates.forEach { checkState ->
-                ManualCheckGarminRow(
-                    checkState = checkState,
-                    onClick = { onNavigateToGuide(checkState.type) }
-                )
-            }
+        // Edge-to-edge rows with no spacing between them
+        checkStates.forEach { checkState ->
+            ManualCheckGarminRow(
+                checkState = checkState,
+                onClick = { onNavigateToGuide(checkState.type) }
+            )
         }
     }
 }
@@ -206,7 +204,9 @@ private fun QuickWinCompactTile(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.width(120.dp),
+        modifier = modifier
+            .width(120.dp)
+            .height(120.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -214,18 +214,20 @@ private fun QuickWinCompactTile(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+                .fillMaxSize()
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             // Icon at top
             Icon(
                 imageVector = quickWin.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Short name (1-2 words)
             val shortName = when (quickWin.type) {
@@ -239,16 +241,20 @@ private fun QuickWinCompactTile(
 
             Text(
                 text = shortName,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2
+                maxLines = 2,
+                textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Point value
             Text(
                 text = "+${quickWin.impact}pts",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -262,7 +268,9 @@ private fun QuickWinAllDoneTile(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.width(120.dp),
+        modifier = modifier
+            .width(120.dp)
+            .height(120.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
@@ -270,26 +278,30 @@ private fun QuickWinAllDoneTile(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+                .fillMaxSize()
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "All Done!",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Great work",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -298,7 +310,7 @@ private fun QuickWinAllDoneTile(
 /**
  * Garmin-style full-width row for Manual Checks.
  * Icon vertically centered on left, title/progress/status on right.
- * No card elevation, subtle press state.
+ * No card elevation, subtle press state, edge-to-edge layout.
  */
 @Composable
 private fun ManualCheckGarminRow(
@@ -318,20 +330,25 @@ private fun ManualCheckGarminRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon - vertically centered on left
+            // Icon - vertically centered on left with start padding
             Icon(
                 imageVector = checkState.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .padding(start = 16.dp)
             )
+
+            Spacer(modifier = Modifier.width(16.dp))
 
             // Content - title, progress, status
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // Title
