@@ -3,7 +3,10 @@ package com.techtrest.privacywidget.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.techtrest.privacywidget.PrivacyWidgetProvider
+import com.techtrest.privacywidget.data.ScoreHistoryRepository
 import com.techtrest.privacywidget.data.model.PrivacyScore
+import com.techtrest.privacywidget.data.model.ScoreHistory
 import com.techtrest.privacywidget.data.scanner.PrivacyScanner
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -23,9 +26,13 @@ sealed class PrivacyScanState {
 class PrivacyViewModel(application: Application) : AndroidViewModel(application) {
 
     private val privacyScanner = PrivacyScanner(application)
+    private val scoreHistoryRepository = ScoreHistoryRepository(application)
 
     private val _scanState = MutableStateFlow<PrivacyScanState>(PrivacyScanState.Idle)
     val scanState: StateFlow<PrivacyScanState> = _scanState.asStateFlow()
+
+    private val _scoreHistory = MutableStateFlow<ScoreHistory?>(null)
+    val scoreHistory: StateFlow<ScoreHistory?> = _scoreHistory.asStateFlow()
 
     private var isInitialLoad = true
 
@@ -45,6 +52,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
                 if (isInitialLoad) {
                     // Initial load: show results immediately
                     val result = scanDeferred.await()
+                    _scoreHistory.value = scoreHistoryRepository.recordScore(result.score)
                     _scanState.value = PrivacyScanState.Success(result)
                     isInitialLoad = false
                 } else {
@@ -56,8 +64,11 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
 
                     // Get the scan result
                     val result = scanDeferred.await()
+                    _scoreHistory.value = scoreHistoryRepository.recordScore(result.score)
                     _scanState.value = PrivacyScanState.Success(result)
                 }
+                // Keep the home screen widget in sync with the latest scan result
+                PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
             } catch (e: Exception) {
                 _scanState.value = PrivacyScanState.Error(
                     e.message ?: "An unknown error occurred during scanning"

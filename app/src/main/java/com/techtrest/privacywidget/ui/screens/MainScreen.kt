@@ -4,10 +4,13 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -24,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
 import com.techtrest.privacywidget.data.model.ManualCheckType
+import com.techtrest.privacywidget.data.model.ScoreHistory
 import com.techtrest.privacywidget.data.model.QuickWin
 import com.techtrest.privacywidget.ui.components.AboutDialog
 import com.techtrest.privacywidget.ui.components.BottomNavigationBar
@@ -60,6 +66,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val context = LocalContext.current
     val maintenanceManager = remember { MaintenanceManager(context) }
     val scanState by viewModel.scanState.collectAsState()
+    val scoreHistory by viewModel.scoreHistory.collectAsState()
     val navigationState = rememberAppNavigationState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -74,6 +81,24 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showGuideScreen by remember { mutableStateOf<ManualCheckType?>(null) }
     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
     val sheetState = rememberModalBottomSheetState()
+
+    val pagerState = rememberPagerState(pageCount = { NavigationTab.entries.size })
+
+    // Sync: pager fully settles → update bottom nav selection.
+    // Uses settledPage instead of currentPage to avoid firing mid-animation,
+    // which would cause a circular feedback loop and hijack programmatic navigation.
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { page ->
+            navigationState.selectTab(NavigationTab.entries[page])
+        }
+    }
+
+    // Sync: user taps bottom nav or tile click → animate pager to that page
+    LaunchedEffect(navigationState.selectedTab) {
+        if (pagerState.currentPage != navigationState.selectedTab.ordinal) {
+            pagerState.animateScrollToPage(navigationState.selectedTab.ordinal)
+        }
+    }
 
     // Handle back gesture with proper navigation hierarchy
     // Note: Guide screens handle their own back gesture via BackHandler in each guide
@@ -144,6 +169,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .consumeWindowInsets(paddingValues)
             ) {
                 when (val state = scanState) {
                     is PrivacyScanState.Idle -> {
@@ -187,11 +213,15 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                     }
 
                     is PrivacyScanState.Success -> {
-                        // Show selected tab content
-                        when (navigationState.selectedTab) {
-                            NavigationTab.DASHBOARD -> {
-                                DashboardScreen(
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize(),
+                            beyondViewportPageCount = 1
+                        ) { page ->
+                            when (page) {
+                                0 -> DashboardScreen(
                                     privacyScore = state.privacyScore,
+                                    scoreHistory = scoreHistory,
                                     navigationState = navigationState,
                                     onRefresh = {
                                         viewModel.performScan()
@@ -201,10 +231,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                         navigationState.selectTab(NavigationTab.ACTIONS)
                                     }
                                 )
-                            }
-
-                            NavigationTab.ACTIONS -> {
-                                ActionsScreen(
+                                1 -> ActionsScreen(
                                     privacyScore = state.privacyScore,
                                     checkStates = checkStates,
                                     onNavigateToGuide = { checkType ->
@@ -220,10 +247,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                         showQuickWinDetail = quickWin
                                     }
                                 )
-                            }
-
-                            NavigationTab.DETAILS -> {
-                                DetailsScreen(
+                                else -> DetailsScreen(
                                     privacyScore = state.privacyScore,
                                     selectedSubTab = navigationState.selectedDetailsSubTab,
                                     onSubTabSelected = { navigationState.selectDetailsSubTab(it) }

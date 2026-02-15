@@ -3,11 +3,14 @@ package com.techtrest.privacywidget.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,6 +32,7 @@ import com.techtrest.privacywidget.data.QuickWinsDetector
 import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
 import com.techtrest.privacywidget.data.model.PrivacyCategory
 import com.techtrest.privacywidget.data.model.PrivacyScore
+import com.techtrest.privacywidget.data.model.ScoreHistory
 import com.techtrest.privacywidget.data.model.getSecurityIssuesCount
 import com.techtrest.privacywidget.data.model.getTrackingIssuesCount
 import com.techtrest.privacywidget.ui.components.DeviceInfoCard
@@ -41,6 +45,7 @@ import com.techtrest.privacywidget.ui.navigation.NavigationTab
 @Composable
 fun DashboardScreen(
     privacyScore: PrivacyScore,
+    scoreHistory: ScoreHistory?,
     navigationState: AppNavigationState,
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
@@ -76,7 +81,9 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
         // 1. Score Card
@@ -143,9 +150,7 @@ fun DashboardScreen(
         }
 
         // 3. Device Info Card
-        DeviceInfoCard()
-
-        Spacer(modifier = Modifier.height(16.dp))
+        DeviceInfoCard(scoreHistory = scoreHistory)
         }
     }
 }

@@ -2,4 +2,15 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Widget colors – light mode static fallback (API 26–30).
+         API 31+ is overridden by values-v31/colors.xml using Material You dynamic tokens.
+         All values follow MD3 reference palette; no brand-specific colors. -->
+
+    <color name="widget_background">#FFFBFE</color>   <!-- MD3 surface -->
+    <color name="widget_primary_text">#1C1B1F</color> <!-- MD3 on-surface -->
+    <color name="widget_secondary_text">#49454F</color> <!-- MD3 on-surface-variant -->
+    <color name="widget_divider">#CAC4D0</color>      <!-- MD3 outline-variant -->
+    <color name="widget_privacy_increase">#0B4619</color>  <!-- British Racing Green / primary -->
+    <color name="widget_privacy_decrease">#BA1A1A</color> <!-- MD3 error red -->
 </resources>
