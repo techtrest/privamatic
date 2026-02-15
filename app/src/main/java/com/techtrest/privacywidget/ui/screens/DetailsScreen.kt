@@ -1,23 +1,21 @@
 package com.techtrest.privacywidget.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.model.PrivacyCategory
@@ -33,90 +31,71 @@ fun DetailsScreen(
     onSubTabSelected: (DetailsSubTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    val filteredCategories = remember(selectedSubTab, privacyScore) {
+        val categories = when (selectedSubTab) {
+            DetailsSubTab.SURVEILLANCE -> listOf(
+                PrivacyCategory.NETWORK_PRIVACY,
+                PrivacyCategory.GOOGLE_SERVICES,
+                PrivacyCategory.DEFAULT_APPS,
+                PrivacyCategory.GOOGLE_APPS,
+                PrivacyCategory.META_FACEBOOK_APPS,
+                PrivacyCategory.MICROSOFT_APPS,
+                PrivacyCategory.AI_AND_OTHER_APPS
+            )
+            DetailsSubTab.SECURITY -> listOf(
+                PrivacyCategory.SYSTEM_SECURITY
+            )
+        }
+        categories.filter { category ->
+            PrivacyCategory.getIssuesForCategory(category, privacyScore).isNotEmpty()
+        }
+    }
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Header
-        Text(
-            text = "Privacy Details",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Sub-Tab Selector - SegmentedButton
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            SegmentedButton(
-                selected = selectedSubTab == DetailsSubTab.SURVEILLANCE,
-                onClick = { onSubTabSelected(DetailsSubTab.SURVEILLANCE) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                icon = {
-                    Icon(
-                        imageVector = DetailsSubTab.SURVEILLANCE.icon,
-                        contentDescription = null
-                    )
-                }
+        // Segmented tab switcher
+        item {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Surveillance")
-            }
-            SegmentedButton(
-                selected = selectedSubTab == DetailsSubTab.SECURITY,
-                onClick = { onSubTabSelected(DetailsSubTab.SECURITY) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                icon = {
-                    Icon(
-                        imageVector = DetailsSubTab.SECURITY.icon,
-                        contentDescription = null
-                    )
-                }
-            ) {
-                Text("Security")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Filtered Category Groups based on selected sub-tab
-        when (selectedSubTab) {
-            DetailsSubTab.SURVEILLANCE -> {
-                // Show all categories EXCEPT SYSTEM_SECURITY
-                val surveillanceCategories = listOf(
-                    PrivacyCategory.NETWORK_PRIVACY,
-                    PrivacyCategory.GOOGLE_SERVICES,
-                    PrivacyCategory.DEFAULT_APPS,
-                    PrivacyCategory.GOOGLE_APPS,
-                    PrivacyCategory.META_FACEBOOK_APPS,
-                    PrivacyCategory.MICROSOFT_APPS,
-                    PrivacyCategory.AI_AND_OTHER_APPS
-                )
-                surveillanceCategories.forEach { category ->
-                    val issues = PrivacyCategory.getIssuesForCategory(category, privacyScore)
-                    if (issues.isNotEmpty()) {
-                        CategoryGroup(category = category, privacyScore = privacyScore)
+                SegmentedButton(
+                    selected = selectedSubTab == DetailsSubTab.SURVEILLANCE,
+                    onClick = { onSubTabSelected(DetailsSubTab.SURVEILLANCE) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    icon = {
+                        Icon(
+                            imageVector = DetailsSubTab.SURVEILLANCE.icon,
+                            contentDescription = null
+                        )
                     }
+                ) {
+                    Text("Surveillance")
                 }
-            }
-            DetailsSubTab.SECURITY -> {
-                // Show only SYSTEM_SECURITY category
-                val securityIssues = PrivacyCategory.getIssuesForCategory(
-                    PrivacyCategory.SYSTEM_SECURITY,
-                    privacyScore
-                )
-                if (securityIssues.isNotEmpty()) {
-                    CategoryGroup(
-                        category = PrivacyCategory.SYSTEM_SECURITY,
-                        privacyScore = privacyScore
-                    )
+                SegmentedButton(
+                    selected = selectedSubTab == DetailsSubTab.SECURITY,
+                    onClick = { onSubTabSelected(DetailsSubTab.SECURITY) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    icon = {
+                        Icon(
+                            imageVector = DetailsSubTab.SECURITY.icon,
+                            contentDescription = null
+                        )
+                    }
+                ) {
+                    Text("Security")
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // Extra spacing between switcher and first card
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+
+        // Category groups
+        items(filteredCategories, key = { it.name }) { category ->
+            CategoryGroup(category = category, privacyScore = privacyScore)
+        }
     }
 }

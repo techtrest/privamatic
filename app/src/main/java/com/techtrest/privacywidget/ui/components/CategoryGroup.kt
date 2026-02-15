@@ -1,16 +1,11 @@
 package com.techtrest.privacywidget.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.model.PrivacyCategory
-import com.techtrest.privacywidget.data.model.PrivacyIssue
 import com.techtrest.privacywidget.data.model.PrivacyScore
 
 @Composable
@@ -60,15 +54,16 @@ fun CategoryGroup(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { isExpanded = !isExpanded }
-                .padding(16.dp)
+                .animateContentSize()
         ) {
-            // Header
+            // Header (clickable)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Icon
                 Icon(
                     imageVector = category.icon,
                     contentDescription = null,
@@ -78,23 +73,20 @@ fun CategoryGroup(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Title
                 Text(
                     text = category.displayName,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
 
-                // Count
                 Text(
                     text = "($issuesCount/$totalCount)",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = if (issuesCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Expand/Collapse icon
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
@@ -102,22 +94,20 @@ fun CategoryGroup(
                 )
             }
 
-            // Expanded content with animation
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
+            // Expanded content
+            if (isExpanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
-                    // List of issues
-                    issues.forEach { issue ->
-                        IssueItem(issue = issue)
+                issues.forEachIndexed { index, issue ->
+                    IssueItem(issue = issue)
+                    if (index < issues.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
                     }
                 }
             }
