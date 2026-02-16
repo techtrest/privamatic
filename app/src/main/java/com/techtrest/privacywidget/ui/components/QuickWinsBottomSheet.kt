@@ -3,7 +3,6 @@ package com.techtrest.privacywidget.ui.components
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -301,12 +300,19 @@ fun InstructionsDialog(
                 }
                 else -> {
                     // For settings toggles and system service revocations
-                    androidx.compose.material3.FilledTonalButton(
-                        onClick = {
-                            openSettings(context, quickWinType)
+                    val actionType = quickWinType.actionType
+                    if (actionType != null) {
+                        androidx.compose.material3.FilledTonalButton(
+                            onClick = {
+                                IntentHelper.launchActionIntent(
+                                    context = context,
+                                    actionType = actionType,
+                                    packageName = quickWin.relatedCheck?.packageName
+                                )
+                            }
+                        ) {
+                            Text(quickWinType.actionLabel ?: "Open Settings")
                         }
-                    ) {
-                        Text("Open Settings")
                     }
                 }
             }
@@ -371,47 +377,3 @@ private fun openPlayStore(context: Context, searchQuery: String) {
     }
 }
 
-/**
- * Opens relevant settings screen based on quick win type
- */
-private fun openSettings(context: Context, quickWinType: QuickWinType) {
-    try {
-        val intent = when (quickWinType) {
-            QuickWinType.DISABLE_ADVERTISING_ID -> {
-                Intent(Settings.ACTION_PRIVACY_SETTINGS)
-            }
-            QuickWinType.ENABLE_PRIVATE_DNS -> {
-                Intent(Settings.ACTION_WIRELESS_SETTINGS)
-            }
-            QuickWinType.DISABLE_WIFI_SCANNING -> {
-                Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-            }
-            QuickWinType.DISABLE_FIND_MY_DEVICE -> {
-                Intent(Settings.ACTION_SECURITY_SETTINGS)
-            }
-            QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> {
-                Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-            }
-            QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> {
-                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            }
-            QuickWinType.REVOKE_DEVICE_ADMINS -> {
-                Intent(Settings.ACTION_SECURITY_SETTINGS)
-            }
-            else -> {
-                Intent(Settings.ACTION_SETTINGS)
-            }
-        }
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        // Fallback to general settings if deep link fails
-        try {
-            val fallbackIntent = Intent(Settings.ACTION_SETTINGS)
-            fallbackIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            context.startActivity(fallbackIntent)
-        } catch (e: Exception) {
-            // Silently fail if settings can't be opened
-        }
-    }
-}

@@ -78,6 +78,30 @@ object IntentHelper {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
             }
+
+            ActionType.PRIVACY_SETTINGS -> {
+                Intent(Settings.ACTION_PRIVACY_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
+
+            ActionType.NETWORK_SETTINGS -> {
+                Intent(Settings.ACTION_WIRELESS_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
+
+            ActionType.LOCATION_SETTINGS -> {
+                Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
+
+            ActionType.SECURITY_SETTINGS -> {
+                Intent(Settings.ACTION_SECURITY_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
         }
     }
 
@@ -86,7 +110,11 @@ object IntentHelper {
             ActionType.OPEN_APP_SETTINGS,
             ActionType.NOTIFICATION_LISTENER,
             ActionType.ACCESSIBILITY_SETTINGS,
-            ActionType.DEVICE_ADMIN_SETTINGS -> {
+            ActionType.DEVICE_ADMIN_SETTINGS,
+            ActionType.PRIVACY_SETTINGS,
+            ActionType.NETWORK_SETTINGS,
+            ActionType.LOCATION_SETTINGS,
+            ActionType.SECURITY_SETTINGS -> {
                 Intent(Settings.ACTION_SETTINGS).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }

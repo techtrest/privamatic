@@ -21,7 +21,9 @@ enum class QuickWinType(
     val description: String,
     val timeEstimate: String,
     val icon: ImageVector,
-    val instructions: String
+    val instructions: String,
+    val actionType: ActionType? = null,
+    val actionLabel: String? = null
 ) {
     // ===== SYSTEM SERVICE REVOCATIONS =====
 
@@ -30,6 +32,8 @@ enum class QuickWinType(
         description = "Non-system apps can read ALL your notifications",
         timeEstimate = "1 minute",
         icon = Icons.Default.NotificationsOff,
+        actionType = ActionType.NOTIFICATION_LISTENER,
+        actionLabel = "Open Notification Access",
         instructions = """
             Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.
 
@@ -48,6 +52,8 @@ enum class QuickWinType(
         description = "Non-essential apps can control your entire device",
         timeEstimate = "1 minute",
         icon = Icons.Default.Accessibility,
+        actionType = ActionType.ACCESSIBILITY_SETTINGS,
+        actionLabel = "Open Accessibility Settings",
         instructions = """
             Apps with accessibility service access can control your entire device and potentially log keystrokes.
 
@@ -68,6 +74,8 @@ enum class QuickWinType(
         description = "Non-system apps have elevated device control",
         timeEstimate = "1 minute",
         icon = Icons.Default.Security,
+        actionType = ActionType.DEVICE_ADMIN_SETTINGS,
+        actionLabel = "Open Security Settings",
         instructions = """
             Apps with device administrator privileges have elevated control over your device.
 
@@ -88,6 +96,8 @@ enum class QuickWinType(
         description = "Prevents location tracking via Wi-Fi networks",
         timeEstimate = "30 seconds",
         icon = Icons.Default.LocationOff,
+        actionType = ActionType.LOCATION_SETTINGS,
+        actionLabel = "Open Location Settings",
         instructions = """
             Background Wi-Fi scanning allows apps to track your location even when Wi-Fi is off.
 
@@ -106,6 +116,8 @@ enum class QuickWinType(
         description = "Prevents cross-app tracking by advertisers",
         timeEstimate = "30 seconds",
         icon = Icons.Default.AdUnits,
+        actionType = ActionType.PRIVACY_SETTINGS,
+        actionLabel = "Open Privacy Settings",
         instructions = """
             This prevents apps from building an advertising profile and tracking you across different apps.
 
@@ -125,6 +137,8 @@ enum class QuickWinType(
         description = "Blocks tracking and malicious domains at network level",
         timeEstimate = "1 minute",
         icon = Icons.Default.Language,
+        actionType = ActionType.NETWORK_SETTINGS,
+        actionLabel = "Open Network Settings",
         instructions = """
             Private DNS blocks tracking and malicious domains at the network level for all apps.
 
@@ -152,6 +166,8 @@ enum class QuickWinType(
         description = "Reduces Google's device tracking",
         timeEstimate = "30 seconds",
         icon = Icons.Default.PhoneAndroid,
+        actionType = ActionType.SECURITY_SETTINGS,
+        actionLabel = "Open Security Settings",
         instructions = """
             While useful for theft protection, Find My Device constantly tracks your location.
 
@@ -175,6 +191,8 @@ enum class QuickWinType(
         description = "Switch to privacy-focused browser",
         timeEstimate = "2 minutes",
         icon = Icons.Default.Explore,
+        actionType = ActionType.DEFAULT_APPS_SETTINGS,
+        actionLabel = "Open Default Apps",
         instructions = """
             Privacy-focused browsers block trackers and don't sync your browsing history to cloud servers.
 
@@ -202,6 +220,8 @@ enum class QuickWinType(
         description = "Switch to privacy-focused keyboard",
         timeEstimate = "2 minutes",
         icon = Icons.Default.Keyboard,
+        actionType = ActionType.DEFAULT_APPS_SETTINGS,
+        actionLabel = "Open Default Apps",
         instructions = """
             Your current keyboard may send your typing data to cloud servers for processing.
 
@@ -232,6 +252,8 @@ enum class QuickWinType(
         description = "Switch to privacy-focused messaging app",
         timeEstimate = "2 minutes",
         icon = Icons.Default.Sms,
+        actionType = ActionType.DEFAULT_APPS_SETTINGS,
+        actionLabel = "Open Default Apps",
         instructions = """
             Your current SMS app may collect your messaging data and contacts.
 
@@ -256,6 +278,8 @@ enum class QuickWinType(
         description = "Switch to privacy-focused email client",
         timeEstimate = "2 minutes",
         icon = Icons.Default.Email,
+        actionType = ActionType.DEFAULT_APPS_SETTINGS,
+        actionLabel = "Open Default Apps",
         instructions = """
             Your current email app may scan your emails for advertising and data collection.
 
@@ -279,6 +303,8 @@ enum class QuickWinType(
         description = "Switch to privacy-focused launcher",
         timeEstimate = "2 minutes",
         icon = Icons.Default.Home,
+        actionType = ActionType.DEFAULT_APPS_SETTINGS,
+        actionLabel = "Open Default Apps",
         instructions = """
             Your current launcher may collect usage patterns, app habits, and behavioral data.
 
@@ -304,6 +330,8 @@ enum class QuickWinType(
         description = "Remove a privacy-invasive app from your device",
         timeEstimate = "30 seconds",
         icon = Icons.Default.Delete,
+        actionType = ActionType.OPEN_APP_SETTINGS,
+        actionLabel = "Open App Info",
         instructions = """
             You can improve your privacy by uninstalling or disabling this app.
 
