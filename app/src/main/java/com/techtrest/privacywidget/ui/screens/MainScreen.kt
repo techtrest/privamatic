@@ -53,9 +53,6 @@ import com.techtrest.privacywidget.ui.components.PrivacyTopAppBar
 import com.techtrest.privacywidget.ui.components.ScoringInfoDialog
 import com.techtrest.privacywidget.ui.navigation.NavigationTab
 import com.techtrest.privacywidget.ui.navigation.rememberAppNavigationState
-import com.techtrest.privacywidget.ui.screens.guides.CameraMicGuide
-import com.techtrest.privacywidget.ui.screens.guides.LocationAlwaysOnGuide
-import com.techtrest.privacywidget.ui.screens.guides.UnusedAppsGuide
 import com.techtrest.privacywidget.ui.viewmodel.PrivacyScanState
 import com.techtrest.privacywidget.ui.viewmodel.PrivacyViewModel
 import kotlinx.coroutines.launch
@@ -78,7 +75,6 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showAboutDialog by remember { mutableStateOf(false) }
     var showScoringSystemScreen by remember { mutableStateOf(false) }
     var showManualCheckDetail by remember { mutableStateOf<ManualCheckType?>(null) }
-    var showGuideScreen by remember { mutableStateOf<ManualCheckType?>(null) }
     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -327,10 +323,6 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
             ManualCheckDetailScreen(
                 checkState = state,
                 onBackClick = { showManualCheckDetail = null },
-                onViewGuide = {
-                    showManualCheckDetail = null
-                    showGuideScreen = checkType
-                },
                 onMarkDone = {
                     scope.launch {
                         maintenanceManager.markCheckCompleted(checkType)
@@ -340,47 +332,6 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 }
             )
         }
-    }
-
-    // Guide Screens
-    when (showGuideScreen) {
-        ManualCheckType.LOCATION_ALWAYS_ON -> {
-            LocationAlwaysOnGuide(
-                onBackClick = { showGuideScreen = null },
-                onMarkDone = {
-                    scope.launch {
-                        maintenanceManager.markCheckCompleted(ManualCheckType.LOCATION_ALWAYS_ON)
-                        viewModel.performScan()
-                        showGuideScreen = null
-                    }
-                }
-            )
-        }
-        ManualCheckType.CAMERA_MIC_ACCESS -> {
-            CameraMicGuide(
-                onBackClick = { showGuideScreen = null },
-                onMarkDone = {
-                    scope.launch {
-                        maintenanceManager.markCheckCompleted(ManualCheckType.CAMERA_MIC_ACCESS)
-                        viewModel.performScan()
-                        showGuideScreen = null
-                    }
-                }
-            )
-        }
-        ManualCheckType.UNUSED_APPS -> {
-            UnusedAppsGuide(
-                onBackClick = { showGuideScreen = null },
-                onMarkDone = {
-                    scope.launch {
-                        maintenanceManager.markCheckCompleted(ManualCheckType.UNUSED_APPS)
-                        viewModel.performScan()
-                        showGuideScreen = null
-                    }
-                }
-            )
-        }
-        null -> { /* No guide screen shown */ }
     }
 
     // Quick Win Detail Screen

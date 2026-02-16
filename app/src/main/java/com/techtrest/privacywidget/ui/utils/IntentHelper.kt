@@ -102,6 +102,12 @@ object IntentHelper {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
             }
+
+            ActionType.APP_MANAGEMENT_SETTINGS -> {
+                Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
         }
     }
 
@@ -120,7 +126,8 @@ object IntentHelper {
                 }
             }
 
-            ActionType.DEFAULT_APPS_SETTINGS -> {
+            ActionType.DEFAULT_APPS_SETTINGS,
+            ActionType.APP_MANAGEMENT_SETTINGS -> {
                 Intent(Settings.ACTION_APPLICATION_SETTINGS).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }

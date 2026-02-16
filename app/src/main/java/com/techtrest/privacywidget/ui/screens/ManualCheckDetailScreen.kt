@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,28 +37,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import com.techtrest.privacywidget.Amber
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.techtrest.privacywidget.Amber
+import com.techtrest.privacywidget.data.model.ActionType
 import com.techtrest.privacywidget.data.model.ManualCheckState
 import com.techtrest.privacywidget.data.model.ManualCheckType
+import com.techtrest.privacywidget.ui.utils.IntentHelper
 
 /**
- * Detail screen for a Manual Check showing overview and progress.
- * Intermediate screen between list row and full guide.
+ * Consolidated detail screen for a Manual Check.
+ * Combines progress tracking, educational content, Settings deep link,
+ * and completion into a single instruction page.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManualCheckDetailScreen(
     checkState: ManualCheckState,
     onBackClick: () -> Unit,
-    onViewGuide: () -> Unit,
     onMarkDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     BackHandler {
         onBackClick()
     }
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -91,130 +98,360 @@ fun ManualCheckDetailScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Progress Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+            ProgressCard(checkState = checkState)
+
+            // Why This Matters
+            SectionCard(title = "Why This Matters") {
+                Text(
+                    text = getWhyItMattersText(checkState.type),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // How to Check + Settings deep link
+            SectionCard(title = "How to Check") {
+                val steps = getSteps(checkState.type)
+                steps.forEachIndexed { index, step ->
+                    Text(
+                        text = "${index + 1}. $step",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = if (index < steps.lastIndex) 8.dp else 0.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Settings deep link button
+                val actionType = getSettingsActionType(checkState.type)
+                val buttonLabel = getSettingsButtonLabel(checkState.type)
+                OutlinedButton(
+                    onClick = {
+                        IntentHelper.launchActionIntent(
+                            context = context,
+                            actionType = actionType
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Progress",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
                     )
-
-                    // Custom progress bar (fixes dot bug at low progress values)
-                    val progressValue = checkState.fillPercentage.coerceIn(0f, 1f)
-                    val progressColor = getProgressColor(checkState)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        if (progressValue > 0f) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(progressValue)
-                                    .background(progressColor)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = getStatusText(checkState),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(buttonLabel)
                 }
             }
 
-            // Why This Matters
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Why This Matters",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = checkState.type.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            // How to Check
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "How to Check",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = getHowToCheckText(checkState.type),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
             // What to Look For
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "What to Look For",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = getWhatToLookForText(checkState.type),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            SectionCard(title = "What to Look For") {
+                WhatToLookForContent(type = checkState.type)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Mark as Done
+            Button(
+                onClick = onMarkDone,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(
-                    onClick = onViewGuide,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("View Guide")
-                }
-
-                Button(
-                    onClick = onMarkDone,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Mark as Done")
-                }
+                Text("Mark as Done")
             }
         }
+    }
+}
+
+@Composable
+private fun ProgressCard(
+    checkState: ManualCheckState,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Progress",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            val progressValue = checkState.fillPercentage.coerceIn(0f, 1f)
+            val progressColor = getProgressColor(checkState)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                if (progressValue > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(progressValue)
+                            .background(progressColor)
+                    )
+                }
+            }
+
+            Text(
+                text = getStatusText(checkState),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/**
+ * Card container for a content section with a colored title header.
+ */
+@Composable
+private fun SectionCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            content()
+        }
+    }
+}
+
+/**
+ * Renders the "What to Look For" content, which varies in structure per check type.
+ */
+@Composable
+private fun WhatToLookForContent(
+    type: ManualCheckType,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        when (type) {
+            ManualCheckType.LOCATION_ALWAYS_ON -> {
+                val items = listOf(
+                    "Maps and navigation apps: These may legitimately need \"Always\" for features like traffic alerts, but consider if you really use those features",
+                    "Weather apps: Usually don't need \"Always\" access \u2014 they work fine with \"While using the app\"",
+                    "Social media apps: Almost never need \"Always\" location access",
+                    "Shopping or delivery apps: Only need location when actively using them",
+                    "Unknown or rarely-used apps: If you don't recognize an app with always-on access, revoke it immediately"
+                )
+                items.forEachIndexed { index, item ->
+                    BulletPoint(
+                        text = item,
+                        modifier = Modifier.padding(bottom = if (index < items.lastIndex) 8.dp else 0.dp)
+                    )
+                }
+            }
+
+            ManualCheckType.CAMERA_MIC_ACCESS -> {
+                Text(
+                    text = "Apps that legitimately need camera/microphone:",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val legitimate = listOf(
+                    "Video calling apps (Zoom, WhatsApp, Signal)",
+                    "Camera apps and photo editors",
+                    "Voice recorder apps",
+                    "Social media apps (for posting photos/videos)"
+                )
+                legitimate.forEach { item ->
+                    BulletPoint(
+                        text = item,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Concerning examples:",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val concerning = listOf(
+                    "Flashlight apps with camera access",
+                    "Calculator apps with microphone access",
+                    "Games that don't use voice or AR features",
+                    "Shopping apps with no scanning features",
+                    "Any app you don't recognize or haven't used recently"
+                )
+                concerning.forEach { item ->
+                    BulletPoint(
+                        text = item,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+            }
+
+            ManualCheckType.UNUSED_APPS -> {
+                Text(
+                    text = "High-priority apps to remove:",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val highPriority = listOf(
+                    "Apps not opened in 3+ months",
+                    "Old games you no longer play",
+                    "Abandoned trial apps or free trials",
+                    "Apps for events or trips that already happened",
+                    "Duplicate apps (multiple weather apps, calculators, etc.)",
+                    "Apps from companies you no longer trust"
+                )
+                highPriority.forEach { item ->
+                    BulletPoint(
+                        text = item,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Consider keeping:",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val keep = listOf(
+                    "System apps (be careful not to remove critical system components)",
+                    "Banking or financial apps (even if used infrequently)",
+                    "Travel apps if you travel regularly",
+                    "Emergency or safety apps"
+                )
+                keep.forEach { item ->
+                    BulletPoint(
+                        text = item,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Tip: If you're unsure whether you'll need an app again, uninstall it anyway. Most apps keep your account data server-side, so you can reinstall and log back in if needed.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BulletPoint(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = "\u2022 $text",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier
+    )
+}
+
+// --- Content providers ---
+
+private fun getWhyItMattersText(type: ManualCheckType): String {
+    return when (type) {
+        ManualCheckType.LOCATION_ALWAYS_ON ->
+            "Apps with \"Always\" location access can track your movements 24/7, even when you're not using the app. Most apps only need location \"While using the app\" or not at all. Continuous tracking drains battery, creates detailed movement profiles, and poses significant privacy risks if the app is compromised or shares data with third parties."
+
+        ManualCheckType.CAMERA_MIC_ACCESS ->
+            "Camera and microphone permissions allow apps to potentially record you at any time. Many apps request these permissions unnecessarily or \"just in case\" you might use a feature. A compromised app with these permissions could spy on you. Regular audits help ensure only trusted apps can access these sensitive sensors."
+
+        ManualCheckType.UNUSED_APPS ->
+            "Unused apps are a hidden privacy and security risk. They still have all their permissions, continue receiving data access, may have unpatched vulnerabilities, and increase your attack surface. Apps you installed months or years ago might have been updated with new tracking features or sold to different companies. Regular cleanups reduce these risks."
+    }
+}
+
+private fun getSteps(type: ManualCheckType): List<String> {
+    return when (type) {
+        ManualCheckType.LOCATION_ALWAYS_ON -> listOf(
+            "Open Settings on your device",
+            "Navigate to Privacy \u2192 Permission manager",
+            "Tap \"Location\"",
+            "Look for apps with \"Allowed all the time\" or \"Always\" access",
+            "For each app, tap it and change to \"Allow only while using the app\" or \"Don't allow\""
+        )
+
+        ManualCheckType.CAMERA_MIC_ACCESS -> listOf(
+            "Open Settings on your device",
+            "Navigate to Privacy \u2192 Permission manager",
+            "Tap \"Camera\" to see all apps with camera access",
+            "Review each app \u2014 ask yourself: \"Does this app really need camera access?\"",
+            "Revoke camera access for apps that don't need it",
+            "Go back and repeat for \"Microphone\" permissions"
+        )
+
+        ManualCheckType.UNUSED_APPS -> listOf(
+            "Open Settings on your device",
+            "Navigate to Apps or Application Manager",
+            "Look for a sort option and select \"Last used\" or \"Unused apps\"",
+            "Scroll through the list and identify apps you haven't opened in months",
+            "For each unused app, ask: \"Will I actually use this again?\"",
+            "Uninstall apps you don't need \u2014 you can always reinstall later if needed"
+        )
+    }
+}
+
+private fun getSettingsActionType(type: ManualCheckType): ActionType {
+    return when (type) {
+        ManualCheckType.LOCATION_ALWAYS_ON -> ActionType.LOCATION_SETTINGS
+        ManualCheckType.CAMERA_MIC_ACCESS -> ActionType.PRIVACY_SETTINGS
+        ManualCheckType.UNUSED_APPS -> ActionType.APP_MANAGEMENT_SETTINGS
+    }
+}
+
+private fun getSettingsButtonLabel(type: ManualCheckType): String {
+    return when (type) {
+        ManualCheckType.LOCATION_ALWAYS_ON -> "Open Location Settings"
+        ManualCheckType.CAMERA_MIC_ACCESS -> "Open Privacy Settings"
+        ManualCheckType.UNUSED_APPS -> "Open App Settings"
     }
 }
 
@@ -233,31 +470,5 @@ private fun getStatusText(checkState: ManualCheckState): String {
         checkState.isOverdue -> "Review needed"
         checkState.daysRemaining == 1 -> "1 day remaining"
         else -> "${checkState.daysRemaining} days remaining"
-    }
-}
-
-private fun getHowToCheckText(type: ManualCheckType): String {
-    return when (type) {
-        ManualCheckType.LOCATION_ALWAYS_ON ->
-            "Go to Settings → Location → App location permissions. Review each app with location access and change \"Always\" to \"While using the app\" or \"Don't allow\" when appropriate."
-
-        ManualCheckType.CAMERA_MIC_ACCESS ->
-            "Go to Settings → Privacy → Permission manager. Check Camera and Microphone separately. Review which apps have access and revoke permissions for apps that don't need them."
-
-        ManualCheckType.UNUSED_APPS ->
-            "Go to Settings → Apps. Sort by \"Last used\" or review all installed apps. Look for apps you haven't opened in months. Uninstall apps you no longer use."
-    }
-}
-
-private fun getWhatToLookForText(type: ManualCheckType): String {
-    return when (type) {
-        ManualCheckType.LOCATION_ALWAYS_ON ->
-            "• Apps with \"Always\" location permission\n• Social media apps that don't need constant location\n• Games or utility apps with location access\n• Apps you rarely use that track location"
-
-        ManualCheckType.CAMERA_MIC_ACCESS ->
-            "• Apps with camera/mic access that aren't camera/calling apps\n• Games with microphone permission\n• Utility apps with camera access\n• Social media apps that don't need constant mic access"
-
-        ManualCheckType.UNUSED_APPS ->
-            "• Apps installed over 6 months ago\n• Apps you don't recognize\n• Trial apps you forgot about\n• Old games you no longer play\n• Duplicate apps (multiple flashlight apps, etc.)"
     }
 }
