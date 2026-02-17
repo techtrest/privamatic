@@ -42,7 +42,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.techtrest.privacywidget.data.PrivacyTipSelector
 import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
+import com.techtrest.privacywidget.data.maintenance.PrivacyTipHistory
+import com.techtrest.privacywidget.data.maintenance.QuickWinDismissalManager
+import com.techtrest.privacywidget.data.model.PrivacyTip
 import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.data.model.ScoreHistory
 import com.techtrest.privacywidget.data.model.QuickWin
@@ -62,6 +66,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val context = LocalContext.current
     val maintenanceManager = remember { MaintenanceManager(context) }
+    val dismissalManager = remember { QuickWinDismissalManager(context) }
+    val tipHistory = remember { PrivacyTipHistory(context) }
     val scanState by viewModel.scanState.collectAsState()
     val scoreHistory by viewModel.scoreHistory.collectAsState()
     val navigationState = rememberAppNavigationState()
@@ -70,6 +76,18 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
     // Manual checks state (needed for Actions tab)
     val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
+
+    // Dismissed Quick Wins state
+    val dismissedCheckNames by dismissalManager.getDismissedCheckNames()
+        .collectAsState(initial = emptySet())
+
+    // Privacy tips — revision counter allows "Next tip" to trigger reselection
+    var tipRevision by remember { mutableStateOf(0) }
+    val currentTip: PrivacyTip? = remember(scanState, tipRevision) {
+        val score = (scanState as? PrivacyScanState.Success)?.privacyScore ?: return@remember null
+        val tip = PrivacyTipSelector.selectTip(score, tipHistory.getRecentlyShownIds())
+        tip?.also { tipHistory.markShown(it.id) }
+    }
 
     var showInfoDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -219,6 +237,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     privacyScore = state.privacyScore,
                                     scoreHistory = scoreHistory,
                                     navigationState = navigationState,
+                                    dismissedCheckNames = dismissedCheckNames,
                                     onRefresh = {
                                         viewModel.performScan()
                                     },
@@ -230,6 +249,8 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                 1 -> ActionsScreen(
                                     privacyScore = state.privacyScore,
                                     checkStates = checkStates,
+                                    dismissedCheckNames = dismissedCheckNames,
+                                    currentTip = currentTip,
                                     onNavigateToGuide = { checkType ->
                                         showManualCheckDetail = checkType
                                     },
@@ -241,7 +262,13 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     },
                                     onQuickWinSelected = { quickWin ->
                                         showQuickWinDetail = quickWin
-                                    }
+                                    },
+                                    onRestoreQuickWin = { quickWin ->
+                                        scope.launch {
+                                            dismissalManager.restore(quickWin)
+                                        }
+                                    },
+                                    onNextTip = { tipRevision++ }
                                 )
                                 else -> DetailsScreen(
                                     privacyScore = state.privacyScore,
@@ -338,7 +365,13 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     showQuickWinDetail?.let { quickWin ->
         QuickWinDetailScreen(
             quickWin = quickWin,
-            onBackClick = { showQuickWinDetail = null }
+            onBackClick = { showQuickWinDetail = null },
+            onDismiss = {
+                scope.launch {
+                    dismissalManager.dismiss(quickWin)
+                    showQuickWinDetail = null
+                }
+            }
         )
     }
 }

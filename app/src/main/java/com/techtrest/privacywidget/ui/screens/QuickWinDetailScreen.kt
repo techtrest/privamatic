@@ -25,9 +25,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -37,13 +39,14 @@ import com.techtrest.privacywidget.ui.utils.IntentHelper
 
 /**
  * Full-screen detail view for a Quick Win.
- * Shows title, description, and step-by-step instructions.
+ * Shows title, description, step-by-step instructions, and dismiss option.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickWinDetailScreen(
     quickWin: QuickWin,
     onBackClick: () -> Unit,
+    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     BackHandler {
@@ -148,6 +151,18 @@ fun QuickWinDetailScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Done")
+            }
+
+            // Dismiss — low-prominence text button, discoverable but not accidental
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    text = "Not interested",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

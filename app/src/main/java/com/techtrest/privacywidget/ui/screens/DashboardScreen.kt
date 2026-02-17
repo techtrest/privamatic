@@ -30,6 +30,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.techtrest.privacywidget.data.QuickWinsDetector
 import com.techtrest.privacywidget.data.maintenance.MaintenanceManager
+import com.techtrest.privacywidget.data.maintenance.filterDismissed
 import com.techtrest.privacywidget.data.model.PrivacyCategory
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.model.ScoreHistory
@@ -47,6 +48,7 @@ fun DashboardScreen(
     privacyScore: PrivacyScore,
     scoreHistory: ScoreHistory?,
     navigationState: AppNavigationState,
+    dismissedCheckNames: Set<String>,
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     onNavigateToManualChecks: () -> Unit = {},
@@ -59,14 +61,14 @@ fun DashboardScreen(
     val checkStates by maintenanceManager.getCheckStates().collectAsState(initial = emptyList())
     val overdueCount = remember(checkStates) { checkStates.count { it.isOverdue } }
 
-    // Quick Wins state (only actionable privacy settings, no manual checks)
-    val quickWins = remember(privacyScore) {
-        QuickWinsDetector.detectQuickWins(privacyScore)
+    // Quick Wins state — filtered by dismissals so Dashboard count matches Actions tab
+    val activeQuickWins = remember(privacyScore, dismissedCheckNames) {
+        QuickWinsDetector.detectQuickWins(privacyScore).filterDismissed(dismissedCheckNames)
     }
 
-    // Total actionable items (Quick Wins + overdue Manual Checks)
-    val totalActions = remember(quickWins, overdueCount) {
-        quickWins.size + overdueCount
+    // Total actionable items (active Quick Wins + overdue Manual Checks)
+    val totalActions = remember(activeQuickWins, overdueCount) {
+        activeQuickWins.size + overdueCount
     }
 
     // Swipe refresh state

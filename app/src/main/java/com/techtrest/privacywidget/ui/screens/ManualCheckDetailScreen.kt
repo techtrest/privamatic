@@ -1,10 +1,18 @@
 package com.techtrest.privacywidget.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +28,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -34,10 +44,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.Amber
@@ -47,9 +63,9 @@ import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.ui.utils.IntentHelper
 
 /**
- * Consolidated detail screen for a Manual Check.
- * Combines progress tracking, educational content, Settings deep link,
- * and completion into a single instruction page.
+ * Detail screen for a Manual Check, optimized for repeat-use efficiency.
+ * Progress and action buttons are immediately visible; educational content
+ * is collapsed by default and expandable on tap.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,11 +116,23 @@ fun ManualCheckDetailScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Progress Card
+            // Progress Card — always visible at top
             ProgressCard(checkState = checkState)
 
-            // Why This Matters
-            SectionCard(title = "Why This Matters") {
+            // Primary actions — visible without scrolling
+            ActionButtons(
+                checkState = checkState,
+                onOpenSettings = {
+                    IntentHelper.launchActionIntent(
+                        context = context,
+                        actionType = getSettingsActionType(checkState.type)
+                    )
+                },
+                onMarkDone = onMarkDone
+            )
+
+            // Educational sections — collapsed by default
+            ExpandableSectionCard(title = "Why This Matters") {
                 Text(
                     text = getWhyItMattersText(checkState.type),
                     style = MaterialTheme.typography.bodyLarge,
@@ -112,51 +140,65 @@ fun ManualCheckDetailScreen(
                 )
             }
 
-            // How to Check + Settings deep link
-            SectionCard(title = "How to Check") {
+            ExpandableSectionCard(title = "How to Check") {
                 val steps = getSteps(checkState.type)
                 steps.forEachIndexed { index, step ->
                     Text(
                         text = "${index + 1}. $step",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = if (index < steps.lastIndex) 8.dp else 0.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Settings deep link button
-                val actionType = getSettingsActionType(checkState.type)
-                val buttonLabel = getSettingsButtonLabel(checkState.type)
-                OutlinedButton(
-                    onClick = {
-                        IntentHelper.launchActionIntent(
-                            context = context,
-                            actionType = actionType
+                        modifier = Modifier.padding(
+                            bottom = if (index < steps.lastIndex) 8.dp else 0.dp
                         )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(buttonLabel)
                 }
             }
 
-            // What to Look For
-            SectionCard(title = "What to Look For") {
+            ExpandableSectionCard(title = "What to Look For") {
                 WhatToLookForContent(type = checkState.type)
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Mark as Done
+/**
+ * Primary action buttons: Settings deep link and Mark as Done.
+ * Grouped together so both are reachable without scrolling.
+ */
+@Composable
+private fun ActionButtons(
+    checkState: ManualCheckState,
+    onOpenSettings: () -> Unit,
+    onMarkDone: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Button(
+                onClick = onOpenSettings,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(getSettingsButtonLabel(checkState.type))
+            }
+
+            OutlinedButton(
                 onClick = onMarkDone,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -220,34 +262,83 @@ private fun ProgressCard(
 }
 
 /**
- * Card container for a content section with a colored title header.
+ * Accordion card: shows only the section title when collapsed.
+ * Tapping the row toggles the educational content open or closed.
+ * State survives configuration changes via rememberSaveable.
  */
 @Composable
-private fun SectionCard(
+private fun ExpandableSectionCard(
     title: String,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            content()
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Tappable header row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) { expanded = !expanded }
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Default.KeyboardArrowUp
+                    } else {
+                        Icons.Default.KeyboardArrowDown
+                    },
+                    contentDescription = if (expanded) "Collapse $title" else "Expand $title",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Expandable body
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ),
+                exit = shrinkVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ) {
+                    content()
+                }
+            }
         }
     }
 }
@@ -273,7 +364,9 @@ private fun WhatToLookForContent(
                 items.forEachIndexed { index, item ->
                     BulletPoint(
                         text = item,
-                        modifier = Modifier.padding(bottom = if (index < items.lastIndex) 8.dp else 0.dp)
+                        modifier = Modifier.padding(
+                            bottom = if (index < items.lastIndex) 8.dp else 0.dp
+                        )
                     )
                 }
             }

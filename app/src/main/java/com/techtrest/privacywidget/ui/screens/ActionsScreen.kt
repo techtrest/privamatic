@@ -1,5 +1,9 @@
 package com.techtrest.privacywidget.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -28,8 +33,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,27 +48,46 @@ import com.techtrest.privacywidget.Amber
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.techtrest.privacywidget.data.QuickWinsDetector
+import com.techtrest.privacywidget.data.maintenance.filterDismissed
+import com.techtrest.privacywidget.data.maintenance.onlyDismissed
 import com.techtrest.privacywidget.data.model.PrivacyScore
 import com.techtrest.privacywidget.data.model.QuickWin
 import com.techtrest.privacywidget.data.model.QuickWinType
 import com.techtrest.privacywidget.data.model.ManualCheckState
 import com.techtrest.privacywidget.data.model.ManualCheckType
+import com.techtrest.privacywidget.data.model.PrivacyTip
 
 @Composable
 fun ActionsScreen(
     privacyScore: PrivacyScore,
     checkStates: List<ManualCheckState>,
+    dismissedCheckNames: Set<String>,
+    currentTip: PrivacyTip?,
     onNavigateToGuide: (ManualCheckType) -> Unit,
     onMarkCheckDone: (ManualCheckType) -> Unit,
     onQuickWinSelected: (QuickWin) -> Unit,
+    onRestoreQuickWin: (QuickWin) -> Unit,
+    onNextTip: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
 
-    // Quick Wins state (only actionable privacy settings)
-    val quickWins = remember(privacyScore) {
+    // All detected Quick Wins (before dismissal filtering)
+    val allQuickWins = remember(privacyScore) {
         QuickWinsDetector.detectQuickWins(privacyScore)
     }
+
+    // Active Quick Wins (not dismissed)
+    val activeQuickWins = remember(allQuickWins, dismissedCheckNames) {
+        allQuickWins.filterDismissed(dismissedCheckNames)
+    }
+
+    // Dismissed Quick Wins (still detected but user chose to hide)
+    val dismissedQuickWins = remember(allQuickWins, dismissedCheckNames) {
+        allQuickWins.onlyDismissed(dismissedCheckNames)
+    }
+
+    var showDismissed by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -84,8 +113,8 @@ fun ActionsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 0.dp)
             ) {
-                if (quickWins.isNotEmpty()) {
-                    items(quickWins) { quickWin ->
+                if (activeQuickWins.isNotEmpty()) {
+                    items(activeQuickWins) { quickWin ->
                         QuickWinCompactTile(
                             quickWin = quickWin,
                             onClick = { onQuickWinSelected(quickWin) }
@@ -93,7 +122,29 @@ fun ActionsScreen(
                     }
                 } else {
                     item {
-                        QuickWinAllDoneTile()
+                        QuickWinAllDoneTile(
+                            dismissedCount = dismissedQuickWins.size,
+                            onToggleDismissed = { showDismissed = !showDismissed }
+                        )
+                    }
+                }
+            }
+
+            // Dismissed Quick Wins — vertical list below the scroll row
+            AnimatedVisibility(
+                visible = showDismissed && dismissedQuickWins.isNotEmpty(),
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column(
+                    modifier = Modifier.padding(top = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    dismissedQuickWins.forEach { quickWin ->
+                        DismissedQuickWinRow(
+                            quickWin = quickWin,
+                            onRestore = { onRestoreQuickWin(quickWin) }
+                        )
                     }
                 }
             }
@@ -120,6 +171,121 @@ fun ActionsScreen(
                 ManualCheckGarminRow(
                     checkState = checkState,
                     onClick = { onNavigateToGuide(checkState.type) }
+                )
+            }
+        }
+
+        // 3. Privacy Tip — contextual education card
+        if (currentTip != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PrivacyTipCard(
+                tip = currentTip,
+                onNextTip = onNextTip,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+/**
+ * Contextual privacy tip card with lightbulb icon.
+ * Subtle design — informational, not action-demanding.
+ */
+@Composable
+private fun PrivacyTipCard(
+    tip: PrivacyTip,
+    onNextTip: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lightbulb,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = tip.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = onNextTip) {
+                    Text(
+                        text = "Next tip",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Text(
+                text = tip.content,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/**
+ * Full-width row for a dismissed Quick Win, shown in the vertical list below the scroll row.
+ * Outlined with no fill to visually distinguish from active items.
+ */
+@Composable
+private fun DismissedQuickWinRow(
+    quickWin: QuickWin,
+    onRestore: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = Color.Transparent
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = quickWin.type.icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = quickWin.displayTitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = onRestore) {
+                Text(
+                    text = "Restore",
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }
@@ -200,6 +366,27 @@ private fun QuickWinItem(
 }
 
 /**
+ * Short display name for a Quick Win tile (1-2 words).
+ */
+private fun getQuickWinShortName(quickWin: QuickWin): String {
+    return when (quickWin.type) {
+        QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> "Listeners"
+        QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> "Accessibility"
+        QuickWinType.REVOKE_DEVICE_ADMINS -> "Admins"
+        QuickWinType.DISABLE_WIFI_SCANNING -> "Wi-Fi Scan"
+        QuickWinType.DISABLE_ADVERTISING_ID -> "Ad ID"
+        QuickWinType.ENABLE_PRIVATE_DNS -> "DNS"
+        QuickWinType.DISABLE_FIND_MY_DEVICE -> "Find Device"
+        QuickWinType.REPLACE_BROWSER -> quickWin.currentAppName ?: "Browser"
+        QuickWinType.REPLACE_KEYBOARD -> quickWin.currentAppName ?: "Keyboard"
+        QuickWinType.REPLACE_DEFAULT_SMS -> quickWin.currentAppName ?: "SMS"
+        QuickWinType.REPLACE_DEFAULT_EMAIL -> quickWin.currentAppName ?: "Email"
+        QuickWinType.REPLACE_DEFAULT_LAUNCHER -> quickWin.currentAppName ?: "Launcher"
+        QuickWinType.UNINSTALL_APP -> quickWin.currentAppName ?: "App"
+    }
+}
+
+/**
  * Compact square tile for Quick Wins horizontal scroller.
  * Shows icon at top, short name, and point value.
  */
@@ -209,6 +396,8 @@ private fun QuickWinCompactTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val shortName = getQuickWinShortName(quickWin)
+
     Card(
         onClick = onClick,
         modifier = modifier
@@ -226,33 +415,13 @@ private fun QuickWinCompactTile(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icon at top
             Icon(
                 imageVector = quickWin.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(28.dp)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Short name (1-2 words)
-            val shortName = when (quickWin.type) {
-                QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> "Listeners"
-                QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> "Accessibility"
-                QuickWinType.REVOKE_DEVICE_ADMINS -> "Admins"
-                QuickWinType.DISABLE_WIFI_SCANNING -> "Wi-Fi Scan"
-                QuickWinType.DISABLE_ADVERTISING_ID -> "Ad ID"
-                QuickWinType.ENABLE_PRIVATE_DNS -> "DNS"
-                QuickWinType.DISABLE_FIND_MY_DEVICE -> "Find Device"
-                QuickWinType.REPLACE_BROWSER -> quickWin.currentAppName ?: "Browser"
-                QuickWinType.REPLACE_KEYBOARD -> quickWin.currentAppName ?: "Keyboard"
-                QuickWinType.REPLACE_DEFAULT_SMS -> quickWin.currentAppName ?: "SMS"
-                QuickWinType.REPLACE_DEFAULT_EMAIL -> quickWin.currentAppName ?: "Email"
-                QuickWinType.REPLACE_DEFAULT_LAUNCHER -> quickWin.currentAppName ?: "Launcher"
-                QuickWinType.UNINSTALL_APP -> quickWin.currentAppName ?: "App"
-            }
-
             Text(
                 text = shortName,
                 style = MaterialTheme.typography.labelLarge,
@@ -260,10 +429,7 @@ private fun QuickWinCompactTile(
                 maxLines = 2,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(4.dp))
-
-            // Point value
             Text(
                 text = "+${quickWin.impact}pts",
                 style = MaterialTheme.typography.labelSmall,
@@ -275,18 +441,31 @@ private fun QuickWinCompactTile(
 }
 
 /**
- * "All Done" tile shown when no Quick Wins are available.
+ * "All Done" tile shown when no active Quick Wins remain.
+ * When dismissed Quick Wins exist, the subtitle becomes a clickable "X dismissed"
+ * indicator that toggles the inline dismissed tiles in the same scroll row.
  */
 @Composable
 private fun QuickWinAllDoneTile(
+    dismissedCount: Int,
+    onToggleDismissed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val subtitle = when {
+        dismissedCount == 1 -> "1 dismissed"
+        dismissedCount > 1 -> "$dismissedCount dismissed"
+        else -> "Great work"
+    }
+
     Card(
+        onClick = { if (dismissedCount > 0) onToggleDismissed() },
+        enabled = dismissedCount > 0,
         modifier = modifier
             .width(120.dp)
             .height(120.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -312,7 +491,7 @@ private fun QuickWinAllDoneTile(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Great work",
+                text = subtitle,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -425,4 +604,3 @@ private fun getStatusText(checkState: ManualCheckState): String {
         else -> "${checkState.daysRemaining} days remaining"
     }
 }
-
