@@ -1,4 +1,4 @@
-# Privacy Guard
+# Privamatic
 
 > **Device Privacy Auditor for Android**
 
@@ -7,7 +7,7 @@
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-1.7-4285F4?logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Privacy Guard audits your Android device's privacy and security settings, giving you a clear 0–100 score with actionable steps to improve it. Built for GrapheneOS users and anyone who wants to understand what's exposing their data.
+Privamatic audits your Android device's privacy and security settings, giving you a clear 0–100 score with actionable steps to improve it. Built for GrapheneOS users and anyone who wants to understand what's exposing their data.
 
 **Status:** In active development · Not yet published · Contributions welcome
 
@@ -52,8 +52,8 @@ See [CONVENTIONS.md](CONVENTIONS.md) for coding standards.
 ## Building
 
 ```bash
-git clone https://github.com/techtrest/privacy-guard.git
-cd privacy-guard
+git clone https://github.com/techtrest/privamatic.git
+cd privamatic
 ./gradlew assembleDebug
 ./gradlew installDebug
 ```
@@ -90,7 +90,7 @@ app/src/main/java/com/techtrest/privacywidget/
 - Submit to F-Droid
 - Privacy tips system (contextual, educational)
 - Score history trending
-- App rename to Privamatic
+- App renamed to Privamatic
 
 **Future**
 - Export audit reports
@@ -105,7 +105,7 @@ app/src/main/java/com/techtrest/privacywidget/
 
 Contributions welcome. Read [CONVENTIONS.md](CONVENTIONS.md) first — standards are strictly enforced.
 
-- Report bugs or suggest features via [GitHub Issues](https://github.com/techtrest/privacy-guard/issues)
+- Report bugs or suggest features via [GitHub Issues](https://github.com/techtrest/privamatic/issues)
 - Fork → feature branch → follow conventions → PR
 - All PRs reviewed for privacy implications
 

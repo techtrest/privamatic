@@ -1,7 +1,7 @@
 package com.techtrest.privacywidget.data.model
 
 /**
- * Centralized package names for apps tracked by Privacy Guard.
+ * Centralized package names for apps tracked by Privamatic.
  */
 object PackageNames {
     // Google Apps (Major)

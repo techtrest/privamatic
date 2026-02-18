@@ -23,6 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +51,14 @@ fun PrivacyTopAppBar(
     TopAppBar(
         title = {
             Text(
-                text = "Privacy Guard",
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("PRIVA")
+                    }
+                    withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
+                        append("matic")
+                    }
+                },
                 style = MaterialTheme.typography.titleLarge
             )
         },

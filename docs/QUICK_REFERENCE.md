@@ -1,4 +1,4 @@
-# Privacy Guard - Quick Reference
+# Privamatic - Quick Reference
 
 ## For AI Code Generation
 

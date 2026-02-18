@@ -1,4 +1,4 @@
-# Privacy Guard - Development Conventions
+# Privamatic - Development Conventions
 
 ## Design Standards
 

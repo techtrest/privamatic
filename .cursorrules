@@ -1,4 +1,4 @@
-# Privacy Guard - Essential Rules (Optimized for Token Efficiency)
+# Privamatic - Essential Rules (Optimized for Token Efficiency)
 
 ## Material Design 3 - STRICT
 Typography: MaterialTheme.typography ONLY (displayLarge, headlineMedium, titleLarge, bodyMedium)
@@ -31,7 +31,7 @@ Models: data/model (immutable)
 ❌ Magic numbers (use named constants)
 ❌ Modifier without default
 
-## Privacy Guard Specific
+## Privamatic Specific
 Minimal permissions | No tracking | F-Droid compatible
 All points in PrivacyCheck enum | Use PrivacyScoreCalculator
 British Racing Green | Cards: 12dp corners, 2dp elevation

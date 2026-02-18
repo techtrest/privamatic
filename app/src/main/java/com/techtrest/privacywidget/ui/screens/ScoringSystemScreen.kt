@@ -88,7 +88,7 @@ fun ScoringSystemScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Privacy Guard evaluates your device across security settings and surveillance tracking. Each check contributes to your overall privacy score out of 100.",
+                        text = "Privamatic evaluates your device across security settings and surveillance tracking. Each check contributes to your overall privacy score out of 100.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

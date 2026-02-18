@@ -5,7 +5,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 
 @Composable
 fun AboutDialog(
@@ -15,15 +18,21 @@ fun AboutDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "About Privacy Guard",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("About PRIVA")
+                    }
+                    withStyle(SpanStyle(fontWeight = FontWeight.Normal)) {
+                        append("matic")
+                    }
+                },
+                style = MaterialTheme.typography.titleLarge
             )
         },
         text = {
             Text(
                 text = """
-                    Privacy Guard helps you understand and improve your device's privacy posture through comprehensive auditing of system settings and installed applications.
+                    Privamatic helps you understand and improve your device's privacy posture through comprehensive auditing of system settings and installed applications.
 
                     Built with privacy-first principles, this app performs all analysis locally on your device with no telemetry or data collection. It identifies privacy risks from invasive apps and system misconfigurations, providing actionable recommendations to strengthen your digital privacy.
 
