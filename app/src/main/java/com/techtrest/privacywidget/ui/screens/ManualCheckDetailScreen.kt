@@ -1,12 +1,7 @@
 package com.techtrest.privacywidget.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -62,10 +57,15 @@ import com.techtrest.privacywidget.data.model.ManualCheckState
 import com.techtrest.privacywidget.data.model.ManualCheckType
 import com.techtrest.privacywidget.ui.utils.IntentHelper
 
+private val HERO_ICON_SIZE = 48.dp
+private val HERO_ICON_CONTAINER_SIZE = 80.dp
+private val PROGRESS_BAR_HEIGHT = 8.dp
+
 /**
- * Detail screen for a Manual Check, optimized for repeat-use efficiency.
- * Progress and action buttons are immediately visible; educational content
- * is collapsed by default and expandable on tap.
+ * Detail screen for a Manual Check.
+ * Hero area provides at-a-glance context, progress card shows timing,
+ * educational content is collapsed by default, and action buttons sit
+ * inline below the last section.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,12 +84,7 @@ fun ManualCheckDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = checkState.type.displayName,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -100,7 +95,6 @@ fun ManualCheckDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 windowInsets = WindowInsets.statusBars
@@ -116,36 +110,30 @@ fun ManualCheckDetailScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Progress Card — always visible at top
+            // 1. Hero area
+            HeroSection(checkState = checkState)
+
+            // 2. Progress card
             ProgressCard(checkState = checkState)
 
-            // Primary actions — visible without scrolling
-            ActionButtons(
-                checkState = checkState,
-                onOpenSettings = {
-                    IntentHelper.launchActionIntent(
-                        context = context,
-                        actionType = getSettingsActionType(checkState.type)
-                    )
-                },
-                onMarkDone = onMarkDone
-            )
-
-            // Educational sections — collapsed by default
+            // 3. Why This Matters (merged with What to Look For)
             ExpandableSectionCard(title = "Why This Matters") {
                 Text(
                     text = getWhyItMattersText(checkState.type),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                WhatToLookForContent(type = checkState.type)
             }
 
+            // 4. How to Check
             ExpandableSectionCard(title = "How to Check") {
                 val steps = getSteps(checkState.type)
                 steps.forEachIndexed { index, step ->
                     Text(
                         text = "${index + 1}. $step",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(
                             bottom = if (index < steps.lastIndex) 8.dp else 0.dp
@@ -154,60 +142,92 @@ fun ManualCheckDetailScreen(
                 }
             }
 
-            ExpandableSectionCard(title = "What to Look For") {
-                WhatToLookForContent(type = checkState.type)
+            // 5. Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onMarkDone,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Mark as Done")
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        IntentHelper.launchActionIntent(
+                            context = context,
+                            actionType = getSettingsActionType(checkState.type)
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Open Settings")
+                }
             }
         }
     }
 }
 
 /**
- * Primary action buttons: Settings deep link and Mark as Done.
- * Grouped together so both are reachable without scrolling.
+ * Hero area: large icon, title, and a short teaser describing the check.
  */
 @Composable
-private fun ActionButtons(
+private fun HeroSection(
     checkState: ManualCheckState,
-    onOpenSettings: () -> Unit,
-    onMarkDone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
+        Box(
+            modifier = Modifier
+                .size(HERO_ICON_CONTAINER_SIZE)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = checkState.type.icon,
+                contentDescription = null,
+                modifier = Modifier.size(HERO_ICON_SIZE),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+
+        Text(
+            text = checkState.type.displayName,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = onOpenSettings,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(getSettingsButtonLabel(checkState.type))
-            }
+                .padding(horizontal = 16.dp)
+        )
 
-            OutlinedButton(
-                onClick = onMarkDone,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Mark as Done")
-            }
-        }
+        Text(
+            text = checkState.type.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
     }
 }
 
+/**
+ * Progress card showing the review bar, interval, and days remaining.
+ */
 @Composable
 private fun ProgressCard(
     checkState: ManualCheckState,
@@ -238,7 +258,7 @@ private fun ProgressCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
+                    .height(PROGRESS_BAR_HEIGHT)
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.surface)
             ) {
@@ -252,11 +272,21 @@ private fun ProgressCard(
                 }
             }
 
-            Text(
-                text = getStatusText(checkState),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Review every ${checkState.type.periodDays} days",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = getStatusText(checkState),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -275,20 +305,17 @@ private fun ExpandableSectionCard(
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-            ),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+        ) {
             // Tappable header row
             Row(
                 modifier = Modifier
@@ -315,22 +342,8 @@ private fun ExpandableSectionCard(
                 )
             }
 
-            // Expandable body
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ),
-                exit = shrinkVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                )
-            ) {
+            // Conditionally shown content
+            if (expanded) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -537,14 +550,6 @@ private fun getSettingsActionType(type: ManualCheckType): ActionType {
         ManualCheckType.LOCATION_ALWAYS_ON -> ActionType.LOCATION_SETTINGS
         ManualCheckType.CAMERA_MIC_ACCESS -> ActionType.PRIVACY_SETTINGS
         ManualCheckType.UNUSED_APPS -> ActionType.APP_MANAGEMENT_SETTINGS
-    }
-}
-
-private fun getSettingsButtonLabel(type: ManualCheckType): String {
-    return when (type) {
-        ManualCheckType.LOCATION_ALWAYS_ON -> "Open Location Settings"
-        ManualCheckType.CAMERA_MIC_ACCESS -> "Open Privacy Settings"
-        ManualCheckType.UNUSED_APPS -> "Open App Settings"
     }
 }
 
