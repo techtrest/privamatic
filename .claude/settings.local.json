@@ -14,7 +14,8 @@
       "Bash(git commit:*)",
       "mcp__ide__getDiagnostics",
       "Bash(gh repo view:*)",
-      "Bash(gh repo edit:*)"
+      "Bash(gh repo edit:*)",
+      "Bash(./gradlew :app:compileDebugKotlin:*)"
     ]
   }
 }

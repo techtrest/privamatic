@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Widget colors – dark mode static fallback (API 26–30).
-         API 31+ is overridden by values-night-v31/colors.xml using Material You dynamic tokens. -->
+         Uses app dark theme colours: DarkBackground (#1C1B1F) with Cream text
+         (#FFFDD0), matching the app's dark ColorScheme (onBackground = Cream).
+         API 31+ dark mode is overridden by values-night-v31/colors.xml using
+         Material You dynamic tokens. -->
 
-    <color name="widget_background">#1C1B1F</color>   <!-- MD3 surface dark -->
-    <color name="widget_primary_text">#E6E1E5</color> <!-- MD3 on-surface dark -->
-    <color name="widget_secondary_text">#CAC4D0</color> <!-- MD3 on-surface-variant dark -->
-    <color name="widget_divider">#49454F</color>      <!-- MD3 outline-variant dark -->
-    <color name="widget_privacy_increase">#4CAF50</color> <!-- Lighter green for dark mode -->
-    <color name="widget_privacy_decrease">#F44336</color> <!-- Lighter red for dark mode -->
+    <color name="widget_background">#1C1B1F</color>        <!-- DarkBackground from Color.kt -->
+    <color name="widget_primary_text">#FFFDD0</color>      <!-- Cream from Color.kt -->
+    <color name="widget_secondary_text">#FFFDD0</color>    <!-- Cream from Color.kt -->
+    <color name="widget_divider">#FFFDD0</color>           <!-- Cream from Color.kt (icon tint) -->
+    <color name="widget_privacy_increase">#4CAF50</color>  <!-- Lighter green for dark mode -->
+    <color name="widget_privacy_decrease">#F44336</color>  <!-- Lighter red for dark mode -->
 </resources>

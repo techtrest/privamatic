@@ -285,6 +285,7 @@ class DefaultAppsChecker(private val context: Context) {
                 currentKeyboard.contains("futo", ignoreCase = true) || currentKeyboard.contains("org.futo.inputmethod.latin", ignoreCase = true) -> "FUTO Keyboard"
                 currentKeyboard.contains("unexpected", ignoreCase = true) && currentKeyboard.contains("keyboard") || currentKeyboard.contains("juloo.keyboard2", ignoreCase = true) -> "Unexpected Keyboard"
                 currentKeyboard.contains("openboard", ignoreCase = true) || currentKeyboard.contains("org.dslul.openboard.inputmethod.latin", ignoreCase = true) -> "OpenBoard"
+                currentKeyboard.contains("android.inputmethod.latin", ignoreCase = true) || currentKeyboard.contains("com.android.inputmethod", ignoreCase = true) -> "AOSP Keyboard"
                 else -> null
             }
 

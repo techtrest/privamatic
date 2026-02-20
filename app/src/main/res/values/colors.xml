@@ -4,13 +4,16 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- Widget colors – light mode static fallback (API 26–30).
-         API 31+ is overridden by values-v31/colors.xml using Material You dynamic tokens.
-         All values follow MD3 reference palette; no brand-specific colors. -->
+         Uses app brand colours: BritishRacingGreen background (#004225) with
+         Cream text (#FFFDD0) so the widget always matches the app theme on
+         devices that do not support Material You (API 31+).
+         API 31+ widgets use layout-v31/widget_privacy.xml which references
+         @android:color/system_* dynamic colour tokens directly. -->
 
-    <color name="widget_background">#FFFBFE</color>   <!-- MD3 surface -->
-    <color name="widget_primary_text">#1C1B1F</color> <!-- MD3 on-surface -->
-    <color name="widget_secondary_text">#49454F</color> <!-- MD3 on-surface-variant -->
-    <color name="widget_divider">#CAC4D0</color>      <!-- MD3 outline-variant -->
+    <color name="widget_background">#004225</color>        <!-- BritishRacingGreen from Color.kt -->
+    <color name="widget_primary_text">#FFFDD0</color>      <!-- Cream from Color.kt -->
+    <color name="widget_secondary_text">#FFFDD0</color>    <!-- Cream from Color.kt -->
+    <color name="widget_divider">#FFFDD0</color>           <!-- Cream from Color.kt (icon tint) -->
     <color name="widget_privacy_increase">#0B4619</color>  <!-- British Racing Green / primary -->
-    <color name="widget_privacy_decrease">#BA1A1A</color> <!-- MD3 error red -->
+    <color name="widget_privacy_decrease">#BA1A1A</color>  <!-- MD3 error red -->
 </resources>

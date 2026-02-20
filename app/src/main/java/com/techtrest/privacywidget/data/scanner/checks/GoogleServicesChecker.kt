@@ -13,8 +13,9 @@ class GoogleServicesChecker(private val context: Context) {
     /**
      * Check Google Play Services installation state.
      * Stage 1: Not installed → isSecure = true
-     * Stage 2: Sandboxed (no FLAG_SYSTEM) → isSecure = true (acceptable privacy trade-off)
-     * Stage 3: Full system privileges → isSecure = false
+     * Stage 2: MicroG present → isSecure = true (privacy-friendly replacement)
+     * Stage 3: FLAG_SYSTEM or FLAG_UPDATED_SYSTEM_APP set → isSecure = false
+     * Stage 4: Sandboxed (no system flags) → isSecure = true
      */
     fun checkGooglePlayServices(): PrivacyIssue {
         return try {
@@ -24,10 +25,16 @@ class GoogleServicesChecker(private val context: Context) {
                 null
             }
 
-            val hasSystemFlag = appInfo != null &&
-                (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-            val isInDataPartition = appInfo?.sourceDir?.startsWith("/data/") == true
-            val isFullSystem = hasSystemFlag && !isInDataPartition
+            val isMicroG = try {
+                packageManager.getApplicationInfo(MICROG_PACKAGE, 0)
+                true
+            } catch (e: PackageManager.NameNotFoundException) {
+                false
+            }
+
+            val hasSystemPrivileges = appInfo != null &&
+                ((appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0 ||
+                    (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)
 
             when {
                 appInfo == null -> PrivacyIssue(
@@ -36,18 +43,24 @@ class GoogleServicesChecker(private val context: Context) {
                     currentStatus = "Not installed",
                     technicalDetails = "$GMS_PACKAGE is not installed"
                 )
-                !isFullSystem -> PrivacyIssue(
+                isMicroG -> PrivacyIssue(
                     check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
                     isSecure = true,
-                    currentStatus = "Installed (sandboxed)",
-                    technicalDetails = "Running without system privileges - reduced privacy risk"
+                    currentStatus = "MicroG installed (privacy-friendly replacement)",
+                    technicalDetails = "MicroG is an open-source Google Play Services replacement"
                 )
-                else -> PrivacyIssue(
+                hasSystemPrivileges -> PrivacyIssue(
                     check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
                     isSecure = false,
                     isSystemApp = true,
                     currentStatus = "Installed with full system privileges",
                     technicalDetails = "Google Play Services has deep system access and telemetry"
+                )
+                else -> PrivacyIssue(
+                    check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
+                    isSecure = true,
+                    currentStatus = "Installed (sandboxed)",
+                    technicalDetails = "Running without system privileges - reduced privacy risk"
                 )
             }
         } catch (e: Exception) {
@@ -98,6 +111,7 @@ class GoogleServicesChecker(private val context: Context) {
     companion object {
         private const val TAG = "GoogleServicesChecker"
         private const val GMS_PACKAGE = "com.google.android.gms"
+        private const val MICROG_PACKAGE = "org.microg.gms.droidguard"
         private const val FIND_MY_DEVICE_PACKAGE = "com.google.android.apps.adm"
     }
 }

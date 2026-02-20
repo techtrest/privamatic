@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import androidx.compose.ui.graphics.toArgb
 
 class PrivacyWidgetProvider : AppWidgetProvider() {
 
@@ -183,6 +184,23 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         // Apply per-widget opacity to background only (text/icons stay fully opaque)
         val opacity = WidgetPreferences.getOpacity(context, appWidgetId)
         views.setFloat(R.id.widget_background, "setAlpha", opacity / 100f)
+
+        // On Android 11 and below (API < 31), android:theme on non-root RemoteViews
+        // views is not properly supported and can cause RemoteViews inflation failure
+        // on some builds (e.g. LineageOS on older hardware), showing "Problem loading
+        // widget". The android:theme attribute has been removed from the base layout,
+        // and here we explicitly apply static brand colours (Cream text) so the widget
+        // is always readable regardless of the device's theme engine or colour resolution.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            val cream = Cream.toArgb()
+            views.setTextColor(R.id.widget_device_name, cream)
+            views.setTextColor(R.id.widget_os_name, cream)
+            views.setTextColor(R.id.widget_score_value, cream)
+            views.setTextColor(R.id.widget_score_rating, cream)
+            // Change indicators: use light colours visible on the dark BRG/dark background
+            views.setTextColor(R.id.widget_privacy_change_up, 0xFFA5D6A7.toInt())
+            views.setTextColor(R.id.widget_privacy_change_down, 0xFFEF9A9A.toInt())
+        }
 
         val launchIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

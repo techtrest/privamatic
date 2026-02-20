@@ -8,7 +8,8 @@ import java.util.Calendar
  * Persists daily cumulative score history using SharedPreferences.
  *
  * Recording logic:
- * - First scan ever: set currentScore; no baseline yet (scoreDelta = null).
+ * - First scan ever: seed both currentScore and dailyBaselineScore with the initial value
+ *   so scoreDelta = 0 until the score actually changes.
  * - Same calendar day: update currentScore; daily baseline is preserved so the
  *   cumulative delta for today keeps accumulating (e.g. 75→83→91 shows ↑16).
  * - New calendar day: promote the previous currentScore to dailyBaselineScore,
@@ -25,15 +26,18 @@ class ScoreHistoryRepository(context: Context) {
 
         return when {
             savedCurrent == null -> {
-                // First scan ever — no previous score to use as a baseline
+                // First scan ever — seed the baseline with the initial score so that
+                // same-day changes (e.g. after a privacy setting is changed) produce a
+                // non-zero scoreDelta immediately, without requiring a prior day's record.
                 prefs.edit()
                     .putInt(KEY_CURRENT_SCORE, newScore)
+                    .putInt(KEY_DAILY_BASELINE_SCORE, newScore)
                     .putLong(KEY_DAILY_BASELINE_TIMESTAMP, todayMidnight)
                     .putLong(KEY_LAST_UPDATE_TIMESTAMP, now)
                     .apply()
                 ScoreHistory(
                     currentScore = newScore,
-                    dailyBaselineScore = null,
+                    dailyBaselineScore = newScore,
                     dailyBaselineTimestamp = todayMidnight,
                     lastUpdateTimestamp = now
                 )
