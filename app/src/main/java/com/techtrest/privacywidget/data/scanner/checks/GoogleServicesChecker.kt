@@ -14,8 +14,13 @@ class GoogleServicesChecker(private val context: Context) {
      * Check Google Play Services installation state.
      * Stage 1: Not installed → isSecure = true
      * Stage 2: MicroG present → isSecure = true (privacy-friendly replacement)
-     * Stage 3: FLAG_SYSTEM or FLAG_UPDATED_SYSTEM_APP set → isSecure = false
-     * Stage 4: Sandboxed (no system flags) → isSecure = true
+     * Stage 3: MATCH_SYSTEM_ONLY succeeds → isSecure = false (genuinely privileged)
+     * Stage 4: MATCH_SYSTEM_ONLY throws → isSecure = true (sandboxed)
+     *
+     * Note: appInfo.flags and UID cannot be trusted in isolation —
+     * GrapheneOS sets FLAG_SYSTEM on sandboxed GMS, and LineageOS real GMS can have
+     * a user-space UID. MATCH_SYSTEM_ONLY is the authoritative PackageManager signal:
+     * it only resolves apps genuinely installed in the system partition.
      */
     fun checkGooglePlayServices(): PrivacyIssue {
         return try {
@@ -32,9 +37,12 @@ class GoogleServicesChecker(private val context: Context) {
                 false
             }
 
-            val hasSystemPrivileges = appInfo != null &&
-                ((appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0 ||
-                    (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)
+            val isRealSystemApp = try {
+                packageManager.getApplicationInfo(GMS_PACKAGE, PackageManager.MATCH_SYSTEM_ONLY)
+                true
+            } catch (e: PackageManager.NameNotFoundException) {
+                false
+            }
 
             when {
                 appInfo == null -> PrivacyIssue(
@@ -49,7 +57,7 @@ class GoogleServicesChecker(private val context: Context) {
                     currentStatus = "MicroG installed (privacy-friendly replacement)",
                     technicalDetails = "MicroG is an open-source Google Play Services replacement"
                 )
-                hasSystemPrivileges -> PrivacyIssue(
+                isRealSystemApp -> PrivacyIssue(
                     check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
                     isSecure = false,
                     isSystemApp = true,

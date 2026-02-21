@@ -137,7 +137,7 @@ enum class PrivacyCategory(
                 issue.check in category.checks
             }
 
-            val issuesCount = categoryIssues.count { !it.isSecure }
+            val issuesCount = categoryIssues.count { !it.isSecure && !it.check.isInformational }
             val totalCount = categoryIssues.size
 
             return Pair(issuesCount, totalCount)

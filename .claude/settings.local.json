@@ -15,7 +15,12 @@
       "mcp__ide__getDiagnostics",
       "Bash(gh repo view:*)",
       "Bash(gh repo edit:*)",
-      "Bash(./gradlew :app:compileDebugKotlin:*)"
+      "Bash(./gradlew :app:compileDebugKotlin:*)",
+      "Bash(tail:*)",
+      "Bash(adb logcat:*)",
+      "Bash(adb shell am start -n com.techtrest.privacywidget/.MainActivity 2>&1 && sleep 5 && adb logcat -s GMS_DEBUG -d 2>&1)",
+      "Bash(adb shell am start -n com.techtrest.privacywidget/.MainActivity 2>&1 && sleep 5 && adb logcat -s GoogleServicesChecker -d 2>&1)",
+      "Bash(adb:*)"
     ]
   }
 }
