@@ -271,9 +271,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     onNextTip = { tipRevision++ }
                                 )
                                 else -> DetailsScreen(
-                                    privacyScore = state.privacyScore,
-                                    selectedSubTab = navigationState.selectedDetailsSubTab,
-                                    onSubTabSelected = { navigationState.selectDetailsSubTab(it) }
+                                    privacyScore = state.privacyScore
                                 )
                             }
                         }

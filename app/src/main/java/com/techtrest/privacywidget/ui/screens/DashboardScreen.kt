@@ -40,7 +40,6 @@ import com.techtrest.privacywidget.ui.components.DeviceInfoCard
 import com.techtrest.privacywidget.ui.components.ScoreCard
 import com.techtrest.privacywidget.ui.components.SummaryCard
 import com.techtrest.privacywidget.ui.navigation.AppNavigationState
-import com.techtrest.privacywidget.ui.navigation.DetailsSubTab
 import com.techtrest.privacywidget.ui.navigation.NavigationTab
 
 @Composable
@@ -108,7 +107,6 @@ fun DashboardScreen(
                 subtitle = trackingSubtitle,
                 icon = Icons.Default.RemoveRedEye,
                 onClick = {
-                    navigationState.selectDetailsSubTab(DetailsSubTab.SURVEILLANCE)
                     navigationState.selectTab(NavigationTab.DETAILS)
                 },
                 modifier = Modifier.weight(1f)
@@ -126,7 +124,6 @@ fun DashboardScreen(
                 subtitle = securitySubtitle,
                 icon = Icons.Default.Security,
                 onClick = {
-                    navigationState.selectDetailsSubTab(DetailsSubTab.SECURITY)
                     navigationState.selectTab(NavigationTab.DETAILS)
                 },
                 modifier = Modifier.weight(1f)

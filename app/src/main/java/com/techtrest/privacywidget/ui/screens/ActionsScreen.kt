@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,6 +88,12 @@ fun ActionsScreen(
 
     var showDismissed by rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(dismissedQuickWins.isEmpty()) {
+        if (dismissedQuickWins.isEmpty()) {
+            showDismissed = false
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -112,7 +119,7 @@ fun ActionsScreen(
                 if (dismissedQuickWins.isNotEmpty()) {
                     TextButton(onClick = { showDismissed = !showDismissed }) {
                         Text(
-                            text = "Dismissed (${dismissedQuickWins.size})",
+                            text = if (showDismissed) "Hide (${dismissedQuickWins.size})" else "Dismissed (${dismissedQuickWins.size})",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
