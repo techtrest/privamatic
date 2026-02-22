@@ -394,13 +394,12 @@ private fun QuickWinItem(
  */
 private fun getQuickWinShortName(quickWin: QuickWin): String {
     return when (quickWin.type) {
-        QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> "Listeners"
-        QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> "Accessibility"
-        QuickWinType.REVOKE_DEVICE_ADMINS -> "Admins"
-        QuickWinType.DISABLE_WIFI_SCANNING -> "Wi-Fi Scan"
-        QuickWinType.DISABLE_ADVERTISING_ID -> "Ad ID"
-        QuickWinType.ENABLE_PRIVATE_DNS -> "DNS"
-        QuickWinType.DISABLE_FIND_MY_DEVICE -> "Find Device"
+        QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> "Revoke Listeners"
+        QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> "Revoke Access"
+        QuickWinType.REVOKE_DEVICE_ADMINS -> "Revoke Admins"
+        QuickWinType.DISABLE_WIFI_SCANNING -> "Disable Wi-Fi Scan"
+        QuickWinType.DISABLE_ADVERTISING_ID -> "Disable Ad ID"
+        QuickWinType.ENABLE_PRIVATE_DNS -> "Enable Private DNS"
         QuickWinType.REPLACE_BROWSER -> quickWin.currentAppName ?: "Browser"
         QuickWinType.REPLACE_KEYBOARD -> quickWin.currentAppName ?: "Keyboard"
         QuickWinType.REPLACE_DEFAULT_SMS -> quickWin.currentAppName ?: "SMS"
@@ -441,17 +440,17 @@ private fun QuickWinCompactTile(
                 imageVector = quickWin.type.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = shortName,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = if (quickWin.impact == 1) "+1pt" else "+${quickWin.impact}pts",
                 style = MaterialTheme.typography.labelSmall,

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -156,29 +155,6 @@ enum class QuickWinType(
             4. Select 'Private DNS provider hostname'
             5. Enter: dns.quad9.net
             6. Tap 'Save'
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
-    ),
-
-    DISABLE_FIND_MY_DEVICE(
-        title = "Disable Find My Device",
-        description = "Reduces Google's device tracking",
-        timeEstimate = "30 seconds",
-        icon = Icons.Default.PhoneAndroid,
-        actionType = ActionType.SECURITY_SETTINGS,
-        actionLabel = "Open Security Settings",
-        instructions = """
-            While useful for theft protection, Find My Device constantly tracks your location.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Security'
-            3. Tap 'Find My Device'
-            4. Turn off 'Find My Device'
-            5. Confirm
-
-            Note: This trades security for privacy. Only disable if privacy is your priority.
 
             After completing this, rescan to see your improved score!
         """.trimIndent()
