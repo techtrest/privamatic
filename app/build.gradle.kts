@@ -73,9 +73,6 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 
-    // Google Play Services - for advertising ID check
-    implementation("com.google.android.gms:play-services-ads-identifier:18.1.0")
-
     // DataStore for preferences persistence
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 

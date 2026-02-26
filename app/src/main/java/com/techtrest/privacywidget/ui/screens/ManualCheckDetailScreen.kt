@@ -442,6 +442,14 @@ private fun WhatToLookForContent(
                 }
             }
 
+            ManualCheckType.ADVERTISING_ID_CHECK -> {
+                Text(
+                    text = "Verify that your Advertising ID has been deleted in Settings → Privacy → Ads.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
             ManualCheckType.UNUSED_APPS -> {
                 Text(
                     text = "High-priority apps to remove:",
@@ -525,6 +533,9 @@ private fun getWhyItMattersText(type: ManualCheckType): String {
 
         ManualCheckType.UNUSED_APPS ->
             "Unused apps are a hidden privacy and security risk. They still have all their permissions, continue receiving data access, may have unpatched vulnerabilities, and increase your attack surface. Apps you installed months or years ago might have been updated with new tracking features or sold to different companies. Regular cleanups reduce these risks."
+
+        ManualCheckType.ADVERTISING_ID_CHECK ->
+            "Your Advertising ID is a unique identifier that lets advertisers link your activity across different apps and services to build a profile of your habits and interests. Deleting it resets this profile and prevents further cross-app behavioral tracking until a new ID is created."
     }
 }
 
@@ -555,6 +566,12 @@ private fun getSteps(type: ManualCheckType): List<String> {
             "For each unused app, ask: \"Will I actually use this again?\"",
             "Uninstall apps you don't need \u2014 you can always reinstall later if needed"
         )
+
+        ManualCheckType.ADVERTISING_ID_CHECK -> listOf(
+            "Open Settings on your device",
+            "Navigate to Privacy \u2192 Ads",
+            "Tap \"Delete Advertising ID\" and confirm"
+        )
     }
 }
 
@@ -563,6 +580,7 @@ private fun getSettingsActionType(type: ManualCheckType): ActionType {
         ManualCheckType.LOCATION_ALWAYS_ON -> ActionType.LOCATION_SETTINGS
         ManualCheckType.CAMERA_MIC_ACCESS -> ActionType.PRIVACY_SETTINGS
         ManualCheckType.UNUSED_APPS -> ActionType.APP_MANAGEMENT_SETTINGS
+        ManualCheckType.ADVERTISING_ID_CHECK -> ActionType.PRIVACY_SETTINGS
     }
 }
 

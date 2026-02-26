@@ -40,12 +40,20 @@ class MaintenanceManager(private val context: Context) {
     /**
      * Get current states for all manual checks.
      * Calculates days remaining, fill percentage, and overdue status.
+     *
+     * ADVERTISING_ID_CHECK is hidden once completed until it becomes overdue again,
+     * since it only needs to be verified once every 180 days. All other check types
+     * are always included regardless of completion state.
      */
     fun getCheckStates(): Flow<List<ManualCheckState>> {
         return context.maintenanceDataStore.data.map { preferences ->
-            ManualCheckType.entries.map { type ->
-                calculateCheckState(type, preferences)
-            }
+            ManualCheckType.entries
+                .map { type -> calculateCheckState(type, preferences) }
+                .filter { state ->
+                    state.type != ManualCheckType.ADVERTISING_ID_CHECK ||
+                        state.lastCompletedTimestamp == 0L ||
+                        state.isOverdue
+                }
         }
     }
 
@@ -121,10 +129,16 @@ class MaintenanceManager(private val context: Context) {
 
     /**
      * Get total points from non-overdue checks.
+     * Reads all check states directly from DataStore rather than via getCheckStates(),
+     * because getCheckStates() applies a UI visibility filter that hides completed
+     * ADVERTISING_ID_CHECK entries — which would incorrectly drop their earned points.
      */
     fun getTotalPoints(): Flow<Int> {
-        return getCheckStates().map { states ->
-            states.filter { !it.isOverdue }.sumOf { it.type.pointValue }
+        return context.maintenanceDataStore.data.map { preferences ->
+            ManualCheckType.entries
+                .map { type -> calculateCheckState(type, preferences) }
+                .filter { !it.isOverdue }
+                .sumOf { it.type.pointValue }
         }
     }
 }

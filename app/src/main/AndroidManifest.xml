@@ -9,12 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
-    <!-- Required to CHECK if advertising ID is active and help users disable it.
-         We do not use the advertising ID for tracking purposes.
-         Falls back gracefully on devices without Google Play Services (e.g. GrapheneOS). -->
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 
-    <application
+<application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

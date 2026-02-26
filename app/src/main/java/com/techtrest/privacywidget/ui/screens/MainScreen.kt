@@ -48,6 +48,7 @@ import com.techtrest.privacywidget.data.maintenance.PrivacyTipHistory
 import com.techtrest.privacywidget.data.maintenance.QuickWinDismissalManager
 import com.techtrest.privacywidget.data.model.PrivacyTip
 import com.techtrest.privacywidget.data.model.ManualCheckType
+import com.techtrest.privacywidget.data.model.QuickWinType
 import com.techtrest.privacywidget.data.model.ScoreHistory
 import com.techtrest.privacywidget.data.model.QuickWin
 import com.techtrest.privacywidget.ui.components.AboutDialog
@@ -94,6 +95,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showScoringSystemScreen by remember { mutableStateOf(false) }
     var showManualCheckDetail by remember { mutableStateOf<ManualCheckType?>(null) }
     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
+    var showAdIdVerification by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val pagerState = rememberPagerState(pageCount = { NavigationTab.entries.size })
@@ -116,6 +118,10 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
     // Handle back gesture with proper navigation hierarchy
     // Note: Guide screens handle their own back gesture via BackHandler in each guide
+    BackHandler(enabled = showAdIdVerification) {
+        showAdIdVerification = false
+    }
+
     BackHandler(enabled = showScoringSystemScreen) {
         showScoringSystemScreen = false
     }
@@ -252,7 +258,11 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     dismissedCheckNames = dismissedCheckNames,
                                     currentTip = currentTip,
                                     onNavigateToGuide = { checkType ->
-                                        showManualCheckDetail = checkType
+                                        if (checkType == ManualCheckType.ADVERTISING_ID_CHECK) {
+                                            showAdIdVerification = true
+                                        } else {
+                                            showManualCheckDetail = checkType
+                                        }
                                     },
                                     onMarkCheckDone = { checkType ->
                                         scope.launch {
@@ -261,7 +271,11 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                         }
                                     },
                                     onQuickWinSelected = { quickWin ->
-                                        showQuickWinDetail = quickWin
+                                        if (quickWin.type == QuickWinType.DISABLE_ADVERTISING_ID) {
+                                            showAdIdVerification = true
+                                        } else {
+                                            showQuickWinDetail = quickWin
+                                        }
                                     },
                                     onRestoreQuickWin = { quickWin ->
                                         scope.launch {
@@ -368,6 +382,20 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 scope.launch {
                     dismissalManager.dismiss(quickWin)
                     showQuickWinDetail = null
+                }
+            }
+        )
+    }
+
+    // Advertising ID Verification Screen
+    if (showAdIdVerification) {
+        AdIdVerificationScreen(
+            onBackClick = { showAdIdVerification = false },
+            onConfirmed = {
+                scope.launch {
+                    maintenanceManager.markCheckCompleted(ManualCheckType.ADVERTISING_ID_CHECK)
+                    viewModel.performScan()
+                    showAdIdVerification = false
                 }
             }
         )

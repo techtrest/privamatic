@@ -5,12 +5,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
-import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.techtrest.privacywidget.data.model.PrivacyCheck
 import com.techtrest.privacywidget.data.model.PrivacyIssue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class NetworkSecurityChecker(private val context: Context) {
 
@@ -119,54 +115,30 @@ class NetworkSecurityChecker(private val context: Context) {
     }
 
     /**
-     * Check if advertising ID is active
-     * This must be called from a background thread
+     * Check if advertising ID has been manually verified as deleted.
+     * Reads a persisted boolean from SharedPreferences written by AdIdVerificationScreen.
      */
-    suspend fun checkAdvertisingId(): PrivacyIssue = withContext(Dispatchers.IO) {
-        try {
-            // Try to get advertising ID info
-            val adInfo = try {
-                AdvertisingIdClient.getAdvertisingIdInfo(context)
-            } catch (e: Exception) {
-                // Play Services not available or other error
-                Log.w(TAG, "Unable to get advertising ID info: ${e.message}")
-                null
-            }
-
-            if (adInfo == null) {
-                // Play Services not available - can't track via advertising ID
-                return@withContext PrivacyIssue(
-                    check = PrivacyCheck.ADVERTISING_ID,
-                    isSecure = true,
-                    currentStatus = "Not available (Play Services not installed)",
-                    technicalDetails = "Advertising ID requires Google Play Services"
-                )
-            }
-
-            val isLimitAdTrackingEnabled = adInfo.isLimitAdTrackingEnabled
-            val adId = adInfo.id
-
+    fun checkAdvertisingId(): PrivacyIssue {
+        val prefs = context.getSharedPreferences(AD_ID_PREFS_NAME, Context.MODE_PRIVATE)
+        val isVerified = prefs.getBoolean(KEY_AD_ID_VERIFIED, false)
+        return if (isVerified) {
             PrivacyIssue(
                 check = PrivacyCheck.ADVERTISING_ID,
-                isSecure = isLimitAdTrackingEnabled,
-                currentStatus = if (isLimitAdTrackingEnabled) "Disabled/Limited" else "Active",
-                technicalDetails = if (isLimitAdTrackingEnabled)
-                    "Ad tracking is limited"
-                else
-                    "Active advertising ID: ${adId?.take(8)}..."
+                isSecure = true,
+                currentStatus = "Disabled (self-reported)"
             )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking advertising ID", e)
+        } else {
             PrivacyIssue(
                 check = PrivacyCheck.ADVERTISING_ID,
-                isSecure = true, // Don't penalize on error
-                currentStatus = "Unable to determine",
-                technicalDetails = "Error: ${e.message}"
+                isSecure = false,
+                currentStatus = "Unknown — verify manually"
             )
         }
     }
 
     companion object {
-        private const val TAG = "NetworkSecurityChecker"
+        internal const val AD_ID_PREFS_NAME = "ad_id_prefs"
+        internal const val KEY_AD_ID_VERIFIED = "ad_id_verified"
+        internal const val KEY_AD_ID_TIMESTAMP = "ad_id_verified_timestamp"
     }
 }

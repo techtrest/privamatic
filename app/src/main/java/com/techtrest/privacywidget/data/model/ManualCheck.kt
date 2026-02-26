@@ -3,6 +3,7 @@ package com.techtrest.privacywidget.data.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -37,6 +38,13 @@ enum class ManualCheckType(
         periodDays = 120,
         pointValue = 5,
         description = "Unused apps still have permissions and potential vulnerabilities. Find and remove apps you haven't used."
+    ),
+    ADVERTISING_ID_CHECK(
+        displayName = "Advertising ID",
+        icon = Icons.Default.TrackChanges,
+        periodDays = 180,
+        pointValue = 5,
+        description = "Verify your Advertising ID is deleted to prevent cross-app tracking by advertisers."
     )
 }
 
