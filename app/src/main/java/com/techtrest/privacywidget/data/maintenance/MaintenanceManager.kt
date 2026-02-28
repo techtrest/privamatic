@@ -137,7 +137,12 @@ class MaintenanceManager(private val context: Context) {
         return context.maintenanceDataStore.data.map { preferences ->
             ManualCheckType.entries
                 .map { type -> calculateCheckState(type, preferences) }
-                .filter { !it.isOverdue }
+                .filter {
+                    if (it.type == ManualCheckType.ADVERTISING_ID_CHECK)
+                        it.lastCompletedTimestamp != 0L
+                    else
+                        !it.isOverdue
+                }
                 .sumOf { it.type.pointValue }
         }
     }

@@ -6,7 +6,7 @@ import com.techtrest.privacywidget.data.model.PrivacyScore
 object PrivacyScoreCalculator {
 
     private const val MAX_SCORE = 100
-    private const val MAX_MANUAL_CHECK_POINTS = 15
+    private const val MAX_MANUAL_CHECK_POINTS = 20
 
     /**
      * Calculates the privacy score based on detected issues and manual check completion.
