@@ -9,13 +9,13 @@
 
 **PRIVA**matic audits your Android device's privacy and security settings, giving you a clear 0–100 score with actionable steps to improve it. Built for GrapheneOS users and anyone who wants to understand what's exposing their data.
 
-**Status:** In active development · Not yet published · Contributions welcome
+**Status:** In active development · Submitting to F-Droid · Contributions welcome
 
 ---
 
 ## Features
 
-**Privacy Score (0–100)** — Comprehensive assessment across 25+ checks covering system security, network privacy, Google/Meta/Microsoft app detection, default apps, and AI assistants. Each check is weighted by real-world privacy impact.
+**Privacy Score (0–100)** — Comprehensive assessment across 45+ checks covering system security, network privacy, Google/Meta/Microsoft app detection, default apps, and AI assistants. Each check is weighted by real-world privacy impact.
 
 **Three-Tab Interface** — Dashboard shows your score at a glance with tracking/security/actions summaries. Actions tab surfaces Quick Wins (fast fixes with step-by-step instructions and deep links to Settings) and Manual Checks (periodic reviews with progress tracking). Details tab breaks down every check by category with expand/collapse cards.
 
@@ -29,7 +29,7 @@
 
 ## Privacy Commitment
 
-- **Zero permissions** beyond `ACCESS_NETWORK_STATE` for VPN detection
+- **Minimal permissions** — `QUERY_ALL_PACKAGES` (app scanning), `ACCESS_NETWORK_STATE` + `ACCESS_WIFI_STATE` (network checks), `RECEIVE_BOOT_COMPLETED` (widget refresh after reboot)
 - **Fully offline** — no network requests, no analytics, no crash reporting
 - **No accounts** — no sign-in, no cloud sync
 - **Local only** — all data stays on your device
@@ -88,9 +88,7 @@ app/src/main/java/com/techtrest/privacywidget/
 
 **v1.0 (2026)**
 - Submit to F-Droid
-- Privacy tips system (contextual, educational)
 - Score history trending
-- App renamed to **PRIVA**matic
 
 **Future**
 - Export audit reports
@@ -123,4 +121,4 @@ Contributions welcome. Read [CONVENTIONS.md](CONVENTIONS.md) first — standards
 
 ---
 
-*Last Updated: 2026-02-16*
+*Last Updated: 2026-03-01*

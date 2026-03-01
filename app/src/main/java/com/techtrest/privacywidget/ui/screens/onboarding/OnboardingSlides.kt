@@ -278,7 +278,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "50+ checks across security, tracking, and your apps. Weighted by real-world impact.",
+            text = "45+ checks across security, tracking, and your apps. Weighted by real-world impact.",
             style = MaterialTheme.typography.bodyLarge,
             color = Cream.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
