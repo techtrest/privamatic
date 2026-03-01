@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import com.techtrest.privacywidget.BuildConfig
 import com.techtrest.privacywidget.data.model.PrivacyCheck
 import com.techtrest.privacywidget.data.model.PrivacyIssue
 
@@ -73,7 +74,7 @@ class GoogleServicesChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking Google Play Services", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking Google Play Services", e)
             PrivacyIssue(
                 check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
                 isSecure = true,
@@ -121,7 +122,7 @@ class GoogleServicesChecker(private val context: Context) {
                     "$FIND_MY_DEVICE_PACKAGE is not installed or is disabled"
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking Find My Device", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking Find My Device", e)
             PrivacyIssue(
                 check = PrivacyCheck.FIND_MY_DEVICE,
                 isSecure = true,

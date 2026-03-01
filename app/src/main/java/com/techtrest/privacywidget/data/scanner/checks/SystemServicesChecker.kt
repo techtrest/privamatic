@@ -8,6 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import com.techtrest.privacywidget.BuildConfig
 import com.techtrest.privacywidget.data.model.PrivacyCheck
 import com.techtrest.privacywidget.data.model.PrivacyIssue
 
@@ -39,7 +40,7 @@ class SystemServicesChecker(private val context: Context) {
                 technicalDetails = "Checked using DevicePolicyManager (SDK ${Build.VERSION.SDK_INT})"
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking device encryption", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking device encryption", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEVICE_ENCRYPTION,
                 isSecure = true, // Don't penalize on error
@@ -100,7 +101,7 @@ class SystemServicesChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking notification listeners", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking notification listeners", e)
             PrivacyIssue(
                 check = PrivacyCheck.NOTIFICATION_LISTENER,
                 isSecure = true, // Don't penalize on error
@@ -178,7 +179,7 @@ class SystemServicesChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking accessibility services", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking accessibility services", e)
             PrivacyIssue(
                 check = PrivacyCheck.ACCESSIBILITY_SERVICE,
                 isSecure = true, // Don't penalize on error
@@ -236,7 +237,7 @@ class SystemServicesChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking device admin apps", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking device admin apps", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEVICE_ADMIN,
                 isSecure = true, // Don't penalize on error

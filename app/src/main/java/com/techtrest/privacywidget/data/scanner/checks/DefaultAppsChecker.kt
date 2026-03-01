@@ -7,6 +7,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.provider.Telephony
 import android.util.Log
+import com.techtrest.privacywidget.BuildConfig
 import com.techtrest.privacywidget.data.model.PrivacyCheck
 import com.techtrest.privacywidget.data.model.PrivacyIssue
 
@@ -22,6 +23,7 @@ class DefaultAppsChecker(private val context: Context) {
      */
     fun checkDefaultBrowser(): PrivacyIssue {
         return try {
+            // URI passed only to PackageManager.resolveActivity() — no network request is made
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://www.example.com"))
 
             // Try MATCH_DEFAULT_ONLY first
@@ -106,7 +108,7 @@ class DefaultAppsChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking default browser", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking default browser", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_BROWSER,
                 isSecure = true,
@@ -190,7 +192,7 @@ class DefaultAppsChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking default SMS", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking default SMS", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_SMS,
                 isSecure = true,
@@ -256,7 +258,7 @@ class DefaultAppsChecker(private val context: Context) {
                 customPointDeduction = 3
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking default keyboard", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking default keyboard", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_KEYBOARD,
                 isSecure = true,
@@ -342,7 +344,7 @@ class DefaultAppsChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking default email", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking default email", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_EMAIL,
                 isSecure = true,
@@ -430,7 +432,7 @@ class DefaultAppsChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking default launcher", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking default launcher", e)
             PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_LAUNCHER,
                 isSecure = true,

@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.techtrest.privacywidget.BuildConfig
 
 /**
  * Receives BOOT_COMPLETED and restores the periodic update alarm.
@@ -19,7 +20,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
-        Log.d(TAG, "Boot completed – restoring widget alarm and requesting immediate update")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Boot completed – restoring widget alarm and requesting immediate update")
 
         // Only bother if at least one widget is actually placed on the home screen
         val manager = AppWidgetManager.getInstance(context)

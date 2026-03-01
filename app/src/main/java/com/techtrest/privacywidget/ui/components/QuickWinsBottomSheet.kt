@@ -243,11 +243,18 @@ fun InstructionsDialog(
         confirmButton = {
             when {
                 needsStoreButtons -> {
-                    // For default app replacements: Show store buttons
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    val searchQuery = when (quickWinType) {
+                        QuickWinType.REPLACE_KEYBOARD -> "privacy keyboard"
+                        QuickWinType.REPLACE_BROWSER -> "privacy browser"
+                        QuickWinType.REPLACE_DEFAULT_SMS -> "privacy sms messaging"
+                        QuickWinType.REPLACE_DEFAULT_EMAIL -> "privacy email client"
+                        QuickWinType.REPLACE_DEFAULT_LAUNCHER -> "privacy launcher"
+                        else -> ""
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // F-Droid button
                         androidx.compose.material3.OutlinedButton(
                             onClick = {
                                 val searchTerm = when (quickWinType) {
@@ -261,23 +268,14 @@ fun InstructionsDialog(
                                 openFDroid(context, searchTerm)
                             }
                         ) {
-                            Text("F-Droid")
+                            Text("Browse F-Droid")
                         }
-                        // Play Store button
-                        androidx.compose.material3.FilledTonalButton(
-                            onClick = {
-                                val searchQuery = when (quickWinType) {
-                                    QuickWinType.REPLACE_KEYBOARD -> "privacy keyboard"
-                                    QuickWinType.REPLACE_BROWSER -> "privacy browser"
-                                    QuickWinType.REPLACE_DEFAULT_SMS -> "privacy sms messaging"
-                                    QuickWinType.REPLACE_DEFAULT_EMAIL -> "privacy email client"
-                                    QuickWinType.REPLACE_DEFAULT_LAUNCHER -> "privacy launcher"
-                                    else -> ""
-                                }
-                                openPlayStore(context, searchQuery)
-                            }
-                        ) {
-                            Text("Play Store")
+                        if (searchQuery.isNotEmpty()) {
+                            Text(
+                                text = "Not on F-Droid? Search '$searchQuery' on Play Store",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -353,26 +351,6 @@ private fun openFDroid(context: Context, searchTerm: String) {
             }
         } catch (e: Exception) {
             // Silently fail if neither works
-        }
-    }
-}
-
-/**
- * Opens Play Store with search query
- */
-private fun openPlayStore(context: Context, searchQuery: String) {
-    try {
-        val playStoreIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=$searchQuery"))
-        playStoreIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.startActivity(playStoreIntent)
-    } catch (e: Exception) {
-        // Fallback to web if Play Store not available
-        try {
-            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/search?q=$searchQuery"))
-            webIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            context.startActivity(webIntent)
-        } catch (e: Exception) {
-            // Silently fail
         }
     }
 }

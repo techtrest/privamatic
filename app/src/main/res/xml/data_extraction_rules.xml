@@ -5,15 +5,12 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Exclude privacy-sensitive preference stores from Google Cloud Backup -->
+        <exclude domain="sharedpref" path="ad_id_prefs"/>
+        <exclude domain="file" path="datastore/maintenance_prefs.preferences_pb"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="ad_id_prefs"/>
+        <exclude domain="file" path="datastore/maintenance_prefs.preferences_pb"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

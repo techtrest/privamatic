@@ -21,7 +21,11 @@
       "Bash(adb shell am start -n com.techtrest.privacywidget/.MainActivity 2>&1 && sleep 5 && adb logcat -s GMS_DEBUG -d 2>&1)",
       "Bash(adb shell am start -n com.techtrest.privacywidget/.MainActivity 2>&1 && sleep 5 && adb logcat -s GoogleServicesChecker -d 2>&1)",
       "Bash(adb:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(./gradlew assembleRelease:*)",
+      "Bash(JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew assembleRelease:*)",
+      "Bash(JAVA_HOME=/home/techtrest/.local/share/android-studio/jbr ./gradlew assembleRelease:*)",
+      "Bash(echo exit:$?:*)"
     ]
   }
 }

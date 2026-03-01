@@ -156,7 +156,7 @@ class InstalledAppsChecker(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking background location apps", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking background location apps", e)
             PrivacyIssue(
                 check = PrivacyCheck.BACKGROUND_LOCATION_APPS,
                 isSecure = true,
@@ -192,7 +192,7 @@ class InstalledAppsChecker(private val context: Context) {
                 technicalDetails = "Package: $packageName"
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking ${check.displayName}", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking ${check.displayName}", e)
             PrivacyIssue(
                 check = check,
                 isSecure = true,

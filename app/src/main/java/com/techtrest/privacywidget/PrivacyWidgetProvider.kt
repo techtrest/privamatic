@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import android.view.View
+import com.techtrest.privacywidget.BuildConfig
 import android.widget.RemoteViews
 import com.techtrest.privacywidget.data.ScoreHistoryRepository
 import com.techtrest.privacywidget.data.util.DeviceNameUtil
@@ -110,7 +111,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                     )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error updating widget", e)
+                if (BuildConfig.DEBUG) Log.e(TAG, "Error updating widget", e)
                 val deviceName = DeviceNameUtil.getMarketingName()
                 val osName = detectOperatingSystem(context)
                 for (appWidgetId in appWidgetIds) {
@@ -197,8 +198,8 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.widget_score_value, cream)
             views.setTextColor(R.id.widget_score_rating, cream)
             // Change indicators: use light colours visible on the dark BRG/dark background
-            views.setTextColor(R.id.widget_privacy_change_up, 0xFFA5D6A7.toInt())
-            views.setTextColor(R.id.widget_privacy_change_down, 0xFFEF9A9A.toInt())
+            views.setTextColor(R.id.widget_privacy_change_up, WIDGET_POSITIVE_COLOR)
+            views.setTextColor(R.id.widget_privacy_change_down, WIDGET_NEGATIVE_COLOR)
         }
 
         val launchIntent = Intent(context, MainActivity::class.java).apply {
@@ -233,6 +234,10 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         /** 48 hours in milliseconds - privacy change expiry time. */
         private const val CHANGE_EXPIRY_MS = 172_800_000L
 
+        // Static colors for pre-Android 12 widgets where RemoteViews cannot resolve theme colors
+        private val WIDGET_POSITIVE_COLOR = 0xFFA5D6A7.toInt()
+        private val WIDGET_NEGATIVE_COLOR = 0xFFEF9A9A.toInt()
+
         /**
          * Registers an inexact 6-hour repeating alarm.
          * Safe to call multiple times — subsequent calls just update the existing alarm.
@@ -245,14 +250,14 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 UPDATE_INTERVAL_MS,
                 buildAlarmPendingIntent(context)
             )
-            Log.d(TAG, "Periodic widget updates scheduled (6-hour interval)")
+            if (BuildConfig.DEBUG) Log.d(TAG, "Periodic widget updates scheduled (6-hour interval)")
         }
 
         /** Cancels the repeating alarm set by [schedulePeriodicUpdates]. */
         fun cancelPeriodicUpdates(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(buildAlarmPendingIntent(context))
-            Log.d(TAG, "Periodic widget updates cancelled")
+            if (BuildConfig.DEBUG) Log.d(TAG, "Periodic widget updates cancelled")
         }
 
         /**
