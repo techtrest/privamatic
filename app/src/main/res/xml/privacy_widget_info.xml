@@ -7,7 +7,7 @@
     android:targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_privacy"
-    android:configure="com.techtrest.privacywidget.WidgetConfigurationActivity"
+    android:configure="com.techtrest.privamatic.WidgetConfigurationActivity"
     android:widgetFeatures="reconfigurable"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"

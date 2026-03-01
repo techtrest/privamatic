@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.techtrest.privacywidget"
+    namespace = "com.techtrest.privamatic"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.techtrest.privacywidget"
+        applicationId = "com.techtrest.privamatic"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
