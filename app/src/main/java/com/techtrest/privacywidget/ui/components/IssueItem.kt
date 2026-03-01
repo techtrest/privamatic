@@ -1,6 +1,5 @@
 package com.techtrest.privacywidget.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -106,7 +105,7 @@ fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
         }
 
         // Expandable detail section
-        AnimatedVisibility(visible = isExpanded) {
+        if (isExpanded) {
             if (!issue.isSecure || issue.technicalDetails != null) {
                 Surface(
                     modifier = Modifier
