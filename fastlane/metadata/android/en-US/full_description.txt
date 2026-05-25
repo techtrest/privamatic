@@ -1,23 +1,13 @@
-Privamatic audits your Android device and gives you a clear 0–100 privacy score based on your actual settings — not guesswork.
+Privamatic audits your Android device and gives you a clear 0-100 privacy score based on your actual settings — not guesswork.
 
 Whether you're just starting to take privacy seriously or you're already running GrapheneOS, Privamatic shows you exactly what's exposing your data and how to fix it, step by step.
 
-45+ automated checks cover:
-- System security (screen lock, encryption, USB debugging, biometrics)
-- Network privacy (VPN, Private DNS, Wi-Fi scanning)
-- Surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants)
-- Default apps (browser, keyboard, launcher, email)
+45+ automated checks cover system security (screen lock, encryption, USB debugging, biometrics), network privacy (VPN, Private DNS, Wi-Fi scanning), surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants), and default apps (browser, keyboard, launcher, email).
 
-Quick Wins surface the easiest improvements first — each one includes plain-English instructions and a direct link to the relevant Settings page so you never have to hunt around.
+Quick Wins surface the easiest improvements first — each one includes plain-English instructions and a direct link to the relevant Settings page.
 
 Manual Checks remind you to periodically review location permissions, camera and microphone access, and unused apps — the things that can't be checked automatically.
 
 A home screen widget keeps your privacy score visible at a glance, with Material You theming that adapts to your wallpaper.
 
-Privacy is built in:
-- Fully offline — no network requests, ever
-- No accounts, no cloud sync, no analytics
-- All data stays on your device
-- Open source (GPLv3)
-
-Works on any Android 8.0+ device. Especially useful on GrapheneOS, CalyxOS, and LineageOS.
+Fully offline — no network requests, no analytics, no accounts, no cloud sync. All data stays on your device.
