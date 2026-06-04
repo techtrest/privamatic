@@ -18,8 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -71,7 +73,10 @@ fun DetailsScreen(
         }
 
         when (selectedTab) {
-            DetailsTab.CHECKS -> ChecksContent(privacyScore = privacyScore)
+            DetailsTab.CHECKS -> ChecksContent(
+                privacyScore = privacyScore,
+                trustedPackages = trustedPackages
+            )
             DetailsTab.APPS -> AppsContent(
                 flaggedApps = flaggedApps,
                 trustedPackages = trustedPackages,
@@ -87,6 +92,7 @@ fun DetailsScreen(
 @Composable
 private fun ChecksContent(
     privacyScore: PrivacyScore,
+    trustedPackages: Set<String>,
     modifier: Modifier = Modifier
 ) {
     val securityCategories = listOf(PrivacyCategory.SYSTEM_SECURITY)
@@ -120,7 +126,8 @@ private fun ChecksContent(
             CategoryGroup(
                 category = category,
                 privacyScore = privacyScore,
-                statusColor = statusColor
+                statusColor = statusColor,
+                trustedPackages = trustedPackages
             )
         }
 
@@ -138,7 +145,8 @@ private fun ChecksContent(
             CategoryGroup(
                 category = category,
                 privacyScore = privacyScore,
-                statusColor = statusColor
+                statusColor = statusColor,
+                trustedPackages = trustedPackages
             )
         }
     }
@@ -259,6 +267,10 @@ private fun AppTrustRow(
 
     Card(
         modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isTrusted) MaterialTheme.colorScheme.primaryContainer
+                             else MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -297,6 +309,18 @@ private fun AppTrustRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Icon(
+                imageVector = if (isTrusted) Icons.Default.CheckCircle else Icons.Default.Warning,
+                contentDescription = if (isTrusted) "Trusted" else "Flagged",
+                tint = if (isTrusted) MaterialTheme.colorScheme.primary
+                       else MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
 
             Switch(
                 checked = isTrusted,

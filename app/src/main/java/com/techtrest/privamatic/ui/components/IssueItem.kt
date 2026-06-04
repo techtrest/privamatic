@@ -34,24 +34,33 @@ import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
 @Composable
-fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
+fun IssueItem(
+    issue: PrivacyIssue,
+    trustedPackages: Set<String> = emptySet(),
+    modifier: Modifier = Modifier
+) {
     var isExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    val allPackagesTrusted = remember(issue.flaggedPackages, trustedPackages) {
+        issue.flaggedPackages.isNotEmpty() && issue.flaggedPackages.all { it in trustedPackages }
+    }
+    val effectivelySecure = issue.isSecure || allPackagesTrusted
 
     val isInformational = issue.check.isInformational && !issue.isSecure
     val statusIcon = when {
         isInformational -> Icons.Default.Info
-        issue.isSecure -> Icons.Default.CheckCircle
+        effectivelySecure -> Icons.Default.CheckCircle
         else -> Icons.Default.Warning
     }
     val statusIconTint = when {
         isInformational -> MaterialTheme.colorScheme.onSurfaceVariant
-        issue.isSecure -> MaterialTheme.colorScheme.primary
+        effectivelySecure -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.tertiary
     }
     val statusIconDesc = when {
         isInformational -> "Informational"
-        issue.isSecure -> "Secure"
+        effectivelySecure -> "Secure"
         else -> "Issue detected"
     }
 
@@ -88,8 +97,8 @@ fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Point deduction badge - not shown for informational items
-            if (!issue.isSecure && !isInformational) {
+            // Point deduction badge - not shown for informational or effectively-trusted items
+            if (!effectivelySecure && !isInformational) {
                 Surface(
                     color = MaterialTheme.colorScheme.error,
                     shape = RoundedCornerShape(12.dp)
@@ -106,7 +115,7 @@ fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
 
         // Expandable detail section
         if (isExpanded) {
-            if (!issue.isSecure || issue.technicalDetails != null) {
+            if (!effectivelySecure || issue.technicalDetails != null) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -147,7 +156,7 @@ fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
                                     )
                                 }
                             }
-                        } else if (!issue.isSecure) {
+                        } else if (!effectivelySecure) {
                             Text(
                                 text = "Recommendation:",
                                 style = MaterialTheme.typography.labelLarge,
@@ -188,7 +197,7 @@ fun IssueItem(issue: PrivacyIssue, modifier: Modifier = Modifier) {
                         }
 
                         issue.technicalDetails?.let { details ->
-                            if (!issue.isSecure) {
+                            if (!effectivelySecure) {
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                             Text(

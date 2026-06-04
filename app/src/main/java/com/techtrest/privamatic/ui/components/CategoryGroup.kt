@@ -42,6 +42,7 @@ fun CategoryGroup(
     category: PrivacyCategory,
     privacyScore: PrivacyScore,
     statusColor: Color,
+    trustedPackages: Set<String> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     val issues = PrivacyCategory.getIssuesForCategory(category, privacyScore)
@@ -116,7 +117,7 @@ fun CategoryGroup(
                     )
 
                     issues.forEachIndexed { index, issue ->
-                        IssueItem(issue = issue)
+                        IssueItem(issue = issue, trustedPackages = trustedPackages)
                         if (index < issues.lastIndex) {
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
