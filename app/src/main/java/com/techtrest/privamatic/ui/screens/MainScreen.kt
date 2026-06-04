@@ -71,6 +71,9 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val tipHistory = remember { PrivacyTipHistory(context) }
     val scanState by viewModel.scanState.collectAsState()
     val scoreHistory by viewModel.scoreHistory.collectAsState()
+    val trustedPackages by viewModel.trustedPackages.collectAsState()
+    val isAppsBannerDismissed by viewModel.isAppsBannerDismissed.collectAsState()
+    val flaggedApps by viewModel.flaggedApps.collectAsState()
     val navigationState = rememberAppNavigationState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -296,7 +299,15 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     onNextTip = { tipRevision++ }
                                 )
                                 else -> DetailsScreen(
-                                    privacyScore = state.privacyScore
+                                    privacyScore = state.privacyScore,
+                                    flaggedApps = flaggedApps,
+                                    trustedPackages = trustedPackages,
+                                    selectedTab = navigationState.selectedDetailsTab,
+                                    onTabSelected = { tab -> navigationState.selectDetailsTab(tab) },
+                                    isAppsBannerDismissed = isAppsBannerDismissed,
+                                    onDismissAppsBanner = { viewModel.dismissAppsBanner() },
+                                    onTrustApp = { pkg -> viewModel.trustApp(pkg) },
+                                    onUntrustApp = { pkg -> viewModel.untrustApp(pkg) }
                                 )
                             }
                         }

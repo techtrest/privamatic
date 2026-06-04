@@ -4,7 +4,8 @@ data class PrivacyScore(
     val score: Int,
     val maxScore: Int = 100,
     val issues: List<PrivacyIssue>,
-    val scanTimestamp: Long = System.currentTimeMillis()
+    val scanTimestamp: Long = System.currentTimeMillis(),
+    val manualCheckPoints: Int = 0
 ) {
     val totalDeductions: Int
         get() = issues.sumOf { it.pointDeduction }

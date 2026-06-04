@@ -24,14 +24,23 @@ enum class DetailsSubTab(
     )
 }
 
+enum class DetailsTab(val label: String) {
+    CHECKS("Checks"),
+    APPS("Apps")
+}
+
 class AppNavigationState(
     initialTab: NavigationTab = NavigationTab.DASHBOARD,
-    initialDetailsSubTab: DetailsSubTab = DetailsSubTab.SURVEILLANCE
+    initialDetailsSubTab: DetailsSubTab = DetailsSubTab.SURVEILLANCE,
+    initialDetailsTab: DetailsTab = DetailsTab.CHECKS
 ) {
     var selectedTab by mutableStateOf(initialTab)
         private set
 
     var selectedDetailsSubTab by mutableStateOf(initialDetailsSubTab)
+        private set
+
+    var selectedDetailsTab by mutableStateOf(initialDetailsTab)
         private set
 
     var isDrawerOpen by mutableStateOf(false)
@@ -43,6 +52,10 @@ class AppNavigationState(
 
     fun selectDetailsSubTab(subTab: DetailsSubTab) {
         selectedDetailsSubTab = subTab
+    }
+
+    fun selectDetailsTab(tab: DetailsTab) {
+        selectedDetailsTab = tab
     }
 
     fun openDrawer() {
@@ -57,9 +70,10 @@ class AppNavigationState(
 @Composable
 fun rememberAppNavigationState(
     initialTab: NavigationTab = NavigationTab.DASHBOARD,
-    initialDetailsSubTab: DetailsSubTab = DetailsSubTab.SURVEILLANCE
+    initialDetailsSubTab: DetailsSubTab = DetailsSubTab.SURVEILLANCE,
+    initialDetailsTab: DetailsTab = DetailsTab.CHECKS
 ): AppNavigationState {
     return remember {
-        AppNavigationState(initialTab, initialDetailsSubTab)
+        AppNavigationState(initialTab, initialDetailsSubTab, initialDetailsTab)
     }
 }

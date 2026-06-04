@@ -152,7 +152,8 @@ class InstalledAppsChecker(private val context: Context) {
                     isSecure = false,
                     currentStatus = statusText,
                     technicalDetails = "Packages: ${appsWithBgLocation.joinToString(", ")}",
-                    customPointDeduction = pointDeduction
+                    customPointDeduction = pointDeduction,
+                    flaggedPackages = appsWithBgLocation
                 )
             }
         } catch (e: Exception) {

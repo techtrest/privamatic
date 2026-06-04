@@ -6,7 +6,8 @@ data class PrivacyIssue(
     val currentStatus: String,
     val technicalDetails: String? = null,
     val customPointDeduction: Int? = null,
-    val isSystemApp: Boolean = false
+    val isSystemApp: Boolean = false,
+    val flaggedPackages: List<String> = emptyList()
 ) {
     val pointDeduction: Int
         get() = if (isSecure) 0 else (customPointDeduction ?: check.pointDeduction)

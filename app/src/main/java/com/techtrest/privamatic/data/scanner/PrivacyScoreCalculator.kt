@@ -36,7 +36,8 @@ object PrivacyScoreCalculator {
             score = score,
             maxScore = MAX_SCORE,
             issues = issues,
-            scanTimestamp = System.currentTimeMillis()
+            scanTimestamp = System.currentTimeMillis(),
+            manualCheckPoints = manualCheckPoints
         )
     }
 

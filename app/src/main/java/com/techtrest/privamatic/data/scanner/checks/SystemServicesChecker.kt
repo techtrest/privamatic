@@ -97,7 +97,8 @@ class SystemServicesChecker(private val context: Context) {
                     isSecure = false,
                     currentStatus = "${nonSystemListeners.size} non-system app(s) have notification access: ${appNames.joinToString(", ")}",
                     technicalDetails = "Packages: ${nonSystemListeners.joinToString(", ")}",
-                    customPointDeduction = pointDeduction
+                    customPointDeduction = pointDeduction,
+                    flaggedPackages = nonSystemListeners
                 )
             }
         } catch (e: Exception) {
@@ -175,7 +176,8 @@ class SystemServicesChecker(private val context: Context) {
                     isSecure = false,
                     currentStatus = "${suspiciousServices.size} app(s) have accessibility access: ${appNames.joinToString(", ")}",
                     technicalDetails = "Packages: ${suspiciousServices.joinToString(", ")}",
-                    customPointDeduction = pointDeduction
+                    customPointDeduction = pointDeduction,
+                    flaggedPackages = suspiciousServices
                 )
             }
         } catch (e: Exception) {
@@ -227,13 +229,15 @@ class SystemServicesChecker(private val context: Context) {
             } else {
                 val appNames = nonSystemAdmins.map { getAppName(it.packageName) }
                 val pointDeduction = nonSystemAdmins.size * PrivacyCheck.DEVICE_ADMIN.pointDeduction
+                val adminPackages = nonSystemAdmins.map { it.packageName }
 
                 PrivacyIssue(
                     check = PrivacyCheck.DEVICE_ADMIN,
                     isSecure = false,
                     currentStatus = "${nonSystemAdmins.size} non-system app(s) have device admin: ${appNames.joinToString(", ")}",
-                    technicalDetails = "Packages: ${nonSystemAdmins.joinToString { it.packageName }}",
-                    customPointDeduction = pointDeduction
+                    technicalDetails = "Packages: ${adminPackages.joinToString(", ")}",
+                    customPointDeduction = pointDeduction,
+                    flaggedPackages = adminPackages
                 )
             }
         } catch (e: Exception) {
