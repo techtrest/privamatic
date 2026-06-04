@@ -5,11 +5,13 @@ import android.content.pm.ApplicationInfo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.techtrest.privamatic.PrivacyWidgetProvider
+import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.ScoreHistoryRepository
 import com.techtrest.privamatic.data.TrustedAppsRepository
 import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.data.model.PrivacyScore
+import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.data.model.ScoreHistory
 import com.techtrest.privamatic.data.scanner.PrivacyScanner
 import com.techtrest.privamatic.data.scanner.PrivacyScoreCalculator
@@ -21,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,14 +50,32 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     // Raw scan result, stored so trust changes can recalculate without re-scanning
     private val _rawPrivacyScore = MutableStateFlow<PrivacyScore?>(null)
 
-    private val _flaggedApps = MutableStateFlow<List<FlaggedApp>>(emptyList())
-    val flaggedApps: StateFlow<List<FlaggedApp>> = _flaggedApps.asStateFlow()
+    // Raw quick wins (before trust filtering), updated on each scan
+    private val _rawQuickWins = MutableStateFlow<List<QuickWin>>(emptyList())
 
     val trustedPackages: StateFlow<Set<String>> = trustedAppsRepository.trustedPackages
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     val isAppsBannerDismissed: StateFlow<Boolean> = trustedAppsRepository.isAppsBannerDismissed
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // Quick wins with trusted apps filtered out; reactive to both scan results and whitelist changes
+    val filteredQuickWins: StateFlow<List<QuickWin>> = combine(
+        _rawQuickWins,
+        _rawPrivacyScore,
+        trustedPackages
+    ) { rawWins, rawScore, trusted ->
+        if (trusted.isEmpty() || rawScore == null) rawWins
+        else rawWins.filter { quickWin ->
+            val issue = rawScore.issues.find { it.check == quickWin.relatedCheck }
+            issue == null ||
+            issue.flaggedPackages.isEmpty() ||
+            !issue.flaggedPackages.all { it in trusted }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val _flaggedApps = MutableStateFlow<List<FlaggedApp>>(emptyList())
+    val flaggedApps: StateFlow<List<FlaggedApp>> = _flaggedApps.asStateFlow()
 
     private var currentScanJob: Job? = null
     private var isInitialLoad = true
@@ -113,6 +134,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
 
     private suspend fun onScanSuccess(result: PrivacyScore) {
         _rawPrivacyScore.value = result
+        _rawQuickWins.value = QuickWinsDetector.detectQuickWins(result)
         _flaggedApps.value = computeFlaggedApps(result)
         val trusted = trustedAppsRepository.trustedPackages.first()
         val adjustedScore = computeAdjustedScore(result, trusted)

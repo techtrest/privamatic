@@ -28,11 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
 import com.techtrest.privamatic.data.maintenance.filterDismissed
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyScore
+import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.data.model.ScoreHistory
 import com.techtrest.privamatic.data.model.getSecurityIssuesCount
 import com.techtrest.privamatic.data.model.getTrackingIssuesCount
@@ -47,6 +47,7 @@ fun DashboardScreen(
     privacyScore: PrivacyScore,
     scoreHistory: ScoreHistory?,
     navigationState: AppNavigationState,
+    allQuickWins: List<QuickWin>,
     dismissedCheckNames: Set<String>,
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
@@ -61,8 +62,8 @@ fun DashboardScreen(
     val overdueCount = remember(checkStates) { checkStates.count { it.isOverdue } }
 
     // Quick Wins state — filtered by dismissals so Dashboard count matches Actions tab
-    val activeQuickWins = remember(privacyScore, dismissedCheckNames) {
-        QuickWinsDetector.detectQuickWins(privacyScore).filterDismissed(dismissedCheckNames)
+    val activeQuickWins = remember(allQuickWins, dismissedCheckNames) {
+        allQuickWins.filterDismissed(dismissedCheckNames)
     }
 
     // Total actionable items (active Quick Wins + overdue Manual Checks)

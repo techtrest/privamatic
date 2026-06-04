@@ -46,10 +46,8 @@ import androidx.compose.ui.graphics.Color
 import com.techtrest.privamatic.Amber
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.maintenance.filterDismissed
 import com.techtrest.privamatic.data.maintenance.onlyDismissed
-import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.data.model.QuickWinType
 import com.techtrest.privamatic.data.model.ManualCheckState
@@ -58,7 +56,7 @@ import com.techtrest.privamatic.data.model.PrivacyTip
 
 @Composable
 fun ActionsScreen(
-    privacyScore: PrivacyScore,
+    allQuickWins: List<QuickWin>,
     checkStates: List<ManualCheckState>,
     dismissedCheckNames: Set<String>,
     currentTip: PrivacyTip?,
@@ -70,11 +68,6 @@ fun ActionsScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
-
-    // All detected Quick Wins (before dismissal filtering)
-    val allQuickWins = remember(privacyScore) {
-        QuickWinsDetector.detectQuickWins(privacyScore)
-    }
 
     // Active Quick Wins (not dismissed)
     val activeQuickWins = remember(allQuickWins, dismissedCheckNames) {

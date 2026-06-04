@@ -74,6 +74,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val trustedPackages by viewModel.trustedPackages.collectAsState()
     val isAppsBannerDismissed by viewModel.isAppsBannerDismissed.collectAsState()
     val flaggedApps by viewModel.flaggedApps.collectAsState()
+    val filteredQuickWins by viewModel.filteredQuickWins.collectAsState()
     val navigationState = rememberAppNavigationState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -257,6 +258,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     privacyScore = state.privacyScore,
                                     scoreHistory = scoreHistory,
                                     navigationState = navigationState,
+                                    allQuickWins = filteredQuickWins,
                                     dismissedCheckNames = dismissedCheckNames,
                                     onRefresh = {
                                         viewModel.performScan()
@@ -267,7 +269,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     }
                                 )
                                 1 -> ActionsScreen(
-                                    privacyScore = state.privacyScore,
+                                    allQuickWins = filteredQuickWins,
                                     checkStates = checkStates,
                                     dismissedCheckNames = dismissedCheckNames,
                                     currentTip = currentTip,
