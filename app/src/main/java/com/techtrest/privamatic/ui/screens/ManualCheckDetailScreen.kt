@@ -47,15 +47,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.techtrest.privamatic.Amber
 import com.techtrest.privamatic.data.model.ActionType
 import com.techtrest.privamatic.data.model.ManualCheckState
 import com.techtrest.privamatic.data.model.ManualCheckType
+import com.techtrest.privamatic.ui.components.getProgressColor
+import com.techtrest.privamatic.ui.components.getStatusText
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
 private val HERO_ICON_SIZE = 32.dp
@@ -584,20 +584,3 @@ private fun getSettingsActionType(type: ManualCheckType): ActionType {
     }
 }
 
-@Composable
-private fun getProgressColor(checkState: ManualCheckState): Color {
-    return when {
-        checkState.fillPercentage >= 1f -> MaterialTheme.colorScheme.primary
-        checkState.fillPercentage >= 0.96f -> MaterialTheme.colorScheme.tertiary
-        checkState.fillPercentage >= 0.86f -> Amber
-        else -> MaterialTheme.colorScheme.primary
-    }
-}
-
-private fun getStatusText(checkState: ManualCheckState): String {
-    return when {
-        checkState.isOverdue -> "Review needed"
-        checkState.daysRemaining == 1 -> "1 day remaining"
-        else -> "${checkState.daysRemaining} days remaining"
-    }
-}

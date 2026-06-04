@@ -10,6 +10,7 @@ import android.util.Log
 import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.util.PackageManagerUtil
 
 class DefaultAppsChecker(private val context: Context) {
 
@@ -98,7 +99,7 @@ class DefaultAppsChecker(private val context: Context) {
                 )
             } else {
                 // Unknown browser - don't penalize
-                val appName = getAppName(finalPackage)
+                val appName = PackageManagerUtil.getAppName(packageManager, finalPackage)
                 PrivacyIssue(
                     check = PrivacyCheck.DEFAULT_BROWSER,
                     isSecure = true,
@@ -182,7 +183,7 @@ class DefaultAppsChecker(private val context: Context) {
                     customPointDeduction = 0
                 )
             } else {
-                val appName = getAppName(defaultSmsPackage)
+                val appName = PackageManagerUtil.getAppName(packageManager, defaultSmsPackage)
                 PrivacyIssue(
                     check = PrivacyCheck.DEFAULT_SMS,
                     isSecure = true,
@@ -250,7 +251,7 @@ class DefaultAppsChecker(private val context: Context) {
 
             // Everything else is non-privacy-friendly (including Gboard, SwiftKey, Samsung, Xiaomi, Huawei, etc.)
             val keyboardPackage = currentKeyboard.substringBefore('/')
-            val appName = getAppName(keyboardPackage)
+            val appName = PackageManagerUtil.getAppName(packageManager, keyboardPackage)
             return PrivacyIssue(
                 check = PrivacyCheck.DEFAULT_KEYBOARD,
                 isSecure = false,
@@ -336,7 +337,7 @@ class DefaultAppsChecker(private val context: Context) {
                     customPointDeduction = 0
                 )
             } else {
-                val appName = getAppName(packageName)
+                val appName = PackageManagerUtil.getAppName(packageManager, packageName)
                 PrivacyIssue(
                     check = PrivacyCheck.DEFAULT_EMAIL,
                     isSecure = true,
@@ -424,7 +425,7 @@ class DefaultAppsChecker(private val context: Context) {
                     customPointDeduction = 0
                 )
             } else {
-                val appName = getAppName(packageName)
+                val appName = PackageManagerUtil.getAppName(packageManager, packageName)
                 PrivacyIssue(
                     check = PrivacyCheck.DEFAULT_LAUNCHER,
                     isSecure = true,
@@ -447,17 +448,5 @@ class DefaultAppsChecker(private val context: Context) {
 
     companion object {
         private const val TAG = "DefaultAppsChecker"
-    }
-
-    /**
-     * Helper function to get app name from package name
-     */
-    private fun getAppName(packageName: String): String {
-        return try {
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            packageManager.getApplicationLabel(appInfo).toString()
-        } catch (e: Exception) {
-            packageName
-        }
     }
 }

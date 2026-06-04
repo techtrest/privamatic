@@ -28,7 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import com.techtrest.privamatic.Amber
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.data.maintenance.filterDismissed
@@ -53,6 +51,8 @@ import com.techtrest.privamatic.data.model.QuickWinType
 import com.techtrest.privamatic.data.model.ManualCheckState
 import com.techtrest.privamatic.data.model.ManualCheckType
 import com.techtrest.privamatic.data.model.PrivacyTip
+import com.techtrest.privamatic.ui.components.getProgressColor
+import com.techtrest.privamatic.ui.components.getStatusText
 
 @Composable
 fun ActionsScreen(
@@ -309,79 +309,6 @@ private fun DismissedQuickWinRow(
     }
 }
 
-@Composable
-private fun QuickWinItem(
-    quickWin: QuickWin,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = quickWin.type.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = quickWin.displayTitle,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Impact Badge
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = "+${quickWin.impact} points",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                        // Time Estimate
-                        Text(
-                            text = quickWin.type.timeEstimate,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = quickWin.type.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Show Instructions")
-            }
-        }
-    }
-}
-
 /**
  * Short display name for a Quick Win tile (1-2 words).
  */
@@ -581,26 +508,3 @@ private fun ManualCheckGarminRow(
     }
 }
 
-/**
- * Get progress bar color based on check state.
- */
-@Composable
-private fun getProgressColor(checkState: ManualCheckState): Color {
-    return when {
-        checkState.fillPercentage >= 1f -> MaterialTheme.colorScheme.primary
-        checkState.fillPercentage >= 0.96f -> MaterialTheme.colorScheme.tertiary
-        checkState.fillPercentage >= 0.86f -> Amber
-        else -> MaterialTheme.colorScheme.primary
-    }
-}
-
-/**
- * Get status text based on days remaining.
- */
-private fun getStatusText(checkState: ManualCheckState): String {
-    return when {
-        checkState.isOverdue -> "Review needed"
-        checkState.daysRemaining == 1 -> "1 day remaining"
-        else -> "${checkState.daysRemaining} days remaining"
-    }
-}

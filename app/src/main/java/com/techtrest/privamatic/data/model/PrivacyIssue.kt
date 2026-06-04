@@ -15,3 +15,10 @@ data class PrivacyIssue(
     val recommendation: String
         get() = check.recommendation
 }
+
+/**
+ * True when this issue has flagged packages and every one of them is in the
+ * user's trusted set — i.e. the issue should be treated as fully resolved by trust.
+ */
+fun PrivacyIssue.isFullyTrusted(trusted: Set<String>): Boolean =
+    flaggedPackages.isNotEmpty() && flaggedPackages.all { it in trusted }

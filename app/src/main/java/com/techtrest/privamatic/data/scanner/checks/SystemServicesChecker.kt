@@ -11,6 +11,7 @@ import android.view.accessibility.AccessibilityManager
 import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.util.PackageManagerUtil
 
 class SystemServicesChecker(private val context: Context) {
 
@@ -78,7 +79,7 @@ class SystemServicesChecker(private val context: Context) {
 
             // Filter out system apps
             val nonSystemListeners = listenerPackages.filter { pkg ->
-                !isSystemApp(pkg)
+                !PackageManagerUtil.isSystemApp(packageManager, pkg)
             }
 
             if (nonSystemListeners.isEmpty()) {
@@ -89,7 +90,7 @@ class SystemServicesChecker(private val context: Context) {
                     technicalDetails = "System apps: ${listenerPackages.size}"
                 )
             } else {
-                val appNames = nonSystemListeners.map { getAppName(it) }
+                val appNames = nonSystemListeners.map { PackageManagerUtil.getAppName(packageManager, it) }
                 val pointDeduction = nonSystemListeners.size * PrivacyCheck.NOTIFICATION_LISTENER.pointDeduction
 
                 PrivacyIssue(
@@ -157,7 +158,7 @@ class SystemServicesChecker(private val context: Context) {
 
             // Filter out whitelisted and system apps
             val suspiciousServices = servicePackages.filter { pkg ->
-                !isSystemApp(pkg) && !whitelist.any { pkg.contains(it, ignoreCase = true) }
+                !PackageManagerUtil.isSystemApp(packageManager, pkg) && !whitelist.any { pkg.contains(it, ignoreCase = true) }
             }
 
             if (suspiciousServices.isEmpty()) {
@@ -168,7 +169,7 @@ class SystemServicesChecker(private val context: Context) {
                     technicalDetails = "Total services: ${servicePackages.size}, all whitelisted or system"
                 )
             } else {
-                val appNames = suspiciousServices.map { getAppName(it) }
+                val appNames = suspiciousServices.map { PackageManagerUtil.getAppName(packageManager, it) }
                 val pointDeduction = suspiciousServices.size * PrivacyCheck.ACCESSIBILITY_SERVICE.pointDeduction
 
                 PrivacyIssue(
@@ -216,7 +217,7 @@ class SystemServicesChecker(private val context: Context) {
 
             // Filter out system and work profile admins
             val nonSystemAdmins = activeAdmins.filter { component ->
-                !isSystemApp(component.packageName)
+                !PackageManagerUtil.isSystemApp(packageManager, component.packageName)
             }
 
             if (nonSystemAdmins.isEmpty()) {
@@ -227,7 +228,7 @@ class SystemServicesChecker(private val context: Context) {
                     technicalDetails = "Total admins: ${activeAdmins.size}, all system"
                 )
             } else {
-                val appNames = nonSystemAdmins.map { getAppName(it.packageName) }
+                val appNames = nonSystemAdmins.map { PackageManagerUtil.getAppName(packageManager, it.packageName) }
                 val pointDeduction = nonSystemAdmins.size * PrivacyCheck.DEVICE_ADMIN.pointDeduction
                 val adminPackages = nonSystemAdmins.map { it.packageName }
 
@@ -248,30 +249,6 @@ class SystemServicesChecker(private val context: Context) {
                 currentStatus = "Unable to determine",
                 technicalDetails = "Error: ${e.message}"
             )
-        }
-    }
-
-    /**
-     * Helper to check if a package is a system app
-     */
-    private fun isSystemApp(packageName: String): Boolean {
-        return try {
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-        } catch (_: Exception) {
-            true // If we can't determine, assume system app to avoid false positives
-        }
-    }
-
-    /**
-     * Helper to get app name from package name
-     */
-    private fun getAppName(packageName: String): String {
-        return try {
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            packageManager.getApplicationLabel(appInfo).toString()
-        } catch (_: Exception) {
-            packageName
         }
     }
 

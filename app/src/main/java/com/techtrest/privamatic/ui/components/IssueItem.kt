@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
 @Composable
@@ -43,7 +44,7 @@ fun IssueItem(
     val context = LocalContext.current
 
     val allPackagesTrusted = remember(issue.flaggedPackages, trustedPackages) {
-        issue.flaggedPackages.isNotEmpty() && issue.flaggedPackages.all { it in trustedPackages }
+        issue.isFullyTrusted(trustedPackages)
     }
     val effectivelySecure = issue.isSecure || allPackagesTrusted
 

@@ -10,6 +10,7 @@ import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.data.model.PackageNames
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.util.PackageManagerUtil
 
 class InstalledAppsChecker(private val context: Context) {
 
@@ -121,7 +122,7 @@ class InstalledAppsChecker(private val context: Context) {
 
                 if (bgLocationIndex >= 0 &&
                     (requestedPermissionsFlags[bgLocationIndex] and PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0 &&
-                    !isSystemApp(packageInfo.packageName)
+                    !PackageManagerUtil.isSystemApp(packageManager, packageInfo.packageName)
                 ) {
                     appsWithBgLocation.add(packageInfo.packageName)
                 }
@@ -136,7 +137,7 @@ class InstalledAppsChecker(private val context: Context) {
                 )
             } else {
                 val count = appsWithBgLocation.size
-                val appNames = appsWithBgLocation.map { getAppName(it) }
+                val appNames = appsWithBgLocation.map { PackageManagerUtil.getAppName(packageManager, it) }
                 val pointDeduction = count * PrivacyCheck.BACKGROUND_LOCATION_APPS.pointDeduction
                 val statusText = when {
                     count <= 3 -> "$count app(s) have background location: ${appNames.joinToString(", ")}"
@@ -183,7 +184,7 @@ class InstalledAppsChecker(private val context: Context) {
 
         return try {
             val isInstalled = isAppInstalled(packageName)
-            val isSystem = isInstalled && isSystemApp(packageName)
+            val isSystem = isInstalled && PackageManagerUtil.isSystemApp(packageManager, packageName)
 
             PrivacyIssue(
                 check = check,
@@ -233,24 +234,6 @@ class InstalledAppsChecker(private val context: Context) {
         }
 
         return false
-    }
-
-    private fun isSystemApp(packageName: String): Boolean {
-        return try {
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-        } catch (_: Exception) {
-            true // If we can't determine, assume system app to avoid false positives
-        }
-    }
-
-    private fun getAppName(packageName: String): String {
-        return try {
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            packageManager.getApplicationLabel(appInfo).toString()
-        } catch (_: Exception) {
-            packageName
-        }
     }
 
     companion object {

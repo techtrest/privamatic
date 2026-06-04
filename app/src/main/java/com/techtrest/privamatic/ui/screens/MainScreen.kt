@@ -90,8 +90,12 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var tipRevision by remember { mutableStateOf(0) }
     val currentTip: PrivacyTip? = remember(scanState, tipRevision) {
         val score = (scanState as? PrivacyScanState.Success)?.privacyScore ?: return@remember null
-        val tip = PrivacyTipSelector.selectTip(score, tipHistory.getRecentlyShownIds())
-        tip?.also { tipHistory.markShown(it.id) }
+        PrivacyTipSelector.selectTip(score, tipHistory.getRecentlyShownIds())
+    }
+
+    // Record the displayed tip as shown as a side effect, not inside remember
+    LaunchedEffect(currentTip) {
+        currentTip?.let { tipHistory.markShown(it.id) }
     }
 
     var showInfoDialog by remember { mutableStateOf(false) }

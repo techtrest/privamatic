@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyScore
+import com.techtrest.privamatic.data.model.isFullyTrusted
 
 @Composable
 fun CategoryGroup(
@@ -50,7 +51,7 @@ fun CategoryGroup(
         issues.count { issue ->
             !issue.isSecure &&
             !issue.check.isInformational &&
-            !(issue.flaggedPackages.isNotEmpty() && issue.flaggedPackages.all { it in trustedPackages })
+            !issue.isFullyTrusted(trustedPackages)
         }
     }
 

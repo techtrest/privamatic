@@ -1,7 +1,6 @@
 package com.techtrest.privamatic.ui.viewmodel
 
 import android.app.Application
-import android.content.pm.ApplicationInfo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.techtrest.privamatic.PrivacyWidgetProvider
@@ -13,7 +12,9 @@ import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.data.model.ScoreHistory
+import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.data.scanner.PrivacyScanner
+import com.techtrest.privamatic.data.util.PackageManagerUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -67,9 +68,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         if (trusted.isEmpty() || rawScore == null) rawWins
         else rawWins.filter { quickWin ->
             val issue = rawScore.issues.find { it.check == quickWin.relatedCheck }
-            issue == null ||
-            issue.flaggedPackages.isEmpty() ||
-            !issue.flaggedPackages.all { it in trusted }
+            issue == null || !issue.isFullyTrusted(trusted)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -147,15 +146,12 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
             .filter { !it.isSecure && it.flaggedPackages.isNotEmpty() }
             .flatMap { issue ->
                 issue.flaggedPackages.map { packageName ->
-                    val appInfo = try { pm.getApplicationInfo(packageName, 0) } catch (_: Exception) { null }
-                    val isSystem = appInfo?.let { (it.flags and ApplicationInfo.FLAG_SYSTEM) != 0 } ?: false
-                    val appName = appInfo?.let { pm.getApplicationLabel(it).toString() } ?: packageName
                     FlaggedApp(
                         packageName = packageName,
-                        appName = appName,
+                        appName = PackageManagerUtil.getAppName(pm, packageName),
                         associatedCheck = issue.check,
                         isBlacklisted = FlaggedApp.isBlacklisted(packageName),
-                        isSystemApp = isSystem
+                        isSystemApp = PackageManagerUtil.isSystemApp(pm, packageName)
                     )
                 }
             }
