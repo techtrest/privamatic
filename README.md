@@ -9,7 +9,13 @@
 
 **PRIVA**matic audits your Android device's privacy and security settings, giving you a clear 0–100 score with actionable steps to improve it. Built for GrapheneOS users and anyone who wants to understand what's exposing their data.
 
-**Status:** In active development · Submitting to F-Droid · Contributions welcome
+**Status:** Available on F-Droid · Active development · Contributions welcome
+
+---
+
+## Download
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/com.techtrest.privamatic/)
 
 ---
 
@@ -17,13 +23,17 @@
 
 **Privacy Score (0–100)** — Comprehensive assessment across 45+ checks covering system security, network privacy, Google/Meta/Microsoft app detection, default apps, and AI assistants. Each check is weighted by real-world privacy impact.
 
-**Three-Tab Interface** — Dashboard shows your score at a glance with tracking/security/actions summaries. Actions tab surfaces Quick Wins (fast fixes with step-by-step instructions and deep links to Settings) and Manual Checks (periodic reviews with progress tracking). Details tab breaks down every check by category with expand/collapse cards.
+**Trusted Apps** — Whitelist FOSS apps that legitimately use accessibility, notification, or location permissions. Trusted apps are removed from your score penalty in real time. You decide what you trust — no distinction between F-Droid, Aurora, or Play Store installs.
+
+**Three-Tab Interface** — Dashboard shows your score at a glance with tracking/security/actions summaries. Actions tab surfaces Quick Wins (fast fixes with step-by-step instructions and deep links to Settings) and Manual Checks (periodic reviews with progress tracking). Details tab breaks down every check by category with expand/collapse cards, plus an Apps tab for managing your trusted apps whitelist.
 
 **Home Screen Widget** — Material You themed widget showing your privacy score, device info, and score change indicators. Supports opacity configuration and adapts to your wallpaper colors in both light and dark modes.
 
 **Score Change Tracking** — Daily cumulative tracking with 48-hour expiry so you can see how your privacy posture improves over time.
 
 **Manual Checks System** — Time-based reminders (60–120 day cycles) for privacy reviews that can't be automated: location permissions, camera/microphone access, and unused apps.
+
+**Smart VPN + DNS scoring** — When a VPN is active, the Private DNS check is treated as neutral since DNS is likely handled by the VPN tunnel. No unfair penalties for good setups.
 
 ---
 
@@ -42,6 +52,7 @@
 - **Kotlin 2.1** + **Jetpack Compose** (100% Compose UI)
 - **Material Design 3** with British Racing Green theming
 - **MVVM** with ViewModel + StateFlow
+- **DataStore** for local whitelist persistence
 - **Target SDK 35** (Android 15), minimum SDK 26 (Android 8.0)
 - Widget uses direct system colors (`@android:color/system_*`) for proper Material You integration
 
@@ -65,11 +76,13 @@ Requires Android Studio Ladybug+, JDK 11+, and Android SDK 35. No API keys or co
 ## Project Structure
 
 ```
-app/src/main/java/com/techtrest/privacywidget/
+app/src/main/java/com/techtrest/privamatic/
 ├── data/
 │   ├── model/              # Data classes, enums, score history
 │   ├── scanner/checks/     # Individual privacy check implementations
 │   ├── maintenance/        # Manual checks with time-based tracking
+│   ├── TrustedAppsRepository.kt
+│   ├── TrustedAppsAdjuster.kt
 │   ├── QuickWinsDetector.kt
 │   └── ScoreHistoryRepository.kt
 ├── ui/
@@ -86,16 +99,23 @@ app/src/main/java/com/techtrest/privacywidget/
 
 ## Roadmap
 
-**v1.0 (2026)**
-- Submit to F-Droid
+**v1.0 (2026)** ✅
+- F-Droid release
 - Score history trending
 
-**Future**
-- Export audit reports
-- GrapheneOS-specific checks
-- Localization support
+**v1.1 (2026)** ✅
+- Trusted Apps — whitelist FOSS apps to remove unfair penalties
+- New app icon and feature graphic
+- VPN + Private DNS scoring fix
+- Widget score synced with trusted apps whitelist
 
-**Distribution:** F-Droid and GitHub Releases. No Google Play Store — intentionally.
+**Future**
+- Translations (DE, PL, FR, ES, IT)
+- Deeper app permissions analysis
+- Score card sharing
+- Full actionable items list
+
+**Distribution:** F-Droid only. No Google Play Store — intentionally.
 
 ---
 
@@ -121,4 +141,4 @@ Contributions welcome. Read [CONVENTIONS.md](CONVENTIONS.md) first — standards
 
 ---
 
-*Last Updated: 2026-03-01*
+*Last Updated: 2026-06-04*
