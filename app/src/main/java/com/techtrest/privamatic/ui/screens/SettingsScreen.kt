@@ -38,7 +38,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.OnboardingPreferences
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
 import com.techtrest.privamatic.data.model.ManualCheckType
@@ -60,13 +62,14 @@ fun SettingsScreen(
     var forceShowAdId by remember { mutableStateOf(onboardingPrefs.isForceShowAdIdCheck()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val completeAdIdFirstMsg = stringResource(R.string.label_settings_complete_adid_first)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = stringResource(R.string.label_settings_title),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -74,7 +77,7 @@ fun SettingsScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.label_common_back)
                         )
                     }
                 },
@@ -114,13 +117,13 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Show intro on restart",
+                            text = stringResource(R.string.label_settings_show_intro),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Replay the welcome walkthrough on next app start",
+                            text = stringResource(R.string.copy_settings_show_intro_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -145,7 +148,7 @@ fun SettingsScreen(
                             val newValue = !forceShowAdId
                             if (!newValue && !isCompleted) {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Complete the Ad ID check first")
+                                    snackbarHostState.showSnackbar(completeAdIdFirstMsg)
                                 }
                             } else {
                                 forceShowAdId = newValue
@@ -157,13 +160,13 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Force show Ad ID check",
+                            text = stringResource(R.string.label_settings_force_adid),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Always show the Advertising ID check regardless of the 180-day timer",
+                            text = stringResource(R.string.copy_settings_force_adid_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

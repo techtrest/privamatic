@@ -47,8 +47,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.scanner.checks.NetworkSecurityChecker
 import java.time.Instant
 import java.time.ZoneId
@@ -57,13 +59,6 @@ import kotlinx.coroutines.delay
 
 private const val CORRECT_ANSWER_INDEX = 2
 private const val WRONG_ANSWER_RESET_DELAY_MS = 600L
-
-private val QUIZ_ANSWERS = listOf(
-    "Replaces it with a new random ID",
-    "Disables all ads on your device",
-    "Removes the ID so advertisers can't link your activity across apps",
-    "Stops apps from tracking you permanently"
-)
 
 /**
  * Guided verification screen for the Advertising ID manual check.
@@ -103,7 +98,7 @@ fun AdIdVerificationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Advertising ID",
+                        text = stringResource(R.string.label_adid_screen_title),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -111,7 +106,7 @@ fun AdIdVerificationScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.label_common_back)
                         )
                     }
                 },
@@ -174,7 +169,7 @@ fun AdIdVerificationScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Open Ad Settings")
+                    Text(stringResource(R.string.label_adid_open_settings))
                 }
 
                 // Confirm button — enabled only after correct quiz answer
@@ -192,7 +187,7 @@ fun AdIdVerificationScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("I've deleted my Advertising ID")
+                    Text(stringResource(R.string.label_adid_confirm_button))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -239,7 +234,7 @@ private fun ConfirmedView(
         )
 
         Text(
-            text = "Advertising ID Deleted",
+            text = stringResource(R.string.label_adid_deleted_headline),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -259,12 +254,12 @@ private fun ConfirmedView(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Confirmed on $confirmedDate",
+                    text = stringResource(R.string.fmt_adid_confirmed_date, confirmedDate),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Next review: $nextReviewDate",
+                    text = stringResource(R.string.fmt_adid_next_review, nextReviewDate),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -282,7 +277,7 @@ private fun ConfirmedView(
                 contentColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Text("Reset verification")
+            Text(stringResource(R.string.label_adid_reset))
         }
     }
 }
@@ -305,18 +300,18 @@ private fun ExplanationCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "What is an Advertising ID?",
+                text = stringResource(R.string.label_adid_explanation_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Your Advertising ID is a unique identifier assigned to your device. Advertisers use it to track your activity across different apps and services, building a detailed profile of your interests and habits to serve targeted ads.",
+                text = stringResource(R.string.copy_adid_explanation_1),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Deleting your Advertising ID removes it entirely. Android will no longer provide an advertising identifier to apps, breaking cross-app tracking.",
+                text = stringResource(R.string.copy_adid_explanation_2),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -331,6 +326,13 @@ private fun QuizCard(
     onAnswerSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val quizAnswers = listOf(
+        stringResource(R.string.label_adid_quiz_answer_1),
+        stringResource(R.string.label_adid_quiz_answer_2),
+        stringResource(R.string.label_adid_quiz_answer_3),
+        stringResource(R.string.label_adid_quiz_answer_4)
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -345,18 +347,18 @@ private fun QuizCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Quick Check",
+                text = stringResource(R.string.label_adid_quiz_label),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "What does deleting your Advertising ID do?",
+                text = stringResource(R.string.label_adid_quiz_question),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            QUIZ_ANSWERS.forEachIndexed { index, answerText ->
+            quizAnswers.forEachIndexed { index, answerText ->
                 val isSelected = selectedAnswer == index
                 val isCorrectSelected = hasAnsweredCorrectly && index == CORRECT_ANSWER_INDEX
                 val isWrongSelected = isSelected && !hasAnsweredCorrectly

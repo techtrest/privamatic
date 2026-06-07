@@ -26,7 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import kotlin.math.roundToInt
 
 class WidgetConfigurationActivity : ComponentActivity() {
@@ -97,7 +99,7 @@ private fun WidgetConfigurationScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Widget Opacity Settings",
+            text = stringResource(R.string.label_widget_config_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -105,7 +107,7 @@ private fun WidgetConfigurationScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Opacity: ${opacity.roundToInt()}%",
+            text = stringResource(R.string.fmt_widget_opacity, opacity.roundToInt()),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -125,12 +127,12 @@ private fun WidgetConfigurationScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "0%",
+                text = stringResource(R.string.label_widget_opacity_min),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "100%",
+                text = stringResource(R.string.label_widget_opacity_max),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -143,11 +145,11 @@ private fun WidgetConfigurationScreen(
             horizontalArrangement = Arrangement.End
         ) {
             OutlinedButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(stringResource(R.string.label_widget_cancel))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(onClick = { onSave(opacity) }) {
-                Text("Save")
+                Text(stringResource(R.string.label_widget_save))
             }
         }
     }

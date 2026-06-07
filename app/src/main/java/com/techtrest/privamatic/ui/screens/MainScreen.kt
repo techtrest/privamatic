@@ -38,9 +38,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.techtrest.privamatic.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtrest.privamatic.data.PrivacyTipSelector
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
@@ -216,7 +218,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text = "Initializing scanner...")
+                            Text(text = stringResource(R.string.label_main_initializing))
                         }
                     }
 
@@ -242,7 +244,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     CircularProgressIndicator()
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "Scanning privacy settings...",
+                                        text = stringResource(R.string.label_main_scanning),
                                         fontSize = 16.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -337,7 +339,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "Error",
+                                        text = stringResource(R.string.label_main_error),
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.error
@@ -350,7 +352,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Button(onClick = { viewModel.performScan() }) {
-                                        Text("Retry")
+                                        Text(stringResource(R.string.label_main_retry))
                                     }
                                 }
                             }

@@ -1,4 +1,932 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- ============================================================ -->
+    <!-- EXISTING ENTRIES -->
+    <!-- ============================================================ -->
     <string name="app_name">Privamatic</string>
     <string name="widget_description">Shows your device\'s privacy score at a glance</string>
+
+    <!-- ============================================================ -->
+    <!-- COMMON / SHARED LABELS -->
+    <!-- ============================================================ -->
+    <string name="label_common_back">Back</string>
+    <string name="label_common_open_settings">Open Settings</string>
+    <string name="label_all_done">All Done!</string>
+
+    <!-- ============================================================ -->
+    <!-- NAVIGATION TABS -->
+    <!-- ============================================================ -->
+    <string name="nav_tab_dashboard">Dashboard</string>
+    <string name="nav_tab_actions">Actions</string>
+    <string name="nav_tab_details">Details</string>
+    <string name="details_sub_tab_surveillance">Surveillance</string>
+    <string name="details_sub_tab_security">Security</string>
+    <string name="details_tab_checks">Checks</string>
+    <string name="details_tab_apps">Apps</string>
+
+    <!-- ============================================================ -->
+    <!-- SCORE RATINGS -->
+    <!-- ============================================================ -->
+    <string name="score_rating_excellent_name">Excellent</string>
+    <string name="score_rating_excellent_subtitle">Strong protection</string>
+    <string name="score_rating_excellent_range">85-100</string>
+    <string name="score_rating_good_name">Good</string>
+    <string name="score_rating_good_subtitle">Good, with minor issues</string>
+    <string name="score_rating_good_range">70-84</string>
+    <string name="score_rating_fair_name">Fair</string>
+    <string name="score_rating_fair_subtitle">Room for improvement</string>
+    <string name="score_rating_fair_range">50-69</string>
+    <string name="score_rating_poor_name">Needs Attention</string>
+    <string name="score_rating_poor_subtitle">Several issues detected</string>
+    <string name="score_rating_poor_range">30-49</string>
+    <string name="score_rating_critical_name">Critical</string>
+    <string name="score_rating_critical_subtitle">Immediate action required</string>
+    <string name="score_rating_critical_range">0-29</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CATEGORIES -->
+    <!-- ============================================================ -->
+    <string name="privacy_category_system_security_name">System Security</string>
+    <string name="privacy_category_network_privacy_name">Network &amp; Tracking Privacy</string>
+    <string name="privacy_category_google_services_name">Google Services</string>
+    <string name="privacy_category_default_apps_name">Default Apps</string>
+    <string name="privacy_category_google_apps_name">Google Apps</string>
+    <string name="privacy_category_meta_facebook_name">Meta/Facebook</string>
+    <string name="privacy_category_microsoft_name">Microsoft</string>
+    <string name="privacy_category_ai_other_name">AI &amp; Other Apps</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — SYSTEM SECURITY -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_screen_lock_name">Screen Lock</string>
+    <string name="privacy_check_screen_lock_description">Device should have a screen lock enabled (PIN, pattern, password, or biometric)</string>
+    <string name="privacy_check_screen_lock_recommendation">Enable a screen lock in Settings > Security > Screen lock to protect your device from unauthorized access.</string>
+
+    <string name="privacy_check_device_encryption_name">Device Encryption</string>
+    <string name="privacy_check_device_encryption_description">Device storage should be encrypted to protect your data if the device is lost or stolen</string>
+    <string name="privacy_check_device_encryption_recommendation">Enable device encryption in Settings > Security > Encryption (typically enabled by default on modern devices).</string>
+
+    <string name="privacy_check_biometric_auth_name">Biometric Authentication</string>
+    <string name="privacy_check_biometric_auth_description">Biometric authentication should be enabled for added security</string>
+    <string name="privacy_check_biometric_auth_recommendation">Set up fingerprint or face unlock in Settings > Security > Biometrics for convenient and secure authentication.</string>
+
+    <string name="privacy_check_usb_debugging_name">USB Debugging</string>
+    <string name="privacy_check_usb_debugging_description">USB debugging should be disabled for security</string>
+    <string name="privacy_check_usb_debugging_recommendation">Disable USB debugging in Settings > Developer options to prevent unauthorized access via USB connection.</string>
+
+    <string name="privacy_check_developer_options_name">Developer Options</string>
+    <string name="privacy_check_developer_options_description">Developer options should be disabled on personal devices</string>
+    <string name="privacy_check_developer_options_recommendation">Disable developer options in Settings > System > Developer options to reduce security risks.</string>
+
+    <string name="privacy_check_notification_listener_name">Notification Listener Access</string>
+    <string name="privacy_check_notification_listener_description">Apps with notification listener permission can read ALL notifications including 2FA codes and messages</string>
+    <string name="privacy_check_notification_listener_recommendation">Review and revoke notification access for non-essential apps in Settings > Apps > Special app access > Notification access.</string>
+    <string name="privacy_check_notification_listener_action">Manage Permissions</string>
+
+    <string name="privacy_check_accessibility_service_name">Accessibility Service Access</string>
+    <string name="privacy_check_accessibility_service_description">Apps with accessibility services can control your entire device and potentially log your keystrokes</string>
+    <string name="privacy_check_accessibility_service_recommendation">Disable accessibility services for apps that don\'t legitimately need them in Settings > Accessibility.</string>
+    <string name="privacy_check_accessibility_service_action">Manage Services</string>
+
+    <string name="privacy_check_device_admin_name">Device Administrator Apps</string>
+    <string name="privacy_check_device_admin_description">Apps with device admin privileges have elevated control over your device</string>
+    <string name="privacy_check_device_admin_recommendation">Review and remove device admin access for non-essential apps in Settings > Security > Device admin apps.</string>
+    <string name="privacy_check_device_admin_action">Manage Admins</string>
+
+    <string name="privacy_check_background_location_apps_name">Background Location Access</string>
+    <string name="privacy_check_background_location_apps_description">Apps with background location permission can track your precise location at all times, even when not in use</string>
+    <string name="privacy_check_background_location_apps_recommendation">Review and restrict background location permissions in Settings > Location > App permissions. Only grant background location to apps that genuinely need it.</string>
+    <string name="privacy_check_background_location_apps_action">Manage Permissions</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — NETWORK & TRACKING PRIVACY -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_vpn_connection_name">VPN Protection</string>
+    <string name="privacy_check_vpn_connection_description">VPN should be active to protect network traffic</string>
+    <string name="privacy_check_vpn_connection_recommendation">Enable a VPN connection to encrypt your internet traffic and protect your privacy online.</string>
+
+    <string name="privacy_check_private_dns_name">Private DNS</string>
+    <string name="privacy_check_private_dns_description">Private DNS encrypts your web lookups so your internet provider can\'t see which sites you visit</string>
+    <string name="privacy_check_private_dns_recommendation">Configure Private DNS in Settings > Network &amp; internet > Private DNS. Recommended: dns.quad9.net (privacy-focused, blocks malware) or dns.adguard-dns.com (blocks ads and trackers).</string>
+
+    <string name="privacy_check_advertising_id_name">Advertising ID</string>
+    <string name="privacy_check_advertising_id_description">Advertising ID enables cross-app tracking by advertisers</string>
+    <string name="privacy_check_advertising_id_recommendation">Disable or reset your Advertising ID in Settings > Privacy > Ads.</string>
+
+    <string name="privacy_check_wifi_scanning_name">Background Wi-Fi Scanning</string>
+    <string name="privacy_check_wifi_scanning_description">Background Wi-Fi/Bluetooth scanning can track your location</string>
+    <string name="privacy_check_wifi_scanning_recommendation">Disable Wi-Fi and Bluetooth scanning in Settings > Location > Wi-Fi and Bluetooth scanning to prevent location tracking.</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — GOOGLE SERVICES -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_find_my_device_name">Find My Device</string>
+    <string name="privacy_check_find_my_device_description">Google\'s Find My Device / Find Hub tracks device location — a security feature with a privacy cost. On Android 14+ the enabled state cannot be programmatically detected.</string>
+    <string name="privacy_check_find_my_device_recommendation">Disable in Settings > Security > Find My Device (or Find Hub on Android 14+) if privacy is a priority over theft protection.</string>
+
+    <string name="privacy_check_google_play_services_name">Google Play Services</string>
+    <string name="privacy_check_google_play_services_description">Google Play Services has deep access to your device and enables extensive tracking and data collection across all apps</string>
+    <string name="privacy_check_google_play_services_recommendation">Consider using GrapheneOS to run Google Play Services with limited access, significantly reducing its reach on your device.</string>
+    <string name="privacy_check_google_play_services_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — DEFAULT APPS -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_default_browser_name">Default Browser</string>
+    <string name="privacy_check_default_browser_description">Privacy-invasive browser detected as default</string>
+    <string name="privacy_check_default_browser_recommendation">Switch to a privacy-respecting browser like Brave, Firefox, or DuckDuckGo Browser. Available on Google Play Store.</string>
+    <string name="privacy_check_default_browser_action">Change Default</string>
+
+    <string name="privacy_check_default_keyboard_name">Default Keyboard</string>
+    <string name="privacy_check_default_keyboard_description">Privacy-invasive keyboard detected as default</string>
+    <string name="privacy_check_default_keyboard_recommendation">Switch to FUTO Keyboard (Play Store) for best privacy + features with offline voice typing, or AnySoftKeyboard (F-Droid &amp; Play Store) for a mature, highly customizable option.</string>
+    <string name="privacy_check_default_keyboard_action">Change Default</string>
+
+    <string name="privacy_check_default_sms_name">Default SMS/Messaging</string>
+    <string name="privacy_check_default_sms_description">Privacy-invasive messaging app detected as default</string>
+    <string name="privacy_check_default_sms_recommendation">Switch to Fossify Messages - available on F-Droid and Play Store. Open source, privacy-focused, no ads.</string>
+    <string name="privacy_check_default_sms_action">Change Default</string>
+
+    <string name="privacy_check_default_email_name">Default Email</string>
+    <string name="privacy_check_default_email_description">Privacy-invasive email app detected as default</string>
+    <string name="privacy_check_default_email_recommendation">Switch to a privacy-respecting email client like K-9 Mail, FairEmail, or ProtonMail. Available on Google Play Store.</string>
+    <string name="privacy_check_default_email_action">Change Default</string>
+
+    <string name="privacy_check_default_launcher_name">Default Launcher</string>
+    <string name="privacy_check_default_launcher_description">Privacy-invasive launcher detected as default</string>
+    <string name="privacy_check_default_launcher_recommendation">Switch to a privacy-respecting launcher like Lawnchair, KISS Launcher, or Neo Launcher. Available on Google Play Store.</string>
+    <string name="privacy_check_default_launcher_action">Change Default</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — GOOGLE APPS -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_google_chrome_name">Chrome</string>
+    <string name="privacy_check_google_chrome_description">Google Chrome app is installed on your device</string>
+    <string name="privacy_check_google_chrome_recommendation">Consider uninstalling Chrome and switching to Brave, Firefox, or DuckDuckGo Browser.</string>
+    <string name="privacy_check_google_chrome_action">Open App Settings</string>
+
+    <string name="privacy_check_gmail_app_name">Gmail</string>
+    <string name="privacy_check_gmail_app_description">Gmail app is installed on your device</string>
+    <string name="privacy_check_gmail_app_recommendation">Consider uninstalling Gmail and switching to K-9 Mail, FairEmail, or ProtonMail.</string>
+    <string name="privacy_check_gmail_app_action">Open App Settings</string>
+
+    <string name="privacy_check_google_maps_name">Google Maps</string>
+    <string name="privacy_check_google_maps_description">Google Maps app is installed on your device</string>
+    <string name="privacy_check_google_maps_recommendation">Consider uninstalling Google Maps and switching to OsmAnd or Organic Maps.</string>
+    <string name="privacy_check_google_maps_action">Open App Settings</string>
+
+    <string name="privacy_check_google_photos_name">Google Photos</string>
+    <string name="privacy_check_google_photos_description">Google Photos app is installed on your device</string>
+    <string name="privacy_check_google_photos_recommendation">Consider uninstalling Google Photos and switching to Simple Gallery or Aves Libre.</string>
+    <string name="privacy_check_google_photos_action">Open App Settings</string>
+
+    <string name="privacy_check_google_drive_name">Google Drive</string>
+    <string name="privacy_check_google_drive_description">Google Drive app is installed on your device</string>
+    <string name="privacy_check_google_drive_recommendation">Consider uninstalling Google Drive and switching to Nextcloud or Cryptomator.</string>
+    <string name="privacy_check_google_drive_action">Open App Settings</string>
+
+    <string name="privacy_check_youtube_name">YouTube</string>
+    <string name="privacy_check_youtube_description">YouTube app is installed on your device</string>
+    <string name="privacy_check_youtube_recommendation">Consider using NewPipe or LibreTube as privacy-friendly YouTube alternatives.</string>
+    <string name="privacy_check_youtube_action">Open App Settings</string>
+
+    <string name="privacy_check_google_calendar_name">Google Calendar</string>
+    <string name="privacy_check_google_calendar_description">Google Calendar app is installed on your device</string>
+    <string name="privacy_check_google_calendar_recommendation">Consider uninstalling Google Calendar and switching to Simple Calendar or an offline calendar app.</string>
+    <string name="privacy_check_google_calendar_action">Open App Settings</string>
+
+    <string name="privacy_check_google_keep_name">Google Keep</string>
+    <string name="privacy_check_google_keep_description">Google Keep app is installed on your device</string>
+    <string name="privacy_check_google_keep_recommendation">Consider uninstalling Google Keep and switching to Simple Notes or Standard Notes.</string>
+    <string name="privacy_check_google_keep_action">Open App Settings</string>
+
+    <string name="privacy_check_google_camera_name">Google Camera</string>
+    <string name="privacy_check_google_camera_description">Google Camera app is installed on your device</string>
+    <string name="privacy_check_google_camera_recommendation">Consider uninstalling Google Camera and switching to Open Camera or Simple Camera.</string>
+    <string name="privacy_check_google_camera_action">Open App Settings</string>
+
+    <string name="privacy_check_google_docs_name">Google Docs</string>
+    <string name="privacy_check_google_docs_description">Google Docs app is installed on your device</string>
+    <string name="privacy_check_google_docs_recommendation">Consider uninstalling Google Docs and switching to Collabora Office or an offline editor.</string>
+    <string name="privacy_check_google_docs_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — META/FACEBOOK APPS -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_facebook_app_name">Facebook</string>
+    <string name="privacy_check_facebook_app_description">Facebook app is installed on your device</string>
+    <string name="privacy_check_facebook_app_recommendation">Consider uninstalling the Facebook app and using the mobile website if needed.</string>
+    <string name="privacy_check_facebook_app_action">Open App Settings</string>
+
+    <string name="privacy_check_instagram_app_name">Instagram</string>
+    <string name="privacy_check_instagram_app_description">Instagram app is installed on your device</string>
+    <string name="privacy_check_instagram_app_recommendation">Consider uninstalling the Instagram app and using the mobile website if needed, or switching to Pixelfed.</string>
+    <string name="privacy_check_instagram_app_action">Open App Settings</string>
+
+    <string name="privacy_check_whatsapp_app_name">WhatsApp</string>
+    <string name="privacy_check_whatsapp_app_description">WhatsApp is installed on your device</string>
+    <string name="privacy_check_whatsapp_app_recommendation">Consider uninstalling WhatsApp and switching to Signal, Session, or SimpleX Chat.</string>
+    <string name="privacy_check_whatsapp_app_action">Open App Settings</string>
+
+    <string name="privacy_check_messenger_app_name">Messenger</string>
+    <string name="privacy_check_messenger_app_description">Facebook Messenger app is installed on your device</string>
+    <string name="privacy_check_messenger_app_recommendation">Consider uninstalling Messenger and switching to Signal or another privacy-focused messaging app.</string>
+    <string name="privacy_check_messenger_app_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — MICROSOFT APPS -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_edge_app_name">Microsoft Edge</string>
+    <string name="privacy_check_edge_app_description">Microsoft Edge app is installed on your device</string>
+    <string name="privacy_check_edge_app_recommendation">Consider uninstalling Edge and switching to Brave, Firefox, or DuckDuckGo Browser.</string>
+    <string name="privacy_check_edge_app_action">Open App Settings</string>
+
+    <string name="privacy_check_outlook_app_name">Outlook</string>
+    <string name="privacy_check_outlook_app_description">Microsoft Outlook app is installed on your device</string>
+    <string name="privacy_check_outlook_app_recommendation">Consider uninstalling Outlook and switching to K-9 Mail, FairEmail, or ProtonMail.</string>
+    <string name="privacy_check_outlook_app_action">Open App Settings</string>
+
+    <string name="privacy_check_onedrive_app_name">OneDrive</string>
+    <string name="privacy_check_onedrive_app_description">Microsoft OneDrive app is installed on your device</string>
+    <string name="privacy_check_onedrive_app_recommendation">Consider uninstalling OneDrive and switching to Nextcloud or Cryptomator.</string>
+    <string name="privacy_check_onedrive_app_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — AMAZON APPS -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_amazon_shopping_name">Amazon Shopping</string>
+    <string name="privacy_check_amazon_shopping_description">Amazon Shopping app is installed on your device</string>
+    <string name="privacy_check_amazon_shopping_recommendation">Consider uninstalling and using the mobile website for better privacy.</string>
+    <string name="privacy_check_amazon_shopping_action">Open App Settings</string>
+
+    <string name="privacy_check_prime_video_name">Prime Video</string>
+    <string name="privacy_check_prime_video_description">Amazon Prime Video app is installed on your device</string>
+    <string name="privacy_check_prime_video_recommendation">Consider uninstalling Prime Video and using the mobile website instead. Streaming apps collect viewing habits and device data.</string>
+    <string name="privacy_check_prime_video_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — AI/LLM APPS (shared description and recommendation) -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_ai_app_description">AI apps process conversations on cloud servers — be mindful of what you share</string>
+    <string name="privacy_check_ai_app_recommendation">Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.</string>
+
+    <string name="privacy_check_chatgpt_app_name">ChatGPT</string>
+    <string name="privacy_check_chatgpt_app_action">Open App Settings</string>
+
+    <string name="privacy_check_google_gemini_name">Google Gemini</string>
+    <string name="privacy_check_google_gemini_action">Open App Settings</string>
+
+    <string name="privacy_check_microsoft_copilot_name">Microsoft Copilot</string>
+    <string name="privacy_check_microsoft_copilot_action">Open App Settings</string>
+
+    <string name="privacy_check_claude_app_name">Claude</string>
+    <string name="privacy_check_claude_app_action">Open App Settings</string>
+
+    <string name="privacy_check_perplexity_app_name">Perplexity</string>
+    <string name="privacy_check_perplexity_app_action">Open App Settings</string>
+
+    <string name="privacy_check_meta_ai_name">Meta AI</string>
+    <string name="privacy_check_meta_ai_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — SOCIAL MEDIA -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_tiktok_app_name">TikTok</string>
+    <string name="privacy_check_tiktok_app_description">TikTok app is installed on your device</string>
+    <string name="privacy_check_tiktok_app_recommendation">Consider uninstalling TikTok due to extensive data collection practices.</string>
+    <string name="privacy_check_tiktok_app_action">Open App Settings</string>
+
+    <string name="privacy_check_twitter_app_name">Twitter/X</string>
+    <string name="privacy_check_twitter_app_description">Twitter/X app is installed on your device</string>
+    <string name="privacy_check_twitter_app_recommendation">Consider using the mobile website instead of the app for better privacy.</string>
+    <string name="privacy_check_twitter_app_action">Open App Settings</string>
+
+    <string name="privacy_check_reddit_app_name">Reddit</string>
+    <string name="privacy_check_reddit_app_description">Reddit app is installed on your device</string>
+    <string name="privacy_check_reddit_app_recommendation">Consider using privacy-focused Reddit clients like Infinity or Slide.</string>
+    <string name="privacy_check_reddit_app_action">Open App Settings</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY CHECKS — SYSTEM ASSISTANT -->
+    <!-- ============================================================ -->
+    <string name="privacy_check_default_assistant_name">System Assistant/Search</string>
+    <string name="privacy_check_default_assistant_description">Voice assistants can collect and process your conversations and search history</string>
+    <string name="privacy_check_default_assistant_recommendation">Review your assistant settings in Settings > Apps and disable Google Assistant or Alexa if you don\'t use them.</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK TYPES -->
+    <!-- ============================================================ -->
+    <string name="manual_check_location_always_on_name">Always-On Location Access</string>
+    <string name="manual_check_location_always_on_description">Most apps don\'t need 24/7 location tracking. Review which apps have "Always" access.</string>
+
+    <string name="manual_check_camera_mic_access_name">Camera &amp; Microphone Access</string>
+    <string name="manual_check_camera_mic_access_description">Many apps over-request camera and microphone permissions. Review which apps can access them.</string>
+
+    <string name="manual_check_unused_apps_name">Unused Apps Review</string>
+    <string name="manual_check_unused_apps_description">Unused apps still have permissions and potential vulnerabilities. Find and remove apps you haven\'t used.</string>
+
+    <string name="manual_check_advertising_id_check_name">Advertising ID</string>
+    <string name="manual_check_advertising_id_check_description">Verify your Advertising ID is deleted to prevent cross-app tracking by advertisers.</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL SCREEN — SECTION TITLES AND BUTTONS -->
+    <!-- ============================================================ -->
+    <string name="label_manual_check_why_this_matters">Why This Matters</string>
+    <string name="label_manual_check_how_to_check">How to Check</string>
+    <string name="label_manual_check_mark_done">Mark as Done</string>
+    <string name="label_manual_check_progress">Progress</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — WHY IT MATTERS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_why_location">Apps with "Always" location access can track your movements 24/7, even when you\'re not using the app. Most apps only need location "While using the app" or not at all. Continuous tracking drains battery, creates detailed movement profiles, and poses significant privacy risks if the app is compromised or shares data with third parties.</string>
+    <string name="copy_manual_why_camera">Camera and microphone permissions allow apps to potentially record you at any time. Many apps request these permissions unnecessarily or "just in case" you might use a feature. A compromised app with these permissions could spy on you. Regular audits help ensure only trusted apps can access these sensitive sensors.</string>
+    <string name="copy_manual_why_unused">Unused apps are a hidden privacy and security risk. They still have all their permissions, continue receiving data access, may have unpatched vulnerabilities, and increase your attack surface. Apps you installed months or years ago might have been updated with new tracking features or sold to different companies. Regular cleanups reduce these risks.</string>
+    <string name="copy_manual_why_adid">Your Advertising ID is a unique identifier that lets advertisers link your activity across different apps and services to build a profile of your habits and interests. Deleting it resets this profile and prevents further cross-app behavioral tracking until a new ID is created.</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — SHARED STEPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_step_open_settings_device">Open Settings on your device</string>
+    <string name="copy_manual_step_nav_privacy_permissions">Navigate to Privacy → Permission manager</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — LOCATION STEPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_location_step_3">Tap "Location"</string>
+    <string name="copy_manual_location_step_4">Look for apps with "Allowed all the time" or "Always" access</string>
+    <string name="copy_manual_location_step_5">For each app, tap it and change to "Allow only while using the app" or "Don\'t allow"</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — CAMERA/MIC STEPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_camera_step_3">Tap "Camera" to see all apps with camera access</string>
+    <string name="copy_manual_camera_step_4">Review each app — ask yourself: "Does this app really need camera access?"</string>
+    <string name="copy_manual_camera_step_5">Revoke camera access for apps that don\'t need it</string>
+    <string name="copy_manual_camera_step_6">Go back and repeat for "Microphone" permissions</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — UNUSED APPS STEPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_unused_step_2">Navigate to Apps or Application Manager</string>
+    <string name="copy_manual_unused_step_3">Look for a sort option and select "Last used" or "Unused apps"</string>
+    <string name="copy_manual_unused_step_4">Scroll through the list and identify apps you haven\'t opened in months</string>
+    <string name="copy_manual_unused_step_5">For each unused app, ask: "Will I actually use this again?"</string>
+    <string name="copy_manual_unused_step_6">Uninstall apps you don\'t need — you can always reinstall later if needed</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — ADVERTISING ID STEPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_adid_step_2">Navigate to Privacy → Ads</string>
+    <string name="copy_manual_adid_step_3">Tap "Delete Advertising ID" and confirm</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — WHAT TO LOOK FOR: LOCATION -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_location_look_maps">Maps and navigation apps: These may legitimately need "Always" for features like traffic alerts, but consider if you really use those features</string>
+    <string name="copy_manual_location_look_weather">Weather apps: Usually don\'t need "Always" access — they work fine with "While using the app"</string>
+    <string name="copy_manual_location_look_social">Social media apps: Almost never need "Always" location access</string>
+    <string name="copy_manual_location_look_shopping">Shopping or delivery apps: Only need location when actively using them</string>
+    <string name="copy_manual_location_look_unknown">Unknown or rarely-used apps: If you don\'t recognize an app with always-on access, revoke it immediately</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — WHAT TO LOOK FOR: CAMERA/MIC -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_camera_legitimate_header">Apps that legitimately need camera/microphone:</string>
+    <string name="copy_manual_camera_legitimate_1">Video calling apps (Zoom, WhatsApp, Signal)</string>
+    <string name="copy_manual_camera_legitimate_2">Camera apps and photo editors</string>
+    <string name="copy_manual_camera_legitimate_3">Voice recorder apps</string>
+    <string name="copy_manual_camera_legitimate_4">Social media apps (for posting photos/videos)</string>
+    <string name="copy_manual_camera_concerning_header">Concerning examples:</string>
+    <string name="copy_manual_camera_concerning_1">Flashlight apps with camera access</string>
+    <string name="copy_manual_camera_concerning_2">Calculator apps with microphone access</string>
+    <string name="copy_manual_camera_concerning_3">Games that don\'t use voice or AR features</string>
+    <string name="copy_manual_camera_concerning_4">Shopping apps with no scanning features</string>
+    <string name="copy_manual_camera_concerning_5">Any app you don\'t recognize or haven\'t used recently</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — WHAT TO LOOK FOR: ADVERTISING ID -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_adid_verify">Verify that your Advertising ID has been deleted in Settings → Privacy → Ads.</string>
+
+    <!-- ============================================================ -->
+    <!-- MANUAL CHECK DETAIL — WHAT TO LOOK FOR: UNUSED APPS -->
+    <!-- ============================================================ -->
+    <string name="copy_manual_unused_priority_header">High-priority apps to remove:</string>
+    <string name="copy_manual_unused_priority_1">Apps not opened in 3+ months</string>
+    <string name="copy_manual_unused_priority_2">Old games you no longer play</string>
+    <string name="copy_manual_unused_priority_3">Abandoned trial apps or free trials</string>
+    <string name="copy_manual_unused_priority_4">Apps for events or trips that already happened</string>
+    <string name="copy_manual_unused_priority_5">Duplicate apps (multiple weather apps, calculators, etc.)</string>
+    <string name="copy_manual_unused_priority_6">Apps from companies you no longer trust</string>
+    <string name="copy_manual_unused_keep_header">Consider keeping:</string>
+    <string name="copy_manual_unused_keep_1">System apps (be careful not to remove critical system components)</string>
+    <string name="copy_manual_unused_keep_2">Banking or financial apps (even if used infrequently)</string>
+    <string name="copy_manual_unused_keep_3">Travel apps if you travel regularly</string>
+    <string name="copy_manual_unused_keep_4">Emergency or safety apps</string>
+    <string name="copy_manual_unused_tip">Tip: If you\'re unsure whether you\'ll need an app again, uninstall it anyway. Most apps keep your account data server-side, so you can reinstall and log back in if needed.</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REVOKE NOTIFICATION LISTENERS -->
+    <!-- ============================================================ -->
+    <string name="quick_win_revoke_notification_listeners_title">Revoke Notification Listeners</string>
+    <string name="quick_win_revoke_notification_listeners_description">Non-system apps can read ALL your notifications</string>
+    <string name="quick_win_revoke_notification_listeners_time">1 minute</string>
+    <string name="quick_win_revoke_notification_listeners_action">Open Notification Settings</string>
+    <string name="quick_win_revoke_notification_listeners_short">Revoke Listeners</string>
+    <string name="quick_win_revoke_notification_listeners_instructions">Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.\n\nSteps:\n1. Open Settings app\n2. Go to \'Apps\' → \'Special app access\'\n3. Tap \'Notification access\'\n4. Review the list and disable access for non-essential apps\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REVOKE ACCESSIBILITY SERVICES -->
+    <!-- ============================================================ -->
+    <string name="quick_win_revoke_accessibility_services_title">Revoke Accessibility Services</string>
+    <string name="quick_win_revoke_accessibility_services_description">Non-essential apps can control your entire device</string>
+    <string name="quick_win_revoke_accessibility_services_time">1 minute</string>
+    <string name="quick_win_revoke_accessibility_services_action">Open Accessibility Settings</string>
+    <string name="quick_win_revoke_accessibility_services_short">Revoke Access</string>
+    <string name="quick_win_revoke_accessibility_services_instructions">Apps with accessibility service access can control your entire device and potentially log keystrokes.\n\nSteps:\n1. Open Settings app\n2. Go to \'Accessibility\'\n3. Review \'Downloaded apps\' or \'Installed services\'\n4. Disable any services you don\'t actively need\n\nNote: Keep accessibility services that you genuinely use (password managers, screen readers).\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REVOKE DEVICE ADMINS -->
+    <!-- ============================================================ -->
+    <string name="quick_win_revoke_device_admins_title">Revoke Device Administrators</string>
+    <string name="quick_win_revoke_device_admins_description">Non-system apps have elevated device control</string>
+    <string name="quick_win_revoke_device_admins_time">1 minute</string>
+    <string name="quick_win_revoke_device_admins_action">Open Security Settings</string>
+    <string name="quick_win_revoke_device_admins_short">Revoke Admins</string>
+    <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — DISABLE WIFI SCANNING -->
+    <!-- ============================================================ -->
+    <string name="quick_win_disable_wifi_scanning_title">Disable Background Wi-Fi Scanning</string>
+    <string name="quick_win_disable_wifi_scanning_description">Prevents location tracking via Wi-Fi networks</string>
+    <string name="quick_win_disable_wifi_scanning_time">30 seconds</string>
+    <string name="quick_win_disable_wifi_scanning_action">Open Location Settings</string>
+    <string name="quick_win_disable_wifi_scanning_short">Disable Wi-Fi Scan</string>
+    <string name="quick_win_disable_wifi_scanning_instructions">Background Wi-Fi scanning allows apps to track your location even when Wi-Fi is off.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — DISABLE ADVERTISING ID -->
+    <!-- ============================================================ -->
+    <string name="quick_win_disable_advertising_id_title">Disable Advertising ID</string>
+    <string name="quick_win_disable_advertising_id_description">Prevents cross-app tracking by advertisers</string>
+    <string name="quick_win_disable_advertising_id_time">30 seconds</string>
+    <string name="quick_win_disable_advertising_id_action">Open Privacy Settings</string>
+    <string name="quick_win_disable_advertising_id_short">Disable Ad ID</string>
+    <string name="quick_win_disable_advertising_id_instructions">This prevents apps from building an advertising profile and tracking you across different apps.\n\nSteps:\n1. Open Settings app\n2. Scroll to \'Privacy\' or \'Google\'\n3. Tap \'Ads\'\n4. Tap \'Delete Advertising ID\' or \'Opt out of Ads Personalization\'\n5. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — ENABLE PRIVATE DNS -->
+    <!-- ============================================================ -->
+    <string name="quick_win_enable_private_dns_title">Enable Private DNS</string>
+    <string name="quick_win_enable_private_dns_description">Blocks tracking and malicious domains at network level</string>
+    <string name="quick_win_enable_private_dns_time">1 minute</string>
+    <string name="quick_win_enable_private_dns_action">Open Network Settings</string>
+    <string name="quick_win_enable_private_dns_short">Enable Private DNS</string>
+    <string name="quick_win_enable_private_dns_instructions">Private DNS blocks tracking and malicious domains at the network level for all apps.\n\nRecommended providers:\n• Quad9 (dns.quad9.net)\n  Privacy-focused, blocks malware, no logging\n\n• AdGuard DNS (dns.adguard-dns.com)\n  Blocks ads and trackers\n\nSteps:\n1. Open Settings app\n2. Go to \'Network &amp; Internet\'\n3. Tap \'Private DNS\'\n4. Select \'Private DNS provider hostname\'\n5. Enter: dns.quad9.net\n6. Tap \'Save\'\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — DISABLE DEVELOPER OPTIONS -->
+    <!-- ============================================================ -->
+    <string name="quick_win_disable_developer_options_title">Disable Developer Options</string>
+    <string name="quick_win_disable_developer_options_description">Reduces your exposure to advanced settings that can weaken security</string>
+    <string name="quick_win_disable_developer_options_time">30 seconds</string>
+    <string name="quick_win_disable_developer_options_action">Open Developer Settings</string>
+    <string name="quick_win_disable_developer_options_short">Dev Options</string>
+    <string name="quick_win_disable_developer_options_instructions">Developer options expose advanced settings that can reduce device security if misconfigured.\n\nSteps:\n1. Open Settings app\n2. Go to \'System\' → \'Developer options\'\n3. Toggle off \'Developer options\' at the top\n4. Confirm\n\nNote: If you need developer options for specific tasks, re-enable only when needed.\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REPLACE BROWSER -->
+    <!-- ============================================================ -->
+    <string name="quick_win_replace_browser_title">Replace Browser</string>
+    <string name="quick_win_replace_browser_description">Switch to privacy-focused browser</string>
+    <string name="quick_win_replace_browser_time">2 minutes</string>
+    <string name="quick_win_replace_browser_action">Open Default App Settings</string>
+    <string name="quick_win_replace_browser_short">Browser</string>
+    <string name="quick_win_replace_browser_instructions">Privacy-focused browsers block trackers and don\'t sync your browsing history to cloud servers.\n\nRecommended alternatives:\n• Brave (Play Store) - Blocks trackers by default\n• Firefox (F-Droid and Play Store) - Privacy-focused, customizable\n\nOr explore more options:\n→ Privacy Guides: privacyguides.org/browsers\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'Brave\' or \'Firefox\'\n3. Install browser\n4. Open the new browser\n5. When prompted, set as default browser\n   (Or: Settings → Apps → Default apps → Browser)\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REPLACE KEYBOARD -->
+    <!-- ============================================================ -->
+    <string name="quick_win_replace_keyboard_title">Replace Keyboard</string>
+    <string name="quick_win_replace_keyboard_description">Switch to privacy-focused keyboard</string>
+    <string name="quick_win_replace_keyboard_time">2 minutes</string>
+    <string name="quick_win_replace_keyboard_action">Open Default App Settings</string>
+    <string name="quick_win_replace_keyboard_short">Keyboard</string>
+    <string name="quick_win_replace_keyboard_instructions">Your current keyboard may send your typing data to cloud servers for processing.\n\nRecommended alternatives:\n• FUTO Keyboard (Play Store)\n  Best privacy + features, offline voice typing\n• AnySoftKeyboard (F-Droid &amp; Play Store)\n  Mature, highly customizable\n\nOr explore more options:\n→ F-Droid: Browse privacy keyboards\n→ Privacy Guides: privacyguides.org/android\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'privacy keyboard\'\n3. Install keyboard\n4. Open Settings → System → Languages &amp; Input\n5. Tap \'On-screen keyboard\' or \'Virtual keyboard\'\n6. Select your new keyboard as default\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REPLACE DEFAULT SMS -->
+    <!-- ============================================================ -->
+    <string name="quick_win_replace_default_sms_title">Replace SMS App</string>
+    <string name="quick_win_replace_default_sms_description">Switch to privacy-focused messaging app</string>
+    <string name="quick_win_replace_default_sms_time">2 minutes</string>
+    <string name="quick_win_replace_default_sms_action">Open Default App Settings</string>
+    <string name="quick_win_replace_default_sms_short">SMS</string>
+    <string name="quick_win_replace_default_sms_instructions">Your current SMS app may collect your messaging data and contacts.\n\nRecommended alternatives:\n• Fossify Messages (F-Droid &amp; Play Store)\n  Open source, privacy-focused, no ads\n• QKSMS (F-Droid)\n  Lightweight and private\n\nSteps:\n1. Install a privacy-focused messaging app\n2. Open Settings → Apps → Default apps\n3. Tap \'SMS app\'\n4. Select your new messaging app\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REPLACE DEFAULT EMAIL -->
+    <!-- ============================================================ -->
+    <string name="quick_win_replace_default_email_title">Replace Email App</string>
+    <string name="quick_win_replace_default_email_description">Switch to privacy-focused email client</string>
+    <string name="quick_win_replace_default_email_time">2 minutes</string>
+    <string name="quick_win_replace_default_email_action">Open Default App Settings</string>
+    <string name="quick_win_replace_default_email_short">Email</string>
+    <string name="quick_win_replace_default_email_instructions">Your current email app may scan your emails for advertising and data collection.\n\nRecommended alternatives:\n• K-9 Mail (F-Droid &amp; Play Store) - Open source\n• FairEmail (F-Droid &amp; Play Store) - Privacy-focused\n• ProtonMail (Play Store) - Encrypted email\n\nSteps:\n1. Install a privacy-focused email app\n2. Open Settings → Apps → Default apps\n3. Tap \'Email app\' (if available)\n4. Select your new email app\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — REPLACE DEFAULT LAUNCHER -->
+    <!-- ============================================================ -->
+    <string name="quick_win_replace_default_launcher_title">Replace Launcher</string>
+    <string name="quick_win_replace_default_launcher_description">Switch to privacy-focused launcher</string>
+    <string name="quick_win_replace_default_launcher_time">2 minutes</string>
+    <string name="quick_win_replace_default_launcher_action">Open Default App Settings</string>
+    <string name="quick_win_replace_default_launcher_short">Launcher</string>
+    <string name="quick_win_replace_default_launcher_instructions">Your current launcher may collect usage patterns, app habits, and behavioral data.\n\nRecommended alternatives:\n• Lawnchair (F-Droid &amp; Play Store) - Modern and customizable\n• KISS Launcher (F-Droid &amp; Play Store) - Lightweight\n• Neo Launcher (F-Droid) - Feature-rich\n\nSteps:\n1. Install a privacy-focused launcher\n2. Open Settings → Apps → Default apps\n3. Tap \'Home app\'\n4. Select your new launcher\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN TYPES — UNINSTALL APP -->
+    <!-- ============================================================ -->
+    <string name="quick_win_uninstall_app_title">Uninstall App</string>
+    <string name="quick_win_uninstall_app_description">Remove a privacy-invasive app from your device</string>
+    <string name="quick_win_uninstall_app_time">30 seconds</string>
+    <string name="quick_win_uninstall_app_action">Open App Settings</string>
+    <string name="quick_win_uninstall_app_short">App</string>
+    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling or disabling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\' or \'Disable\'\n3. Confirm\n\nIf the app came pre-installed, you may only be able to disable it rather than fully uninstall it.\n\nAfter completing this, rescan to see your improved score!</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->
+    <!-- ============================================================ -->
+    <string name="tip_usb_debugging_title">Why USB Debugging Matters</string>
+    <string name="tip_usb_debugging_content">USB Debugging allows connected computers to access your device data. It\'s essential for development but best left off when you\'re not actively using it.</string>
+
+    <string name="tip_developer_options_title">Developer Options Exposure</string>
+    <string name="tip_developer_options_content">Developer Options are powerful tools for debugging, but they expose settings that can weaken security. Toggle it off when you don\'t need it — you can always re-enable it.</string>
+
+    <string name="tip_no_vpn_title">Browsing Without a VPN</string>
+    <string name="tip_no_vpn_content">Without a VPN, your internet provider sees every domain you connect to. Some providers sell this data to advertisers. A VPN keeps your browsing between you and the VPN provider.</string>
+
+    <string name="tip_ad_id_title">Your Advertising ID</string>
+    <string name="tip_ad_id_content">Your Advertising ID lets ad networks build a profile across every app you use. Deleting it doesn\'t break any apps — they just lose the ability to connect your activity.</string>
+
+    <string name="tip_no_private_dns_title">Unencrypted DNS</string>
+    <string name="tip_no_private_dns_content">Without Private DNS, your DNS lookups are sent unencrypted to your provider. Enabling it takes 30 seconds and blocks known trackers across all your apps automatically.</string>
+
+    <string name="tip_google_maps_title">Google Maps Trade-off</string>
+    <string name="tip_google_maps_content">Google Maps is excellent, but it logs every search, route, and visit to your Google account. If you mainly need offline navigation, Organic Maps offers that without any tracking.</string>
+
+    <string name="tip_notification_listener_title">Notification Access Risks</string>
+    <string name="tip_notification_listener_content">Apps with notification access can read all your notifications — messages, banking alerts, verification codes. Worth reviewing whether each app truly needs this level of access.</string>
+
+    <string name="tip_no_biometric_title">Adding Biometrics</string>
+    <string name="tip_no_biometric_content">Adding biometric authentication makes it faster to unlock your device, which means you\'re more likely to keep a strong PIN. Convenience and security working together.</string>
+
+    <string name="tip_wifi_scanning_title">Background WiFi Scanning</string>
+    <string name="tip_wifi_scanning_content">Background WiFi scanning lets Google collect nearby network names even when WiFi is off. Disabling it has no noticeable impact on daily use.</string>
+
+    <string name="tip_find_my_device_title">Find My Device Trade-off</string>
+    <string name="tip_find_my_device_content">Find My Device is useful if your phone is lost, but it requires Google to know your device\'s location. If you\'re on GrapheneOS without Play Services, this isn\'t functional anyway.</string>
+
+    <string name="tip_chrome_default_title">Chrome as Default Browser</string>
+    <string name="tip_chrome_default_content">Chrome syncs browsing data with your Google account by default. Firefox or Brave offer similar speed with better default privacy settings — and your bookmarks can be imported.</string>
+
+    <string name="tip_gboard_default_title">Keyboard Privacy</string>
+    <string name="tip_gboard_default_content">Gboard sends typing data to Google to improve predictions. Privacy-focused keyboards like HeliBoard or FlorisBoard work offline with no data collection.</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY TIPS — REINFORCING (7) -->
+    <!-- ============================================================ -->
+    <string name="tip_screen_lock_good_title">Your Screen Lock Strength</string>
+    <string name="tip_screen_lock_good_content">Your screen lock is your first defense. A 6-digit PIN takes around 11 hours to brute force, while a 4-digit PIN takes just 7 minutes. Length matters more than complexity.</string>
+
+    <string name="tip_encryption_good_title">How Encryption Protects You</string>
+    <string name="tip_encryption_good_content">With encryption enabled, your phone\'s data is unreadable without your PIN when powered off — even with physical access to the storage chip.</string>
+
+    <string name="tip_biometric_good_title">Your Biometric Security</string>
+    <string name="tip_biometric_good_content">Your biometric data stays in your device\'s secure enclave. It never leaves the chip, isn\'t sent to any server, and can\'t be extracted even by the OS itself.</string>
+
+    <string name="tip_private_dns_good_title">Your DNS Protection</string>
+    <string name="tip_private_dns_good_content">Your Private DNS works across every app — even ones that try to use their own tracking domains. It\'s one of the most effective single settings on your device.</string>
+
+    <string name="tip_vpn_good_title">Your VPN Protection</string>
+    <string name="tip_vpn_good_content">Your VPN encrypts all traffic leaving your device. On public WiFi, others on the network only see encrypted data going to one server — nothing useful.</string>
+
+    <string name="tip_ad_id_good_title">Ad Tracking Blocked</string>
+    <string name="tip_ad_id_good_content">Without an Advertising ID, apps can still show ads, but they can\'t easily build a cross-app profile of your interests and behavior. The ads just become less targeted.</string>
+
+    <string name="tip_no_google_apps_title">Google-Free Benefits</string>
+    <string name="tip_no_google_apps_content">Running without Google apps means significantly less background data collection. Most Google services have capable alternatives — it\'s about finding what works for you.</string>
+
+    <!-- ============================================================ -->
+    <!-- PRIVACY TIPS — EDUCATIONAL (26) -->
+    <!-- ============================================================ -->
+    <string name="tip_photo_metadata_title">Hidden Photo Data</string>
+    <string name="tip_photo_metadata_content">Photos contain hidden metadata — GPS coordinates, timestamp, device model. Before sharing sensitive photos, strip this data using apps like Scrambled Exif. It takes one tap.</string>
+
+    <string name="tip_public_wifi_title">Public WiFi Risks</string>
+    <string name="tip_public_wifi_content">Public WiFi is easy to impersonate. Anyone can create a network called \'Airport_Free_WiFi\'. A VPN makes this a non-issue since all your traffic is encrypted regardless.</string>
+
+    <string name="tip_browser_fingerprinting_title">Browser Fingerprinting</string>
+    <string name="tip_browser_fingerprinting_content">Browser fingerprinting identifies you by combining your screen size, fonts, timezone, and GPU into a unique signature. This works even without cookies. Firefox has the best built-in protections.</string>
+
+    <string name="tip_sms_2fa_title">SMS Two-Factor Weakness</string>
+    <string name="tip_sms_2fa_content">SMS-based two-factor authentication is better than nothing, but vulnerable to SIM swap attacks. App-based authenticators like Aegis or Google Authenticator are significantly safer.</string>
+
+    <string name="tip_free_vpns_title">The Cost of Free VPNs</string>
+    <string name="tip_free_vpns_content">Free VPNs need revenue — most sell your browsing data or inject ads. Privacy-respecting VPNs like Mullvad or Proton VPN cost a few euros per month and have audited no-log policies.</string>
+
+    <string name="tip_wifi_probes_title">WiFi Probe Requests</string>
+    <string name="tip_wifi_probes_content">Your phone broadcasts WiFi probe requests — searching for known networks by name. This can reveal places you\'ve been. Disabling auto-join for old networks reduces this leakage.</string>
+
+    <string name="tip_clipboard_title">Clipboard Privacy</string>
+    <string name="tip_clipboard_content">Clipboard data is accessible to any foreground app on older Android versions. Use your password manager\'s autofill instead of copying passwords — it\'s both safer and faster.</string>
+
+    <string name="tip_device_name_title">Your Device Name</string>
+    <string name="tip_device_name_content">Your device name is visible to anyone nearby scanning Bluetooth or WiFi Direct. Setting it to something generic like \'Phone\' prevents it from identifying you personally.</string>
+
+    <string name="tip_delete_account_first_title">Uninstall Isn\'t Enough</string>
+    <string name="tip_delete_account_first_content">Deleting an app removes it from your device but not from the company\'s servers. Use \'Delete Account\' in the app first, then uninstall. GDPR gives EU residents the legal right to request deletion.</string>
+
+    <string name="tip_email_privacy_title">Email Isn\'t Private</string>
+    <string name="tip_email_privacy_content">Email is not private by default — it\'s sent in plain text between servers. For sensitive communication, use Signal or encrypted email like Proton Mail. Regular email is fine for newsletters.</string>
+
+    <string name="tip_data_brokers_title">Data Brokers</string>
+    <string name="tip_data_brokers_content">Data brokers compile profiles from public records, purchases, and app data, then sell them. Services like Mine or yourdigitalrights.org help you discover and request deletion of your data.</string>
+
+    <string name="tip_incognito_myth_title">Incognito Mode Limits</string>
+    <string name="tip_incognito_myth_content">Incognito mode only hides browsing from other people using your device. Your ISP, employer, and the websites themselves still see everything. A VPN addresses the ISP part.</string>
+
+    <string name="tip_permission_review_title">Revoke Unused Permissions</string>
+    <string name="tip_permission_review_content">App permissions on Android are revocable at any time. Granting camera access to scan a QR code doesn\'t mean the app needs it forever — review and revoke after one-time use.</string>
+
+    <string name="tip_search_engines_title">Private Search Engines</string>
+    <string name="tip_search_engines_content">Search engines log every query tied to your account or IP. DuckDuckGo and Startpage provide Google-quality results without building a search profile. You can always fall back to Google for specific queries.</string>
+
+    <string name="tip_email_trackers_title">Email Tracking Pixels</string>
+    <string name="tip_email_trackers_content">Email trackers — invisible pixels embedded in marketing emails — report when and where you opened them. Disabling \'auto-load images\' in your email app blocks most of these.</string>
+
+    <string name="tip_cloud_backups_title">Cloud Backup Trade-offs</string>
+    <string name="tip_cloud_backups_content">Cloud backups are convenient but mean your data exists on someone else\'s server. If you use cloud backup, ensure it\'s encrypted. GrapheneOS\'s Seedvault offers encrypted local backups.</string>
+
+    <string name="tip_location_uniqueness_title">Location Data Sensitivity</string>
+    <string name="tip_location_uniqueness_content">Location data is among the most sensitive information your phone generates. Even anonymized location datasets have been de-anonymized — the path between your home and work is unique to you.</string>
+
+    <string name="tip_app_updates_title">Keep Apps Updated</string>
+    <string name="tip_app_updates_content">App updates aren\'t just about new features — they patch security vulnerabilities. Keeping apps updated is one of the simplest and most effective security practices.</string>
+
+    <string name="tip_qr_codes_title">QR Code Awareness</string>
+    <string name="tip_qr_codes_content">QR codes can link to malicious websites just like any URL. Before scanning unknown QR codes in public places, consider that someone may have placed a sticker over the original.</string>
+
+    <string name="tip_phone_sensors_title">Sensor Access</string>
+    <string name="tip_phone_sensors_content">Your phone\'s sensors — accelerometer, gyroscope, barometer — can be accessed by any app without special permission. Research has shown these can be used for crude keystroke detection.</string>
+
+    <string name="tip_email_aliases_title">Email Aliases</string>
+    <string name="tip_email_aliases_content">Using email aliases (like SimpleLogin or addy.io) means each service gets a unique address. If one gets breached or sold, you disable that alias instead of changing your actual email everywhere.</string>
+
+    <string name="tip_auto_revoke_title">Auto-Revoke Permissions</string>
+    <string name="tip_auto_revoke_content">Android\'s auto-revoke automatically removes permissions from apps you haven\'t used in months. This is on by default since Android 11 — one of the better automatic privacy features.</string>
+
+    <string name="tip_payment_tracking_title">Payment Privacy</string>
+    <string name="tip_payment_tracking_content">Paying with a card creates a permanent record of where you were and what you bought. Cash or privacy-focused payment methods break this tracking chain for sensitive purchases.</string>
+
+    <string name="tip_contacts_upload_title">Contacts Access Risks</string>
+    <string name="tip_contacts_upload_content">Social media apps often request contacts access during setup. This uploads your entire address book — including phone numbers of people who never consented to sharing their data.</string>
+
+    <string name="tip_smart_home_title">Smart Home Privacy</string>
+    <string name="tip_smart_home_content">Smart home devices process some audio in the cloud. If you use them, review and regularly delete stored voice recordings in the manufacturer\'s app.</string>
+
+    <string name="tip_router_dns_title">Router-Level DNS</string>
+    <string name="tip_router_dns_content">Your router\'s DNS settings affect every device on your network. Setting your router\'s DNS to a privacy-respecting provider (Quad9, NextDNS) protects all devices at once — including smart TVs and IoT.</string>
+
+    <!-- ============================================================ -->
+    <!-- DETAILS SCREEN — APPS TAB -->
+    <!-- ============================================================ -->
+    <string name="copy_details_apps_banner">Trusting an app removes its privacy score penalty. Apps from major data brokers cannot be trusted.</string>
+    <string name="label_common_dismiss">Dismiss</string>
+    <string name="label_details_no_flagged_apps">No flagged apps found</string>
+    <string name="fmt_app_icon_cd">%s icon</string>
+    <string name="label_details_app_trusted">Trusted</string>
+    <string name="label_details_app_flagged">Flagged</string>
+
+    <!-- ============================================================ -->
+    <!-- DETAILS SCREEN — SECTION HEADERS -->
+    <!-- ============================================================ -->
+    <string name="details_section_security">SECURITY</string>
+    <string name="details_section_surveillance">SURVEILLANCE</string>
+
+    <!-- ============================================================ -->
+    <!-- SCORE CARD -->
+    <!-- ============================================================ -->
+    <string name="label_score_card_title">Privacy Score</string>
+
+    <!-- ============================================================ -->
+    <!-- DASHBOARD SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_dashboard_tracking">Tracking</string>
+    <string name="label_dashboard_security">Security</string>
+    <string name="label_dashboard_actions">Actions</string>
+    <string name="label_dashboard_tracking_zero">Protected</string>
+    <string name="label_dashboard_security_zero">No Issues</string>
+    <string name="label_dashboard_issue_single">1 Issue</string>
+    <string name="label_dashboard_action_single">1 Total</string>
+
+    <!-- ============================================================ -->
+    <!-- ACTIONS SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_actions_quick_wins">Quick Wins</string>
+    <string name="label_actions_manual_checks">Manual Checks</string>
+    <string name="label_actions_restore">Restore</string>
+    <string name="label_actions_next_tip">Next tip</string>
+    <string name="label_actions_great_work">Great work</string>
+
+    <!-- ============================================================ -->
+    <!-- MAIN SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_main_initializing">Initializing scanner…</string>
+    <string name="label_main_scanning">Scanning privacy settings…</string>
+    <string name="label_main_error">Error</string>
+    <string name="label_main_retry">Retry</string>
+
+    <!-- ============================================================ -->
+    <!-- ISSUE ITEM COMPONENT -->
+    <!-- ============================================================ -->
+    <string name="label_issue_informational">Informational</string>
+    <string name="label_issue_secure">Secure</string>
+    <string name="label_issue_detected">Issue detected</string>
+    <string name="label_issue_recommendation">Recommendation:</string>
+    <string name="label_issue_fix">Fix</string>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY GROUP COMPONENT -->
+    <!-- ============================================================ -->
+    <string name="label_category_collapse">Collapse</string>
+    <string name="label_category_expand">Expand</string>
+
+    <!-- ============================================================ -->
+    <!-- NAVIGATION DRAWER -->
+    <!-- ============================================================ -->
+    <string name="label_drawer_scoring_system">Scoring System</string>
+    <string name="label_drawer_settings">Settings</string>
+    <string name="label_drawer_about">About</string>
+    <string name="label_drawer_device_privacy_auditor">Device Privacy Auditor</string>
+
+    <!-- ============================================================ -->
+    <!-- TOP APP BAR -->
+    <!-- ============================================================ -->
+    <string name="label_topbar_menu">Menu</string>
+    <string name="label_topbar_rescan">Rescan device</string>
+    <string name="label_topbar_scoring_info">Scoring Information</string>
+
+    <!-- ============================================================ -->
+    <!-- SCORING INFO DIALOG -->
+    <!-- ============================================================ -->
+    <string name="label_scoring_dialog_title">Score Ratings</string>
+    <string name="label_scoring_dialog_cant_reach_100">Why can\'t I reach 100?</string>
+    <string name="copy_scoring_dialog_body">Some deductions reflect deliberate trade-offs — keeping USB Debugging on for development, or allowing a trusted app notification access. These are your informed choices, not privacy gaps.\n\nA perfect 100 is theoretically possible on a fully de-Googled device with no privacy trade-offs.</string>
+
+    <!-- ============================================================ -->
+    <!-- ABOUT DIALOG -->
+    <!-- ============================================================ -->
+    <string name="copy_about_body">Privamatic gives your Android device a privacy score — a clear, actionable number that shows how exposed you are and what to fix.\n\nAll analysis runs locally on your device. No telemetry, no data collection, no network requests, no Google Play Services. Everything stays with you.\n\nBuilt for privacy-conscious users, developers, and anyone who wants to understand and improve their Android privacy — no technical knowledge required.\n\nOpen source and available on F-Droid.</string>
+    <string name="label_about_close">Close</string>
+
+    <!-- ============================================================ -->
+    <!-- SCORING SYSTEM SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_scoring_system_title">Scoring System</string>
+    <string name="copy_scoring_system_intro">Privamatic evaluates your device across security settings and surveillance tracking. Each check contributes to your overall privacy score out of 100 — starting at 100, with points deducted for detected issues, down to a minimum of 0.</string>
+    <string name="label_scoring_system_informational">Informational</string>
+    <string name="label_scoring_system_no_impact">No score impact — awareness only</string>
+    <string name="copy_scoring_system_ai_note">These apps process conversations on cloud servers. They are detected and flagged for awareness but do not affect your privacy score.</string>
+    <string name="label_scoring_system_info_badge">Info</string>
+
+    <!-- ============================================================ -->
+    <!-- SETTINGS SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_settings_title">Settings</string>
+    <string name="label_settings_show_intro">Show intro on restart</string>
+    <string name="copy_settings_show_intro_subtitle">Replay the welcome walkthrough on next app start</string>
+    <string name="label_settings_force_adid">Force show Ad ID check</string>
+    <string name="copy_settings_force_adid_subtitle">Always show the Advertising ID check regardless of the 180-day timer</string>
+    <string name="label_settings_complete_adid_first">Complete the Ad ID check first</string>
+
+    <!-- ============================================================ -->
+    <!-- QUICK WIN DETAIL SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_quick_win_ignore">Ignore</string>
+    <string name="label_quick_win_what_this_does">WHAT THIS DOES</string>
+    <string name="label_quick_win_instructions">INSTRUCTIONS</string>
+
+    <!-- ============================================================ -->
+    <!-- AD ID VERIFICATION SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_adid_screen_title">Advertising ID</string>
+    <string name="label_adid_open_settings">Open Ad Settings</string>
+    <string name="label_adid_confirm_button">I\'ve deleted my Advertising ID</string>
+    <string name="label_adid_deleted_headline">Advertising ID Deleted</string>
+    <string name="label_adid_reset">Reset verification</string>
+    <string name="label_adid_explanation_title">What is an Advertising ID?</string>
+    <string name="copy_adid_explanation_1">Your Advertising ID is a unique identifier assigned to your device. Advertisers use it to track your activity across different apps and services, building a detailed profile of your interests and habits to serve targeted ads.</string>
+    <string name="copy_adid_explanation_2">Deleting your Advertising ID removes it entirely. Android will no longer provide an advertising identifier to apps, breaking cross-app tracking.</string>
+    <string name="label_adid_quiz_label">Quick Check</string>
+    <string name="label_adid_quiz_question">What does deleting your Advertising ID do?</string>
+    <string name="label_adid_quiz_answer_1">Replaces it with a new random ID</string>
+    <string name="label_adid_quiz_answer_2">Disables all ads on your device</string>
+    <string name="label_adid_quiz_answer_3">Removes the ID so advertisers can\'t link your activity across apps</string>
+    <string name="label_adid_quiz_answer_4">Stops apps from tracking you permanently</string>
+
+    <!-- ============================================================ -->
+    <!-- DEVICE INFO CARD -->
+    <!-- ============================================================ -->
+    <string name="label_device_info_title">Device Information</string>
+    <string name="label_device_info_model">Model</string>
+    <string name="label_device_info_os">Operating System</string>
+    <string name="label_device_info_android_version">Android Version</string>
+    <string name="label_device_info_privacy_change">Privacy Change</string>
+
+    <!-- ============================================================ -->
+    <!-- ONBOARDING SCREEN -->
+    <!-- ============================================================ -->
+    <string name="label_onboarding_skip">Skip</string>
+    <string name="label_onboarding_get_started">Get Started</string>
+    <string name="label_onboarding_next">Next</string>
+
+    <!-- ============================================================ -->
+    <!-- ONBOARDING SLIDES -->
+    <!-- ============================================================ -->
+    <string name="label_onboarding_score_denom">/ 100</string>
+    <string name="copy_onboarding_welcome_headline">Your privacy, scored.</string>
+    <string name="copy_onboarding_welcome_body">Understand exactly how private your Android is — and get a clear path to making it better.</string>
+    <string name="copy_onboarding_how_it_works_headline">How it works</string>
+    <string name="label_onboarding_step_scan">Scan</string>
+    <string name="label_onboarding_step_score">Score</string>
+    <string name="label_onboarding_step_act">Act</string>
+    <string name="copy_onboarding_how_it_works_body">45+ checks across security, tracking, and your apps. Weighted by real-world impact.</string>
+    <string name="copy_onboarding_pragmatic_headline">The pragmatic approach.</string>
+    <string name="copy_onboarding_pragmatic_body">Privacy that fits real life. No paranoia, no impossible standards — just meaningful improvements.</string>
+
+    <!-- ============================================================ -->
+    <!-- WIDGET CONFIGURATION ACTIVITY -->
+    <!-- ============================================================ -->
+    <string name="label_widget_config_title">Widget Opacity Settings</string>
+    <string name="label_widget_opacity_min">0%</string>
+    <string name="label_widget_opacity_max">100%</string>
+    <string name="label_widget_cancel">Cancel</string>
+    <string name="label_widget_save">Save</string>
+
+    <!-- ============================================================ -->
+    <!-- FORMAT STRINGS -->
+    <!-- ============================================================ -->
+    <string name="fmt_widget_opacity">Opacity: %d%%</string>
+    <string name="fmt_score_delta_up">↑%d pts</string>
+    <string name="fmt_score_delta_down">↓%d pts</string>
+    <string name="fmt_widget_delta_up">↑%d</string>
+    <string name="fmt_widget_delta_down">↓%d</string>
+    <string name="fmt_category_count">(%1$d/%2$d)</string>
+    <string name="fmt_cd_collapse">Collapse %s</string>
+    <string name="fmt_cd_expand">Expand %s</string>
+    <string name="fmt_review_period">Review every %d days</string>
+    <string name="fmt_adid_confirmed_date">Confirmed on %s</string>
+    <string name="fmt_adid_next_review">Next review: %s</string>
+    <string name="fmt_scoring_max_pts">up to %d pts</string>
+    <string name="fmt_numbered_step">%1$d. %2$s</string>
+    <string name="fmt_uninstall_app">Uninstall %s</string>
+    <string name="fmt_replace_app">Replace %s</string>
+
+    <!-- ============================================================ -->
+    <!-- PLURALS -->
+    <!-- ============================================================ -->
+    <plurals name="plural_days_remaining">
+        <item quantity="one">1 day remaining</item>
+        <item quantity="other">%d days remaining</item>
+    </plurals>
+
+    <plurals name="plural_issue_count">
+        <item quantity="one">1 Issue</item>
+        <item quantity="other">%d Issues</item>
+    </plurals>
+
+    <plurals name="plural_action_count">
+        <item quantity="one">1 Total</item>
+        <item quantity="other">%d Total</item>
+    </plurals>
+
+    <plurals name="plural_dismissed_count">
+        <item quantity="one">Dismissed (1)</item>
+        <item quantity="other">Dismissed (%d)</item>
+    </plurals>
+
+    <plurals name="plural_dismissed_hide_count">
+        <item quantity="one">Hide (1)</item>
+        <item quantity="other">Hide (%d)</item>
+    </plurals>
+
+    <plurals name="plural_quick_win_points">
+        <item quantity="one">+1pt</item>
+        <item quantity="other">+%dpts</item>
+    </plurals>
+
 </resources>

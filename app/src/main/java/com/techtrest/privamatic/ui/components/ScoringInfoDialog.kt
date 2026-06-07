@@ -15,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.scanner.PrivacyScoreCalculator
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +38,7 @@ fun ScoringInfoDialog(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                text = "Score Ratings",
+                text = stringResource(R.string.label_scoring_dialog_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -54,7 +56,7 @@ fun ScoringInfoDialog(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Why can't I reach 100?",
+                text = stringResource(R.string.label_scoring_dialog_cant_reach_100),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
@@ -63,7 +65,7 @@ fun ScoringInfoDialog(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Some deductions reflect deliberate trade-offs — keeping USB Debugging on for development, or allowing a trusted app notification access. These are your informed choices, not privacy gaps.\n\nA perfect 100 is theoretically possible on a fully de-Googled device with no privacy trade-offs.",
+                text = stringResource(R.string.copy_scoring_dialog_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

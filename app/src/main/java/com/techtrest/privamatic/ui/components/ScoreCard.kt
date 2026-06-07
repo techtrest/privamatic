@@ -22,7 +22,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.scanner.PrivacyScoreCalculator
 
@@ -62,7 +64,7 @@ fun ScoreCard(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Privacy Score",
+                text = stringResource(R.string.label_score_card_title),
                 style = MaterialTheme.typography.titleLarge
             )
 

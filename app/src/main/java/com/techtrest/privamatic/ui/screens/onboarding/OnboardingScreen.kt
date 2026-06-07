@@ -31,9 +31,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.BritishRacingGreen
 import com.techtrest.privamatic.Cream
+import com.techtrest.privamatic.R
 import kotlinx.coroutines.launch
 
 private const val PAGE_COUNT = 3
@@ -70,7 +72,7 @@ fun OnboardingScreen(
                 if (!isLastPage) {
                     TextButton(onClick = onComplete) {
                         Text(
-                            text = "Skip",
+                            text = stringResource(R.string.label_onboarding_skip),
                             color = Cream.copy(alpha = 0.65f),
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -115,7 +117,7 @@ fun OnboardingScreen(
                         )
                     ) {
                         Text(
-                            text = "Get Started",
+                            text = stringResource(R.string.label_onboarding_get_started),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -128,7 +130,7 @@ fun OnboardingScreen(
                         }
                     ) {
                         Text(
-                            text = "Next",
+                            text = stringResource(R.string.label_onboarding_next),
                             color = Cream,
                             style = MaterialTheme.typography.labelLarge
                         )

@@ -42,8 +42,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.maintenance.filterDismissed
 import com.techtrest.privamatic.data.maintenance.onlyDismissed
 import com.techtrest.privamatic.data.model.QuickWin
@@ -104,7 +107,7 @@ fun ActionsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Quick Wins",
+                    text = stringResource(R.string.label_actions_quick_wins),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -112,7 +115,19 @@ fun ActionsScreen(
                 if (dismissedQuickWins.isNotEmpty()) {
                     TextButton(onClick = { showDismissed = !showDismissed }) {
                         Text(
-                            text = if (showDismissed) "Hide (${dismissedQuickWins.size})" else "Dismissed (${dismissedQuickWins.size})",
+                            text = if (showDismissed) {
+                                pluralStringResource(
+                                    R.plurals.plural_dismissed_hide_count,
+                                    dismissedQuickWins.size,
+                                    dismissedQuickWins.size
+                                )
+                            } else {
+                                pluralStringResource(
+                                    R.plurals.plural_dismissed_count,
+                                    dismissedQuickWins.size,
+                                    dismissedQuickWins.size
+                                )
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -175,7 +190,7 @@ fun ActionsScreen(
         ) {
             // Section title with padding
             Text(
-                text = "Manual Checks",
+                text = stringResource(R.string.label_actions_manual_checks),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -246,7 +261,7 @@ private fun PrivacyTipCard(
                 )
                 TextButton(onClick = onNextTip) {
                     Text(
-                        text = "Next tip",
+                        text = stringResource(R.string.label_actions_next_tip),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -301,32 +316,11 @@ private fun DismissedQuickWinRow(
             )
             TextButton(onClick = onRestore) {
                 Text(
-                    text = "Restore",
+                    text = stringResource(R.string.label_actions_restore),
                     style = MaterialTheme.typography.labelMedium
                 )
             }
         }
-    }
-}
-
-/**
- * Short display name for a Quick Win tile (1-2 words).
- */
-private fun getQuickWinShortName(quickWin: QuickWin): String {
-    return when (quickWin.type) {
-        QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> "Revoke Listeners"
-        QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> "Revoke Access"
-        QuickWinType.REVOKE_DEVICE_ADMINS -> "Revoke Admins"
-        QuickWinType.DISABLE_WIFI_SCANNING -> "Disable Wi-Fi Scan"
-        QuickWinType.DISABLE_ADVERTISING_ID -> "Disable Ad ID"
-        QuickWinType.ENABLE_PRIVATE_DNS -> "Enable Private DNS"
-        QuickWinType.DISABLE_DEVELOPER_OPTIONS -> "Dev Options"
-        QuickWinType.REPLACE_BROWSER -> quickWin.currentAppName ?: "Browser"
-        QuickWinType.REPLACE_KEYBOARD -> quickWin.currentAppName ?: "Keyboard"
-        QuickWinType.REPLACE_DEFAULT_SMS -> quickWin.currentAppName ?: "SMS"
-        QuickWinType.REPLACE_DEFAULT_EMAIL -> quickWin.currentAppName ?: "Email"
-        QuickWinType.REPLACE_DEFAULT_LAUNCHER -> quickWin.currentAppName ?: "Launcher"
-        QuickWinType.UNINSTALL_APP -> quickWin.currentAppName ?: "App"
     }
 }
 
@@ -340,7 +334,21 @@ private fun QuickWinCompactTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shortName = getQuickWinShortName(quickWin)
+    val shortName = when (quickWin.type) {
+        QuickWinType.REVOKE_NOTIFICATION_LISTENERS -> stringResource(R.string.quick_win_revoke_notification_listeners_short)
+        QuickWinType.REVOKE_ACCESSIBILITY_SERVICES -> stringResource(R.string.quick_win_revoke_accessibility_services_short)
+        QuickWinType.REVOKE_DEVICE_ADMINS -> stringResource(R.string.quick_win_revoke_device_admins_short)
+        QuickWinType.DISABLE_WIFI_SCANNING -> stringResource(R.string.quick_win_disable_wifi_scanning_short)
+        QuickWinType.DISABLE_ADVERTISING_ID -> stringResource(R.string.quick_win_disable_advertising_id_short)
+        QuickWinType.ENABLE_PRIVATE_DNS -> stringResource(R.string.quick_win_enable_private_dns_short)
+        QuickWinType.DISABLE_DEVELOPER_OPTIONS -> stringResource(R.string.quick_win_disable_developer_options_short)
+        QuickWinType.REPLACE_BROWSER -> quickWin.currentAppName ?: stringResource(R.string.quick_win_replace_browser_short)
+        QuickWinType.REPLACE_KEYBOARD -> quickWin.currentAppName ?: stringResource(R.string.quick_win_replace_keyboard_short)
+        QuickWinType.REPLACE_DEFAULT_SMS -> quickWin.currentAppName ?: stringResource(R.string.quick_win_replace_default_sms_short)
+        QuickWinType.REPLACE_DEFAULT_EMAIL -> quickWin.currentAppName ?: stringResource(R.string.quick_win_replace_default_email_short)
+        QuickWinType.REPLACE_DEFAULT_LAUNCHER -> quickWin.currentAppName ?: stringResource(R.string.quick_win_replace_default_launcher_short)
+        QuickWinType.UNINSTALL_APP -> quickWin.currentAppName ?: stringResource(R.string.quick_win_uninstall_app_short)
+    }
 
     Card(
         onClick = onClick,
@@ -373,7 +381,7 @@ private fun QuickWinCompactTile(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = if (quickWin.impact == 1) "+1pt" else "+${quickWin.impact}pts",
+                text = pluralStringResource(R.plurals.plural_quick_win_points, quickWin.impact, quickWin.impact),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
@@ -413,12 +421,12 @@ private fun QuickWinAllDoneCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = "All Done!",
+                    text = stringResource(R.string.label_all_done),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Great work",
+                    text = stringResource(R.string.label_actions_great_work),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -507,4 +515,3 @@ private fun ManualCheckGarminRow(
         }
     }
 }
-

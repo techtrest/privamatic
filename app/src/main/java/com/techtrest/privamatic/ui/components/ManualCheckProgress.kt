@@ -23,6 +23,7 @@ fun getProgressColor(checkState: ManualCheckState): Color {
 /**
  * Human-readable status text describing how long until a manual check is due for review.
  */
+// TODO: pass Context for getString() in translations step
 fun getStatusText(checkState: ManualCheckState): String {
     return when {
         checkState.isOverdue -> "Review needed"

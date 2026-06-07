@@ -39,7 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyCheck
 
@@ -74,7 +76,7 @@ fun ScoringSystemScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Scoring System",
+                        text = stringResource(R.string.label_scoring_system_title),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -82,7 +84,7 @@ fun ScoringSystemScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.label_common_back)
                         )
                     }
                 },
@@ -131,7 +133,7 @@ private fun ScoringIntroCard(modifier: Modifier = Modifier) {
         )
     ) {
         Text(
-            text = "Privamatic evaluates your device across security settings and surveillance tracking. Each check contributes to your overall privacy score out of 100 — starting at 100, with points deducted for detected issues, down to a minimum of 0.",
+            text = stringResource(R.string.copy_scoring_system_intro),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(16.dp)
@@ -181,7 +183,7 @@ private fun CategorySection(
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Text(
-                        text = "up to $categoryMaxPoints pts",
+                        text = stringResource(R.string.fmt_scoring_max_pts, categoryMaxPoints),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -271,12 +273,12 @@ private fun InformationalSection(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Informational",
+                        text = stringResource(R.string.label_scoring_system_informational),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "No score impact — awareness only",
+                        text = stringResource(R.string.label_scoring_system_no_impact),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -286,7 +288,7 @@ private fun InformationalSection(
             HorizontalDivider()
 
             Text(
-                text = "These apps process conversations on cloud servers. They are detected and flagged for awareness but do not affect your privacy score.",
+                text = stringResource(R.string.copy_scoring_system_ai_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -307,7 +309,7 @@ private fun InformationalSection(
                         color = MaterialTheme.colorScheme.surface
                     ) {
                         Text(
-                            text = "Info",
+                            text = stringResource(R.string.label_scoring_system_info_badge),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)

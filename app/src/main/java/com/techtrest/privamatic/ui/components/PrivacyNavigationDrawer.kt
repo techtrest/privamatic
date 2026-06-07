@@ -27,11 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 
 @Composable
 fun PrivacyNavigationDrawer(
@@ -55,7 +57,7 @@ fun PrivacyNavigationDrawer(
                 // Main Navigation Items
                 NavigationDrawerItem(
                     label = {
-                        Text(text = "Scoring System")
+                        Text(text = stringResource(R.string.label_drawer_scoring_system))
                     },
                     icon = {
                         Icon(
@@ -78,7 +80,7 @@ fun PrivacyNavigationDrawer(
                 // Settings
                 NavigationDrawerItem(
                     label = {
-                        Text(text = "Settings")
+                        Text(text = stringResource(R.string.label_drawer_settings))
                     },
                     icon = {
                         Icon(
@@ -101,7 +103,7 @@ fun PrivacyNavigationDrawer(
                 // About
                 NavigationDrawerItem(
                     label = {
-                        Text(text = "About")
+                        Text(text = stringResource(R.string.label_drawer_about))
                     },
                     icon = {
                         Icon(
@@ -153,7 +155,7 @@ private fun NavigationDrawerHeader() {
                     color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
-                    text = "Device Privacy Auditor",
+                    text = stringResource(R.string.label_drawer_device_privacy_auditor),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                 )

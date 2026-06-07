@@ -1,5 +1,6 @@
 package com.techtrest.privamatic.ui.screens
 
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -48,9 +49,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.ActionType
 import com.techtrest.privamatic.data.model.ManualCheckState
 import com.techtrest.privamatic.data.model.ManualCheckType
@@ -90,7 +93,7 @@ fun ManualCheckDetailScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.label_common_back)
                         )
                     }
                 },
@@ -120,9 +123,9 @@ fun ManualCheckDetailScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 3. Why This Matters (merged with What to Look For)
-            ExpandableSectionCard(title = "Why This Matters") {
+            ExpandableSectionCard(title = stringResource(R.string.label_manual_check_why_this_matters)) {
                 Text(
-                    text = getWhyItMattersText(checkState.type),
+                    text = getWhyItMattersText(context, checkState.type),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -133,11 +136,11 @@ fun ManualCheckDetailScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 4. How to Check
-            ExpandableSectionCard(title = "How to Check") {
-                val steps = getSteps(checkState.type)
+            ExpandableSectionCard(title = stringResource(R.string.label_manual_check_how_to_check)) {
+                val steps = getSteps(context, checkState.type)
                 steps.forEachIndexed { index, step ->
                     Text(
-                        text = "${index + 1}. $step",
+                        text = stringResource(R.string.fmt_numbered_step, index + 1, step),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(
@@ -158,7 +161,7 @@ fun ManualCheckDetailScreen(
                     onClick = onMarkDone,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Mark as Done")
+                    Text(stringResource(R.string.label_manual_check_mark_done))
                 }
 
                 OutlinedButton(
@@ -176,7 +179,7 @@ fun ManualCheckDetailScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Open Settings")
+                    Text(stringResource(R.string.label_common_open_settings))
                 }
             }
         }
@@ -260,7 +263,7 @@ private fun ProgressCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Progress",
+                text = stringResource(R.string.label_manual_check_progress),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -290,7 +293,7 @@ private fun ProgressCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Review every ${checkState.type.periodDays} days",
+                    text = stringResource(R.string.fmt_review_period, checkState.type.periodDays),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -350,7 +353,8 @@ private fun ExpandableSectionCard(
                     } else {
                         Icons.Default.KeyboardArrowDown
                     },
-                    contentDescription = if (expanded) "Collapse $title" else "Expand $title",
+                    contentDescription = if (expanded) stringResource(R.string.fmt_cd_collapse, title)
+                                         else stringResource(R.string.fmt_cd_expand, title),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -381,11 +385,11 @@ private fun WhatToLookForContent(
         when (type) {
             ManualCheckType.LOCATION_ALWAYS_ON -> {
                 val items = listOf(
-                    "Maps and navigation apps: These may legitimately need \"Always\" for features like traffic alerts, but consider if you really use those features",
-                    "Weather apps: Usually don't need \"Always\" access \u2014 they work fine with \"While using the app\"",
-                    "Social media apps: Almost never need \"Always\" location access",
-                    "Shopping or delivery apps: Only need location when actively using them",
-                    "Unknown or rarely-used apps: If you don't recognize an app with always-on access, revoke it immediately"
+                    stringResource(R.string.copy_manual_location_look_maps),
+                    stringResource(R.string.copy_manual_location_look_weather),
+                    stringResource(R.string.copy_manual_location_look_social),
+                    stringResource(R.string.copy_manual_location_look_shopping),
+                    stringResource(R.string.copy_manual_location_look_unknown)
                 )
                 items.forEachIndexed { index, item ->
                     BulletPoint(
@@ -399,17 +403,17 @@ private fun WhatToLookForContent(
 
             ManualCheckType.CAMERA_MIC_ACCESS -> {
                 Text(
-                    text = "Apps that legitimately need camera/microphone:",
+                    text = stringResource(R.string.copy_manual_camera_legitimate_header),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 val legitimate = listOf(
-                    "Video calling apps (Zoom, WhatsApp, Signal)",
-                    "Camera apps and photo editors",
-                    "Voice recorder apps",
-                    "Social media apps (for posting photos/videos)"
+                    stringResource(R.string.copy_manual_camera_legitimate_1),
+                    stringResource(R.string.copy_manual_camera_legitimate_2),
+                    stringResource(R.string.copy_manual_camera_legitimate_3),
+                    stringResource(R.string.copy_manual_camera_legitimate_4)
                 )
                 legitimate.forEach { item ->
                     BulletPoint(
@@ -421,18 +425,18 @@ private fun WhatToLookForContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Concerning examples:",
+                    text = stringResource(R.string.copy_manual_camera_concerning_header),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 val concerning = listOf(
-                    "Flashlight apps with camera access",
-                    "Calculator apps with microphone access",
-                    "Games that don't use voice or AR features",
-                    "Shopping apps with no scanning features",
-                    "Any app you don't recognize or haven't used recently"
+                    stringResource(R.string.copy_manual_camera_concerning_1),
+                    stringResource(R.string.copy_manual_camera_concerning_2),
+                    stringResource(R.string.copy_manual_camera_concerning_3),
+                    stringResource(R.string.copy_manual_camera_concerning_4),
+                    stringResource(R.string.copy_manual_camera_concerning_5)
                 )
                 concerning.forEach { item ->
                     BulletPoint(
@@ -444,7 +448,7 @@ private fun WhatToLookForContent(
 
             ManualCheckType.ADVERTISING_ID_CHECK -> {
                 Text(
-                    text = "Verify that your Advertising ID has been deleted in Settings → Privacy → Ads.",
+                    text = stringResource(R.string.copy_manual_adid_verify),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -452,19 +456,19 @@ private fun WhatToLookForContent(
 
             ManualCheckType.UNUSED_APPS -> {
                 Text(
-                    text = "High-priority apps to remove:",
+                    text = stringResource(R.string.copy_manual_unused_priority_header),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 val highPriority = listOf(
-                    "Apps not opened in 3+ months",
-                    "Old games you no longer play",
-                    "Abandoned trial apps or free trials",
-                    "Apps for events or trips that already happened",
-                    "Duplicate apps (multiple weather apps, calculators, etc.)",
-                    "Apps from companies you no longer trust"
+                    stringResource(R.string.copy_manual_unused_priority_1),
+                    stringResource(R.string.copy_manual_unused_priority_2),
+                    stringResource(R.string.copy_manual_unused_priority_3),
+                    stringResource(R.string.copy_manual_unused_priority_4),
+                    stringResource(R.string.copy_manual_unused_priority_5),
+                    stringResource(R.string.copy_manual_unused_priority_6)
                 )
                 highPriority.forEach { item ->
                     BulletPoint(
@@ -476,17 +480,17 @@ private fun WhatToLookForContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Consider keeping:",
+                    text = stringResource(R.string.copy_manual_unused_keep_header),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 val keep = listOf(
-                    "System apps (be careful not to remove critical system components)",
-                    "Banking or financial apps (even if used infrequently)",
-                    "Travel apps if you travel regularly",
-                    "Emergency or safety apps"
+                    stringResource(R.string.copy_manual_unused_keep_1),
+                    stringResource(R.string.copy_manual_unused_keep_2),
+                    stringResource(R.string.copy_manual_unused_keep_3),
+                    stringResource(R.string.copy_manual_unused_keep_4)
                 )
                 keep.forEach { item ->
                     BulletPoint(
@@ -498,7 +502,7 @@ private fun WhatToLookForContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Tip: If you're unsure whether you'll need an app again, uninstall it anyway. Most apps keep your account data server-side, so you can reinstall and log back in if needed.",
+                    text = stringResource(R.string.copy_manual_unused_tip),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.tertiary
@@ -514,7 +518,7 @@ private fun BulletPoint(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = "\u2022 $text",
+        text = "• $text",
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
@@ -523,54 +527,47 @@ private fun BulletPoint(
 
 // --- Content providers ---
 
-private fun getWhyItMattersText(type: ManualCheckType): String {
+private fun getWhyItMattersText(context: Context, type: ManualCheckType): String {
     return when (type) {
-        ManualCheckType.LOCATION_ALWAYS_ON ->
-            "Apps with \"Always\" location access can track your movements 24/7, even when you're not using the app. Most apps only need location \"While using the app\" or not at all. Continuous tracking drains battery, creates detailed movement profiles, and poses significant privacy risks if the app is compromised or shares data with third parties."
-
-        ManualCheckType.CAMERA_MIC_ACCESS ->
-            "Camera and microphone permissions allow apps to potentially record you at any time. Many apps request these permissions unnecessarily or \"just in case\" you might use a feature. A compromised app with these permissions could spy on you. Regular audits help ensure only trusted apps can access these sensitive sensors."
-
-        ManualCheckType.UNUSED_APPS ->
-            "Unused apps are a hidden privacy and security risk. They still have all their permissions, continue receiving data access, may have unpatched vulnerabilities, and increase your attack surface. Apps you installed months or years ago might have been updated with new tracking features or sold to different companies. Regular cleanups reduce these risks."
-
-        ManualCheckType.ADVERTISING_ID_CHECK ->
-            "Your Advertising ID is a unique identifier that lets advertisers link your activity across different apps and services to build a profile of your habits and interests. Deleting it resets this profile and prevents further cross-app behavioral tracking until a new ID is created."
+        ManualCheckType.LOCATION_ALWAYS_ON -> context.getString(R.string.copy_manual_why_location)
+        ManualCheckType.CAMERA_MIC_ACCESS -> context.getString(R.string.copy_manual_why_camera)
+        ManualCheckType.UNUSED_APPS -> context.getString(R.string.copy_manual_why_unused)
+        ManualCheckType.ADVERTISING_ID_CHECK -> context.getString(R.string.copy_manual_why_adid)
     }
 }
 
-private fun getSteps(type: ManualCheckType): List<String> {
+private fun getSteps(context: Context, type: ManualCheckType): List<String> {
     return when (type) {
         ManualCheckType.LOCATION_ALWAYS_ON -> listOf(
-            "Open Settings on your device",
-            "Navigate to Privacy \u2192 Permission manager",
-            "Tap \"Location\"",
-            "Look for apps with \"Allowed all the time\" or \"Always\" access",
-            "For each app, tap it and change to \"Allow only while using the app\" or \"Don't allow\""
+            context.getString(R.string.copy_manual_step_open_settings_device),
+            context.getString(R.string.copy_manual_step_nav_privacy_permissions),
+            context.getString(R.string.copy_manual_location_step_3),
+            context.getString(R.string.copy_manual_location_step_4),
+            context.getString(R.string.copy_manual_location_step_5)
         )
 
         ManualCheckType.CAMERA_MIC_ACCESS -> listOf(
-            "Open Settings on your device",
-            "Navigate to Privacy \u2192 Permission manager",
-            "Tap \"Camera\" to see all apps with camera access",
-            "Review each app \u2014 ask yourself: \"Does this app really need camera access?\"",
-            "Revoke camera access for apps that don't need it",
-            "Go back and repeat for \"Microphone\" permissions"
+            context.getString(R.string.copy_manual_step_open_settings_device),
+            context.getString(R.string.copy_manual_step_nav_privacy_permissions),
+            context.getString(R.string.copy_manual_camera_step_3),
+            context.getString(R.string.copy_manual_camera_step_4),
+            context.getString(R.string.copy_manual_camera_step_5),
+            context.getString(R.string.copy_manual_camera_step_6)
         )
 
         ManualCheckType.UNUSED_APPS -> listOf(
-            "Open Settings on your device",
-            "Navigate to Apps or Application Manager",
-            "Look for a sort option and select \"Last used\" or \"Unused apps\"",
-            "Scroll through the list and identify apps you haven't opened in months",
-            "For each unused app, ask: \"Will I actually use this again?\"",
-            "Uninstall apps you don't need \u2014 you can always reinstall later if needed"
+            context.getString(R.string.copy_manual_step_open_settings_device),
+            context.getString(R.string.copy_manual_unused_step_2),
+            context.getString(R.string.copy_manual_unused_step_3),
+            context.getString(R.string.copy_manual_unused_step_4),
+            context.getString(R.string.copy_manual_unused_step_5),
+            context.getString(R.string.copy_manual_unused_step_6)
         )
 
         ManualCheckType.ADVERTISING_ID_CHECK -> listOf(
-            "Open Settings on your device",
-            "Navigate to Privacy \u2192 Ads",
-            "Tap \"Delete Advertising ID\" and confirm"
+            context.getString(R.string.copy_manual_step_open_settings_device),
+            context.getString(R.string.copy_manual_adid_step_2),
+            context.getString(R.string.copy_manual_adid_step_3)
         )
     }
 }
@@ -583,4 +580,3 @@ private fun getSettingsActionType(type: ManualCheckType): ActionType {
         ManualCheckType.ADVERTISING_ID_CHECK -> ActionType.PRIVACY_SETTINGS
     }
 }
-

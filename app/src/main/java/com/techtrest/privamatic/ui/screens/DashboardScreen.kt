@@ -25,9 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
 import com.techtrest.privamatic.data.maintenance.filterDismissed
 import com.techtrest.privamatic.data.model.PrivacyCategory
@@ -98,13 +101,14 @@ fun DashboardScreen(
         ) {
             // Tracking Issues (renamed from "Surveillance") - FIRST
             val trackingIssuesCount = privacyScore.getTrackingIssuesCount()
-            val trackingSubtitle = getIssueCountSubtitle(
-                count = trackingIssuesCount,
-                zeroText = "Protected"
-            )
+            val trackingSubtitle = if (trackingIssuesCount == 0) {
+                stringResource(R.string.label_dashboard_tracking_zero)
+            } else {
+                pluralStringResource(R.plurals.plural_issue_count, trackingIssuesCount, trackingIssuesCount)
+            }
 
             SummaryCard(
-                title = "Tracking",
+                title = stringResource(R.string.label_dashboard_tracking),
                 subtitle = trackingSubtitle,
                 icon = Icons.Default.RemoveRedEye,
                 onClick = {
@@ -115,13 +119,14 @@ fun DashboardScreen(
 
             // Security Issues (System Security category only) - SECOND
             val securityIssuesCount = privacyScore.getSecurityIssuesCount()
-            val securitySubtitle = getIssueCountSubtitle(
-                count = securityIssuesCount,
-                zeroText = "No Issues"
-            )
+            val securitySubtitle = if (securityIssuesCount == 0) {
+                stringResource(R.string.label_dashboard_security_zero)
+            } else {
+                pluralStringResource(R.plurals.plural_issue_count, securityIssuesCount, securityIssuesCount)
+            }
 
             SummaryCard(
-                title = "Security",
+                title = stringResource(R.string.label_dashboard_security),
                 subtitle = securitySubtitle,
                 icon = Icons.Default.Security,
                 onClick = {
@@ -131,15 +136,14 @@ fun DashboardScreen(
             )
 
             // Actions (Quick Wins + overdue Manual Checks) - THIRD
-            val actionsSubtitle = getIssueCountSubtitle(
-                count = totalActions,
-                zeroText = "All Done!",
-                singleText = "1 Total",
-                pluralSuffix = "Total"
-            )
+            val actionsSubtitle = if (totalActions == 0) {
+                stringResource(R.string.label_all_done)
+            } else {
+                pluralStringResource(R.plurals.plural_action_count, totalActions, totalActions)
+            }
 
             SummaryCard(
-                title = "Actions",
+                title = stringResource(R.string.label_dashboard_actions),
                 subtitle = actionsSubtitle,
                 icon = Icons.Default.TipsAndUpdates,
                 onClick = {
@@ -153,24 +157,4 @@ fun DashboardScreen(
         DeviceInfoCard(scoreHistory = scoreHistory)
         }
     }
-}
-
-/**
- * Generates a subtitle string based on count with customizable text.
- *
- * @param count The count to display
- * @param zeroText Text to show when count is 0 (default: "No Issues")
- * @param singleText Text to show when count is 1 (default: "1 Issue")
- * @param pluralSuffix Suffix for plural counts (default: "Issues")
- * @return Formatted subtitle string
- */
-private fun getIssueCountSubtitle(
-    count: Int,
-    zeroText: String = "No Issues",
-    singleText: String = "1 Issue",
-    pluralSuffix: String = "Issues"
-): String = when (count) {
-    0 -> zeroText
-    1 -> singleText
-    else -> "$count $pluralSuffix"
 }

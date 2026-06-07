@@ -28,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.ui.utils.IntentHelper
@@ -60,9 +62,9 @@ fun IssueItem(
         else -> MaterialTheme.colorScheme.tertiary
     }
     val statusIconDesc = when {
-        isInformational -> "Informational"
-        effectivelySecure -> "Secure"
-        else -> "Issue detected"
+        isInformational -> stringResource(R.string.label_issue_informational)
+        effectivelySecure -> stringResource(R.string.label_issue_secure)
+        else -> stringResource(R.string.label_issue_detected)
     }
 
     Column(
@@ -152,14 +154,14 @@ fun IssueItem(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = issue.check.actionLabel ?: "Fix",
+                                        text = issue.check.actionLabel ?: stringResource(R.string.label_issue_fix),
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }
                             }
                         } else if (!effectivelySecure) {
                             Text(
-                                text = "Recommendation:",
+                                text = stringResource(R.string.label_issue_recommendation),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -190,7 +192,7 @@ fun IssueItem(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = issue.check.actionLabel ?: "Fix",
+                                        text = issue.check.actionLabel ?: stringResource(R.string.label_issue_fix),
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }

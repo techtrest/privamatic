@@ -32,7 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.isFullyTrusted
@@ -77,7 +79,7 @@ fun CategoryGroup(
                     .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
                     .background(statusColor)
             )
-            
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,7 +108,7 @@ fun CategoryGroup(
                     )
 
                     Text(
-                        text = "($issuesCount/$totalCount)",
+                        text = stringResource(R.string.fmt_category_count, issuesCount, totalCount),
                         style = MaterialTheme.typography.labelMedium,
                         color = if (issuesCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
@@ -115,7 +117,8 @@ fun CategoryGroup(
 
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                        contentDescription = if (isExpanded) stringResource(R.string.label_category_collapse)
+                                             else stringResource(R.string.label_category_expand),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

@@ -46,9 +46,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.Cream
+import com.techtrest.privamatic.R
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -123,7 +125,7 @@ fun WelcomeSlide(modifier: Modifier = Modifier) {
                     color = Cream
                 )
                 Text(
-                    text = "/ 100",
+                    text = stringResource(R.string.label_onboarding_score_denom),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Cream.copy(alpha = 0.65f)
                 )
@@ -133,7 +135,7 @@ fun WelcomeSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "Your privacy, scored.",
+            text = stringResource(R.string.copy_onboarding_welcome_headline),
             style = MaterialTheme.typography.headlineMedium,
             color = Cream,
             textAlign = TextAlign.Center
@@ -142,7 +144,7 @@ fun WelcomeSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Understand exactly how private your Android is — and get a clear path to making it better.",
+            text = stringResource(R.string.copy_onboarding_welcome_body),
             style = MaterialTheme.typography.bodyLarge,
             color = Cream.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
@@ -223,7 +225,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "How it works",
+            text = stringResource(R.string.copy_onboarding_how_it_works_headline),
             style = MaterialTheme.typography.headlineMedium,
             color = Cream,
             textAlign = TextAlign.Center
@@ -240,7 +242,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
         ) {
             StepItem(
                 icon = Icons.Default.Search,
-                label = "Scan",
+                label = stringResource(R.string.label_onboarding_step_scan),
                 modifier = Modifier.graphicsLayer(alpha = alpha1, translationY = offset1)
             )
 
@@ -255,7 +257,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
 
             StepItem(
                 icon = Icons.Default.Star,
-                label = "Score",
+                label = stringResource(R.string.label_onboarding_step_score),
                 modifier = Modifier.graphicsLayer(alpha = alpha2, translationY = offset2)
             )
 
@@ -270,7 +272,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
 
             StepItem(
                 icon = Icons.Default.CheckCircle,
-                label = "Act",
+                label = stringResource(R.string.label_onboarding_step_act),
                 modifier = Modifier.graphicsLayer(alpha = alpha3, translationY = offset3)
             )
         }
@@ -278,7 +280,7 @@ fun HowItWorksSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "45+ checks across security, tracking, and your apps. Weighted by real-world impact.",
+            text = stringResource(R.string.copy_onboarding_how_it_works_body),
             style = MaterialTheme.typography.bodyLarge,
             color = Cream.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
@@ -318,7 +320,7 @@ fun PragmaticSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "The pragmatic approach.",
+            text = stringResource(R.string.copy_onboarding_pragmatic_headline),
             style = MaterialTheme.typography.headlineMedium,
             color = Cream,
             textAlign = TextAlign.Center
@@ -327,7 +329,7 @@ fun PragmaticSlide(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Privacy that fits real life. No paranoia, no impossible standards — just meaningful improvements.",
+            text = stringResource(R.string.copy_onboarding_pragmatic_body),
             style = MaterialTheme.typography.bodyLarge,
             color = Cream.copy(alpha = 0.8f),
             textAlign = TextAlign.Center

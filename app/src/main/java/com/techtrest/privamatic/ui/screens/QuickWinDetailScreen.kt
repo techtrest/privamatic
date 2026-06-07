@@ -38,7 +38,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
@@ -73,14 +75,14 @@ fun QuickWinDetailScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.label_common_back)
                         )
                     }
                 },
                 actions = {
                     TextButton(onClick = onDismiss) {
                         Text(
-                            text = "Ignore",
+                            text = stringResource(R.string.label_quick_win_ignore),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                         )
@@ -131,7 +133,7 @@ fun QuickWinDetailScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "WHAT THIS DOES",
+                        text = stringResource(R.string.label_quick_win_what_this_does),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -152,7 +154,7 @@ fun QuickWinDetailScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "INSTRUCTIONS",
+                        text = stringResource(R.string.label_quick_win_instructions),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +188,7 @@ fun QuickWinDetailScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(quickWin.type.actionLabel ?: "Open Settings")
+                    Text(quickWin.type.actionLabel ?: stringResource(R.string.label_common_open_settings))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -23,10 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import com.techtrest.privamatic.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +68,7 @@ fun PrivacyTopAppBar(
             IconButton(onClick = onMenuClick) {
                 Icon(
                     imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu"
+                    contentDescription = stringResource(R.string.label_topbar_menu)
                 )
             }
         },
@@ -78,7 +80,7 @@ fun PrivacyTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
-                    contentDescription = "Rescan device",
+                    contentDescription = stringResource(R.string.label_topbar_rescan),
                     modifier = if (isScanning) {
                         Modifier.rotate(rotation)
                     } else {
@@ -90,7 +92,7 @@ fun PrivacyTopAppBar(
             IconButton(onClick = onInfoClick) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = "Scoring Information"
+                    contentDescription = stringResource(R.string.label_topbar_scoring_info)
                 )
             }
         },

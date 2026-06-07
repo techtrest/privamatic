@@ -17,7 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.ScoreHistory
 import com.techtrest.privamatic.data.util.DeviceNameUtil
 import kotlin.math.abs
@@ -46,25 +48,29 @@ fun DeviceInfoCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Device Information",
+                text = stringResource(R.string.label_device_info_title),
                 style = MaterialTheme.typography.titleMedium
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            DeviceInfoRow("Model", DeviceNameUtil.getMarketingName())
-            DeviceInfoRow("Operating System", detectOperatingSystem(context))
-            DeviceInfoRow("Android Version", Build.VERSION.RELEASE)
+            DeviceInfoRow(stringResource(R.string.label_device_info_model), DeviceNameUtil.getMarketingName())
+            DeviceInfoRow(stringResource(R.string.label_device_info_os), detectOperatingSystem(context))
+            DeviceInfoRow(stringResource(R.string.label_device_info_android_version), Build.VERSION.RELEASE)
 
             if (showPrivacyChange && scoreDelta != null) {
                 val isIncrease = scoreDelta > 0
-                val changeText = "${if (isIncrease) "↑" else "↓"}${abs(scoreDelta)} pts"
+                val changeText = if (isIncrease) {
+                    stringResource(R.string.fmt_score_delta_up, abs(scoreDelta))
+                } else {
+                    stringResource(R.string.fmt_score_delta_down, abs(scoreDelta))
+                }
                 val changeColor = if (isIncrease) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.error
                 }
                 DeviceInfoRow(
-                    label = "Privacy Change",
+                    label = stringResource(R.string.label_device_info_privacy_change),
                     value = changeText,
                     valueColor = changeColor
                 )

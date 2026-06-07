@@ -39,8 +39,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyScore
@@ -113,7 +115,7 @@ private fun ChecksContent(
     ) {
         item {
             Text(
-                text = "SECURITY",
+                text = stringResource(R.string.details_section_security),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp)
@@ -130,7 +132,7 @@ private fun ChecksContent(
 
         item {
             Text(
-                text = "SURVEILLANCE",
+                text = stringResource(R.string.details_section_surveillance),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp)
@@ -213,7 +215,7 @@ private fun AppsBannerCard(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Trusting an app removes its privacy score penalty. Apps from major data brokers cannot be trusted.",
+                text = stringResource(R.string.copy_details_apps_banner),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
@@ -221,7 +223,7 @@ private fun AppsBannerCard(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Dismiss",
+                    contentDescription = stringResource(R.string.label_common_dismiss),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(18.dp)
                 )
@@ -239,7 +241,7 @@ private fun EmptyAppsState(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "No flagged apps found",
+            text = stringResource(R.string.label_details_no_flagged_apps),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -277,7 +279,7 @@ private fun AppTrustRow(
             if (iconBitmap != null) {
                 Image(
                     painter = BitmapPainter(iconBitmap.asImageBitmap()),
-                    contentDescription = "${app.appName} icon",
+                    contentDescription = stringResource(R.string.fmt_app_icon_cd, app.appName),
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(8.dp))
@@ -285,7 +287,7 @@ private fun AppTrustRow(
             } else {
                 Icon(
                     imageVector = Icons.Default.Android,
-                    contentDescription = "${app.appName} icon",
+                    contentDescription = stringResource(R.string.fmt_app_icon_cd, app.appName),
                     modifier = Modifier.size(40.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -309,7 +311,8 @@ private fun AppTrustRow(
 
             Icon(
                 imageVector = if (isTrusted) Icons.Default.CheckCircle else Icons.Default.Warning,
-                contentDescription = if (isTrusted) "Trusted" else "Flagged",
+                contentDescription = if (isTrusted) stringResource(R.string.label_details_app_trusted)
+                                     else stringResource(R.string.label_details_app_flagged),
                 tint = if (isTrusted) MaterialTheme.colorScheme.primary
                        else MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.size(20.dp)
@@ -325,4 +328,3 @@ private fun AppTrustRow(
         }
     }
 }
-
