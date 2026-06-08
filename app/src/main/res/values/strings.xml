@@ -116,7 +116,7 @@
     <string name="status_ad_id_not_applicable">Not applicable — no Google Play Services</string>
 
     <string name="privacy_check_wifi_scanning_name">Background Wi-Fi Scanning</string>
-    <string name="privacy_check_wifi_scanning_description">Background Wi-Fi/Bluetooth scanning can track your location</string>
+    <string name="privacy_check_wifi_scanning_description">Your phone silently broadcasts its identity to nearby networks even when Wi-Fi is off. Shops, malls, and airports already use this to track how long you stay and how often you visit.</string>
     <string name="privacy_check_wifi_scanning_recommendation">Disable Wi-Fi and Bluetooth scanning in Settings > Location > Wi-Fi and Bluetooth scanning to prevent location tracking.</string>
 
     <!-- ============================================================ -->
@@ -462,11 +462,11 @@
     <!-- QUICK WIN TYPES — DISABLE WIFI SCANNING -->
     <!-- ============================================================ -->
     <string name="quick_win_disable_wifi_scanning_title">Disable Background Wi-Fi Scanning</string>
-    <string name="quick_win_disable_wifi_scanning_description">Prevents location tracking via Wi-Fi networks</string>
+    <string name="quick_win_disable_wifi_scanning_description">Your phone is visible to nearby tracking systems even with Wi-Fi off</string>
     <string name="quick_win_disable_wifi_scanning_time">30 seconds</string>
     <string name="quick_win_disable_wifi_scanning_action">Open Location Settings</string>
     <string name="quick_win_disable_wifi_scanning_short">Disable Wi-Fi Scan</string>
-    <string name="quick_win_disable_wifi_scanning_instructions">Background Wi-Fi scanning allows apps to track your location even when Wi-Fi is off.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_disable_wifi_scanning_instructions">Even with Wi-Fi turned off, your phone regularly broadcasts a signal that nearby receivers can pick up. Shopping malls, airports, and retailers already use this commercially to track visitor movements. Disabling it makes your phone invisible to these systems with no noticeable impact on daily use.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'\n\nAfter completing this, rescan to see your improved score!</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — DISABLE ADVERTISING ID -->
@@ -586,7 +586,7 @@
     <string name="tip_no_biometric_content">Adding biometric authentication makes it faster to unlock your device, which means you\'re more likely to keep a strong PIN. Convenience and security working together.</string>
 
     <string name="tip_wifi_scanning_title">Background WiFi Scanning</string>
-    <string name="tip_wifi_scanning_content">Background WiFi scanning lets Google collect nearby network names even when WiFi is off. Disabling it has no noticeable impact on daily use.</string>
+    <string name="tip_wifi_scanning_content">Even with Wi-Fi off, your phone broadcasts signals that shops and malls use to track how long you visit and how often you return. Disabling background scanning makes you invisible to these systems with no impact on daily use.</string>
 
     <string name="tip_find_my_device_title">Find My Device Trade-off</string>
     <string name="tip_find_my_device_content">Find My Device is useful if your phone is lost, but it requires Google to know your device\'s location. If you\'re on GrapheneOS without Play Services, this isn\'t functional anyway.</string>
