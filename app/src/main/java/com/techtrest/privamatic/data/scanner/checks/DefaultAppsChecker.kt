@@ -398,7 +398,6 @@ class DefaultAppsChecker(private val context: Context) {
             val friendly = when {
                 packageName.contains("lawnchair", ignoreCase = true) -> "Lawnchair"
                 packageName.contains("kiss", ignoreCase = true) && packageName.contains("launcher") -> "KISS Launcher"
-                packageName.contains("niagara", ignoreCase = true) -> "Niagara Launcher"
                 packageName.contains("neolauncher", ignoreCase = true) -> "Neo Launcher"
                 packageName.contains("de.mm20.launcher2", ignoreCase = true) -> "Kvaesitso"
                 packageName.contains("olauncher", ignoreCase = true) -> "Olauncher"
