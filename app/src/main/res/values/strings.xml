@@ -113,6 +113,7 @@
     <string name="privacy_check_advertising_id_name">Advertising ID</string>
     <string name="privacy_check_advertising_id_description">Advertising ID enables cross-app tracking by advertisers</string>
     <string name="privacy_check_advertising_id_recommendation">Disable or reset your Advertising ID in Settings > Privacy > Ads.</string>
+    <string name="status_ad_id_not_applicable">Not applicable — no Google Play Services</string>
 
     <string name="privacy_check_wifi_scanning_name">Background Wi-Fi Scanning</string>
     <string name="privacy_check_wifi_scanning_description">Background Wi-Fi/Bluetooth scanning can track your location</string>

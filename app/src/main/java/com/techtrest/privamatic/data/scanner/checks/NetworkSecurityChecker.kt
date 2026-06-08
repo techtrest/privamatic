@@ -1,10 +1,12 @@
 package com.techtrest.privamatic.data.scanner.checks
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyIssue
 
@@ -140,8 +142,23 @@ class NetworkSecurityChecker(private val context: Context) {
     /**
      * Check if advertising ID has been manually verified as deleted.
      * Reads a persisted boolean from SharedPreferences written by AdIdVerificationScreen.
+     * Auto-passes on devices without Google Play Services — the setting does not exist.
      */
     fun checkAdvertisingId(): PrivacyIssue {
+        val isGmsInstalled = try {
+            context.packageManager.getApplicationInfo(GMS_PACKAGE, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+        if (!isGmsInstalled) {
+            return PrivacyIssue(
+                check = PrivacyCheck.ADVERTISING_ID,
+                isSecure = true,
+                currentStatus = context.getString(R.string.status_ad_id_not_applicable)
+            )
+        }
+
         val prefs = context.getSharedPreferences(AD_ID_PREFS_NAME, Context.MODE_PRIVATE)
         val isVerified = prefs.getBoolean(KEY_AD_ID_VERIFIED, false)
         return if (isVerified) {
@@ -163,5 +180,6 @@ class NetworkSecurityChecker(private val context: Context) {
         internal const val AD_ID_PREFS_NAME = "ad_id_prefs"
         internal const val KEY_AD_ID_VERIFIED = "ad_id_verified"
         internal const val KEY_AD_ID_TIMESTAMP = "ad_id_verified_timestamp"
+        private const val GMS_PACKAGE = "com.google.android.gms"
     }
 }

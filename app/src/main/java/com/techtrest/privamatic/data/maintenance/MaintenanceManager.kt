@@ -1,6 +1,7 @@
 package com.techtrest.privamatic.data.maintenance
 
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -19,6 +20,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
+
+private const val GMS_PACKAGE = "com.google.android.gms"
 
 // Top-level DataStore singleton
 private val Context.maintenanceDataStore: DataStore<Preferences> by preferencesDataStore(
@@ -64,7 +67,9 @@ class MaintenanceManager(private val context: Context) {
      * Get current states for all manual checks.
      * Calculates days remaining, fill percentage, and overdue status.
      *
-     * ADVERTISING_ID_CHECK is hidden once completed until it becomes overdue again,
+     * ADVERTISING_ID_CHECK is hidden entirely when Google Play Services is not installed
+     * (GrapheneOS, LineageOS without GMS, etc.) — the setting does not exist on those devices.
+     * When GMS is present it is hidden once completed until it becomes overdue again,
      * since it only needs to be verified once every 180 days. All other check types
      * are always included regardless of completion state.
      *
@@ -72,6 +77,13 @@ class MaintenanceManager(private val context: Context) {
      * immediately updates the list without waiting for DataStore to re-emit.
      */
     fun getCheckStates(): Flow<List<ManualCheckState>> {
+        val isGmsInstalled = try {
+            context.packageManager.getApplicationInfo(GMS_PACKAGE, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+
         return combine(
             context.maintenanceDataStore.data,
             OnboardingPreferences(context).forceShowAdIdCheckFlow()
@@ -80,9 +92,7 @@ class MaintenanceManager(private val context: Context) {
                 .map { type -> calculateCheckState(type, preferences) }
                 .filter { state ->
                     state.type != ManualCheckType.ADVERTISING_ID_CHECK ||
-                        state.lastCompletedTimestamp == 0L ||
-                        state.isOverdue ||
-                        forceShow
+                        (isGmsInstalled && (state.lastCompletedTimestamp == 0L || state.isOverdue || forceShow))
                 }
         }
     }
