@@ -23,6 +23,13 @@ UI: ui/screens, ui/components (stateless)
 Logic: data/scanner (PrivacyScoreCalculator, QuickWinsDetector as objects)
 Models: data/model (immutable)
 
+## Strings & Localisation - STRICT
+ALL user-facing strings in strings.xml — NO hardcoded English in Kotlin or XML layouts
+Composables: `stringResource()` / `pluralStringResource()` — never raw literals
+Non-Composable: pass `Context`, use `context.getString()` / `getQuantityString()`
+Naming: `label_<screen>_<element>` | `copy_<screen>_<element>` | `fmt_<element>` | `plural_<element>`
+Exceptions: package names, log tags, DataStore keys, OS brand names, strings.xml placeholders
+
 ## Anti-Patterns - REJECT
 ❌ Arbitrary fontSize/spacing/colors
 ❌ var in data classes

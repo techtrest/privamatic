@@ -194,6 +194,47 @@ data class PrivacyScore(
 )
 ```
 
+## Strings & Localisation
+
+### Rule: No Hardcoded Strings
+ALL user-facing strings must be defined in `app/src/main/res/values/strings.xml` first.
+Never hardcode English text directly in Kotlin or XML layout files.
+
+**DON'T:**
+```kotlin
+Text("Privacy Score")
+contentDescription = "Secure"
+val status = "Review needed"
+```
+
+**DO:**
+```kotlin
+Text(stringResource(R.string.label_score_card_title))
+contentDescription = stringResource(R.string.label_issue_status_secure)
+val status = context.getString(R.string.label_manual_check_review_needed)
+```
+
+### Naming Convention
+- UI labels: `label_<screen>_<element>`
+- UI copy (longer text): `copy_<screen>_<element>`
+- Enum display names: `<enum>_<entry>_name`
+- Enum descriptions/recommendations: `<enum>_<entry>_description` / `_recommendation`
+- Plurals: `plural_<element>` using `<plurals>` tag
+- Format strings: `fmt_<element>` using `%d`, `%s`, `%1$d/%2$d`
+
+### In Composables
+Use `stringResource()` and `pluralStringResource()` — never raw string literals.
+
+### In non-Composable code
+Pass `Context` and use `context.getString()` or `context.resources.getQuantityString()`.
+
+### Exceptions (do NOT extract)
+- Package names (e.g. `com.google.android.gms`)
+- Log tags
+- Settings keys / DataStore keys
+- OS brand name detection strings (GrapheneOS, CalyxOS, etc.) — proper nouns
+- Format placeholders inside strings.xml itself
+
 ## Architecture Patterns
 
 ### Separation of Concerns
@@ -364,7 +405,7 @@ Before committing code, verify:
 
 ---
 
-*Last Updated: 2026-01-31*
+*Last Updated: 2026-06-08*
 *When updating conventions, increment date and summarize changes*
 ```
 
