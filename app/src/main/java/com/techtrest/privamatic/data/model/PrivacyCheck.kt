@@ -1,441 +1,444 @@
 package com.techtrest.privamatic.data.model
 
+import androidx.annotation.StringRes
+import com.techtrest.privamatic.R
+
 enum class PrivacyCheck(
-    val displayName: String,
+    @StringRes val displayName: Int,
     val pointDeduction: Int,
-    val description: String,
-    val recommendation: String,
+    @StringRes val description: Int,
+    @StringRes val recommendation: Int,
     val actionType: ActionType? = null,
-    val actionLabel: String? = null,
+    @StringRes val actionLabel: Int? = null,
     val packageName: String? = null,
     val isInformational: Boolean = false
 ) {
     // ===== SYSTEM SECURITY =====
     SCREEN_LOCK(
-        displayName = "Screen Lock",
+        displayName = R.string.privacy_check_screen_lock_name,
         pointDeduction = 11,
-        description = "Device should have a screen lock enabled (PIN, pattern, password, or biometric)",
-        recommendation = "Enable a screen lock in Settings > Security > Screen lock to protect your device from unauthorized access."
+        description = R.string.privacy_check_screen_lock_description,
+        recommendation = R.string.privacy_check_screen_lock_recommendation
     ),
     DEVICE_ENCRYPTION(
-        displayName = "Device Encryption",
+        displayName = R.string.privacy_check_device_encryption_name,
         pointDeduction = 10,
-        description = "Device storage should be encrypted to protect your data if the device is lost or stolen",
-        recommendation = "Enable device encryption in Settings > Security > Encryption (typically enabled by default on modern devices)."
+        description = R.string.privacy_check_device_encryption_description,
+        recommendation = R.string.privacy_check_device_encryption_recommendation
     ),
     BIOMETRIC_AUTH(
-        displayName = "Biometric Authentication",
+        displayName = R.string.privacy_check_biometric_auth_name,
         pointDeduction = 2,
-        description = "Biometric authentication should be enabled for added security",
-        recommendation = "Set up fingerprint or face unlock in Settings > Security > Biometrics for convenient and secure authentication."
+        description = R.string.privacy_check_biometric_auth_description,
+        recommendation = R.string.privacy_check_biometric_auth_recommendation
     ),
     USB_DEBUGGING(
-        displayName = "USB Debugging",
+        displayName = R.string.privacy_check_usb_debugging_name,
         pointDeduction = 4,
-        description = "USB debugging should be disabled for security",
-        recommendation = "Disable USB debugging in Settings > Developer options to prevent unauthorized access via USB connection."
+        description = R.string.privacy_check_usb_debugging_description,
+        recommendation = R.string.privacy_check_usb_debugging_recommendation
     ),
     DEVELOPER_OPTIONS(
-        displayName = "Developer Options",
+        displayName = R.string.privacy_check_developer_options_name,
         pointDeduction = 1,
-        description = "Developer options should be disabled on personal devices",
-        recommendation = "Disable developer options in Settings > System > Developer options to reduce security risks."
+        description = R.string.privacy_check_developer_options_description,
+        recommendation = R.string.privacy_check_developer_options_recommendation
     ),
     NOTIFICATION_LISTENER(
-        displayName = "Notification Listener Access",
+        displayName = R.string.privacy_check_notification_listener_name,
         pointDeduction = 5,
-        description = "Apps with notification listener permission can read ALL notifications including 2FA codes and messages",
-        recommendation = "Review and revoke notification access for non-essential apps in Settings > Apps > Special app access > Notification access.",
+        description = R.string.privacy_check_notification_listener_description,
+        recommendation = R.string.privacy_check_notification_listener_recommendation,
         actionType = ActionType.NOTIFICATION_LISTENER,
-        actionLabel = "Manage Permissions"
+        actionLabel = R.string.privacy_check_notification_listener_action
     ),
     ACCESSIBILITY_SERVICE(
-        displayName = "Accessibility Service Access",
+        displayName = R.string.privacy_check_accessibility_service_name,
         pointDeduction = 5,
-        description = "Apps with accessibility services can control your entire device and potentially log your keystrokes",
-        recommendation = "Disable accessibility services for apps that don't legitimately need them in Settings > Accessibility.",
+        description = R.string.privacy_check_accessibility_service_description,
+        recommendation = R.string.privacy_check_accessibility_service_recommendation,
         actionType = ActionType.ACCESSIBILITY_SETTINGS,
-        actionLabel = "Manage Services"
+        actionLabel = R.string.privacy_check_accessibility_service_action
     ),
     DEVICE_ADMIN(
-        displayName = "Device Administrator Apps",
+        displayName = R.string.privacy_check_device_admin_name,
         pointDeduction = 3,
-        description = "Apps with device admin privileges have elevated control over your device",
-        recommendation = "Review and remove device admin access for non-essential apps in Settings > Security > Device admin apps.",
+        description = R.string.privacy_check_device_admin_description,
+        recommendation = R.string.privacy_check_device_admin_recommendation,
         actionType = ActionType.DEVICE_ADMIN_SETTINGS,
-        actionLabel = "Manage Admins"
+        actionLabel = R.string.privacy_check_device_admin_action
     ),
     BACKGROUND_LOCATION_APPS(
-        displayName = "Background Location Access",
+        displayName = R.string.privacy_check_background_location_apps_name,
         pointDeduction = 4,
-        description = "Apps with background location permission can track your precise location at all times, even when not in use",
-        recommendation = "Review and restrict background location permissions in Settings > Location > App permissions. Only grant background location to apps that genuinely need it.",
+        description = R.string.privacy_check_background_location_apps_description,
+        recommendation = R.string.privacy_check_background_location_apps_recommendation,
         actionType = ActionType.LOCATION_SETTINGS,
-        actionLabel = "Manage Permissions"
+        actionLabel = R.string.privacy_check_background_location_apps_action
     ),
 
     // ===== NETWORK & TRACKING PRIVACY =====
     VPN_CONNECTION(
-        displayName = "VPN Protection",
+        displayName = R.string.privacy_check_vpn_connection_name,
         pointDeduction = 7,
-        description = "VPN should be active to protect network traffic",
-        recommendation = "Enable a VPN connection to encrypt your internet traffic and protect your privacy online."
+        description = R.string.privacy_check_vpn_connection_description,
+        recommendation = R.string.privacy_check_vpn_connection_recommendation
     ),
     PRIVATE_DNS(
-        displayName = "Private DNS",
+        displayName = R.string.privacy_check_private_dns_name,
         pointDeduction = 6,
-        description = "Private DNS encrypts your web lookups so your internet provider can't see which sites you visit",
-        recommendation = "Configure Private DNS in Settings > Network & internet > Private DNS. Recommended: dns.quad9.net (privacy-focused, blocks malware) or dns.adguard-dns.com (blocks ads and trackers)."
+        description = R.string.privacy_check_private_dns_description,
+        recommendation = R.string.privacy_check_private_dns_recommendation
     ),
     ADVERTISING_ID(
-        displayName = "Advertising ID",
+        displayName = R.string.privacy_check_advertising_id_name,
         pointDeduction = 5,
-        description = "Advertising ID enables cross-app tracking by advertisers",
-        recommendation = "Disable or reset your Advertising ID in Settings > Privacy > Ads."
+        description = R.string.privacy_check_advertising_id_description,
+        recommendation = R.string.privacy_check_advertising_id_recommendation
     ),
     WIFI_SCANNING(
-        displayName = "Background Wi-Fi Scanning",
+        displayName = R.string.privacy_check_wifi_scanning_name,
         pointDeduction = 1,
-        description = "Background Wi-Fi/Bluetooth scanning can track your location",
-        recommendation = "Disable Wi-Fi and Bluetooth scanning in Settings > Location > Wi-Fi and Bluetooth scanning to prevent location tracking."
+        description = R.string.privacy_check_wifi_scanning_description,
+        recommendation = R.string.privacy_check_wifi_scanning_recommendation
     ),
 
     // ===== GOOGLE SERVICES =====
     FIND_MY_DEVICE(
-        displayName = "Find My Device",
+        displayName = R.string.privacy_check_find_my_device_name,
         pointDeduction = 0,
-        description = "Google's Find My Device / Find Hub tracks device location — a security feature with a privacy cost. On Android 14+ the enabled state cannot be programmatically detected.",
-        recommendation = "Disable in Settings > Security > Find My Device (or Find Hub on Android 14+) if privacy is a priority over theft protection."
+        description = R.string.privacy_check_find_my_device_description,
+        recommendation = R.string.privacy_check_find_my_device_recommendation
     ),
     GOOGLE_PLAY_SERVICES(
-        displayName = "Google Play Services",
+        displayName = R.string.privacy_check_google_play_services_name,
         pointDeduction = 8,
-        description = "Google Play Services has deep access to your device and enables extensive tracking and data collection across all apps",
-        recommendation = "Consider using GrapheneOS to run Google Play Services with limited access, significantly reducing its reach on your device.",
+        description = R.string.privacy_check_google_play_services_description,
+        recommendation = R.string.privacy_check_google_play_services_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_play_services_action,
         packageName = "com.google.android.gms"
     ),
 
     // ===== DEFAULT APPS =====
     DEFAULT_BROWSER(
-        displayName = "Default Browser",
+        displayName = R.string.privacy_check_default_browser_name,
         pointDeduction = 3,
-        description = "Privacy-invasive browser detected as default",
-        recommendation = "Switch to a privacy-respecting browser like Brave, Firefox, or DuckDuckGo Browser. Available on Google Play Store.",
+        description = R.string.privacy_check_default_browser_description,
+        recommendation = R.string.privacy_check_default_browser_recommendation,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Change Default"
+        actionLabel = R.string.privacy_check_default_browser_action
     ),
     DEFAULT_KEYBOARD(
-        displayName = "Default Keyboard",
+        displayName = R.string.privacy_check_default_keyboard_name,
         pointDeduction = 3,
-        description = "Privacy-invasive keyboard detected as default",
-        recommendation = "Switch to FUTO Keyboard (Play Store) for best privacy + features with offline voice typing, or AnySoftKeyboard (F-Droid & Play Store) for a mature, highly customizable option.",
+        description = R.string.privacy_check_default_keyboard_description,
+        recommendation = R.string.privacy_check_default_keyboard_recommendation,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Change Default"
+        actionLabel = R.string.privacy_check_default_keyboard_action
     ),
     DEFAULT_SMS(
-        displayName = "Default SMS/Messaging",
+        displayName = R.string.privacy_check_default_sms_name,
         pointDeduction = 2,
-        description = "Privacy-invasive messaging app detected as default",
-        recommendation = "Switch to Fossify Messages - available on F-Droid and Play Store. Open source, privacy-focused, no ads.",
+        description = R.string.privacy_check_default_sms_description,
+        recommendation = R.string.privacy_check_default_sms_recommendation,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Change Default"
+        actionLabel = R.string.privacy_check_default_sms_action
     ),
     DEFAULT_EMAIL(
-        displayName = "Default Email",
+        displayName = R.string.privacy_check_default_email_name,
         pointDeduction = 2,
-        description = "Privacy-invasive email app detected as default",
-        recommendation = "Switch to a privacy-respecting email client like K-9 Mail, FairEmail, or ProtonMail. Available on Google Play Store.",
+        description = R.string.privacy_check_default_email_description,
+        recommendation = R.string.privacy_check_default_email_recommendation,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Change Default"
+        actionLabel = R.string.privacy_check_default_email_action
     ),
     DEFAULT_LAUNCHER(
-        displayName = "Default Launcher",
+        displayName = R.string.privacy_check_default_launcher_name,
         pointDeduction = 2,
-        description = "Privacy-invasive launcher detected as default",
-        recommendation = "Switch to a privacy-respecting launcher like Lawnchair, KISS Launcher, or Neo Launcher. Available on Google Play Store.",
+        description = R.string.privacy_check_default_launcher_description,
+        recommendation = R.string.privacy_check_default_launcher_recommendation,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Change Default"
+        actionLabel = R.string.privacy_check_default_launcher_action
     ),
 
     // ===== GOOGLE APPS (MAJOR) =====
     GOOGLE_CHROME(
-        displayName = "Chrome",
+        displayName = R.string.privacy_check_google_chrome_name,
         pointDeduction = 1,
-        description = "Google Chrome app is installed on your device",
-        recommendation = "Consider uninstalling Chrome and switching to Brave, Firefox, or DuckDuckGo Browser.",
+        description = R.string.privacy_check_google_chrome_description,
+        recommendation = R.string.privacy_check_google_chrome_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_chrome_action,
         packageName = PackageNames.CHROME
     ),
     GMAIL_APP(
-        displayName = "Gmail",
+        displayName = R.string.privacy_check_gmail_app_name,
         pointDeduction = 1,
-        description = "Gmail app is installed on your device",
-        recommendation = "Consider uninstalling Gmail and switching to K-9 Mail, FairEmail, or ProtonMail.",
+        description = R.string.privacy_check_gmail_app_description,
+        recommendation = R.string.privacy_check_gmail_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_gmail_app_action,
         packageName = PackageNames.GMAIL
     ),
     GOOGLE_MAPS(
-        displayName = "Google Maps",
+        displayName = R.string.privacy_check_google_maps_name,
         pointDeduction = 1,
-        description = "Google Maps app is installed on your device",
-        recommendation = "Consider uninstalling Google Maps and switching to OsmAnd or Organic Maps.",
+        description = R.string.privacy_check_google_maps_description,
+        recommendation = R.string.privacy_check_google_maps_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_maps_action,
         packageName = PackageNames.GOOGLE_MAPS
     ),
     GOOGLE_PHOTOS(
-        displayName = "Google Photos",
+        displayName = R.string.privacy_check_google_photos_name,
         pointDeduction = 1,
-        description = "Google Photos app is installed on your device",
-        recommendation = "Consider uninstalling Google Photos and switching to Simple Gallery or Aves Libre.",
+        description = R.string.privacy_check_google_photos_description,
+        recommendation = R.string.privacy_check_google_photos_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_photos_action,
         packageName = PackageNames.GOOGLE_PHOTOS
     ),
     GOOGLE_DRIVE(
-        displayName = "Google Drive",
+        displayName = R.string.privacy_check_google_drive_name,
         pointDeduction = 1,
-        description = "Google Drive app is installed on your device",
-        recommendation = "Consider uninstalling Google Drive and switching to Nextcloud or Cryptomator.",
+        description = R.string.privacy_check_google_drive_description,
+        recommendation = R.string.privacy_check_google_drive_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_drive_action,
         packageName = PackageNames.GOOGLE_DRIVE
     ),
 
     // ===== GOOGLE APPS (MINOR) =====
     YOUTUBE(
-        displayName = "YouTube",
+        displayName = R.string.privacy_check_youtube_name,
         pointDeduction = 1,
-        description = "YouTube app is installed on your device",
-        recommendation = "Consider using NewPipe or LibreTube as privacy-friendly YouTube alternatives.",
+        description = R.string.privacy_check_youtube_description,
+        recommendation = R.string.privacy_check_youtube_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_youtube_action,
         packageName = PackageNames.YOUTUBE
     ),
     GOOGLE_CALENDAR(
-        displayName = "Google Calendar",
+        displayName = R.string.privacy_check_google_calendar_name,
         pointDeduction = 1,
-        description = "Google Calendar app is installed on your device",
-        recommendation = "Consider uninstalling Google Calendar and switching to Simple Calendar or an offline calendar app.",
+        description = R.string.privacy_check_google_calendar_description,
+        recommendation = R.string.privacy_check_google_calendar_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_calendar_action,
         packageName = PackageNames.GOOGLE_CALENDAR
     ),
     GOOGLE_KEEP(
-        displayName = "Google Keep",
+        displayName = R.string.privacy_check_google_keep_name,
         pointDeduction = 1,
-        description = "Google Keep app is installed on your device",
-        recommendation = "Consider uninstalling Google Keep and switching to Simple Notes or Standard Notes.",
+        description = R.string.privacy_check_google_keep_description,
+        recommendation = R.string.privacy_check_google_keep_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_keep_action,
         packageName = PackageNames.GOOGLE_KEEP
     ),
     GOOGLE_CAMERA(
-        displayName = "Google Camera",
+        displayName = R.string.privacy_check_google_camera_name,
         pointDeduction = 1,
-        description = "Google Camera app is installed on your device",
-        recommendation = "Consider uninstalling Google Camera and switching to Open Camera or Simple Camera.",
+        description = R.string.privacy_check_google_camera_description,
+        recommendation = R.string.privacy_check_google_camera_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_camera_action,
         packageName = PackageNames.GOOGLE_CAMERA
     ),
     GOOGLE_DOCS(
-        displayName = "Google Docs",
+        displayName = R.string.privacy_check_google_docs_name,
         pointDeduction = 1,
-        description = "Google Docs app is installed on your device",
-        recommendation = "Consider uninstalling Google Docs and switching to Collabora Office or an offline editor.",
+        description = R.string.privacy_check_google_docs_description,
+        recommendation = R.string.privacy_check_google_docs_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_docs_action,
         packageName = PackageNames.GOOGLE_DOCS
     ),
 
     // ===== META/FACEBOOK APPS =====
     FACEBOOK_APP(
-        displayName = "Facebook",
+        displayName = R.string.privacy_check_facebook_app_name,
         pointDeduction = 1,
-        description = "Facebook app is installed on your device",
-        recommendation = "Consider uninstalling the Facebook app and using the mobile website if needed.",
+        description = R.string.privacy_check_facebook_app_description,
+        recommendation = R.string.privacy_check_facebook_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_facebook_app_action,
         packageName = PackageNames.FACEBOOK
     ),
     INSTAGRAM_APP(
-        displayName = "Instagram",
+        displayName = R.string.privacy_check_instagram_app_name,
         pointDeduction = 1,
-        description = "Instagram app is installed on your device",
-        recommendation = "Consider uninstalling the Instagram app and using the mobile website if needed, or switching to Pixelfed.",
+        description = R.string.privacy_check_instagram_app_description,
+        recommendation = R.string.privacy_check_instagram_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_instagram_app_action,
         packageName = PackageNames.INSTAGRAM
     ),
     WHATSAPP_APP(
-        displayName = "WhatsApp",
+        displayName = R.string.privacy_check_whatsapp_app_name,
         pointDeduction = 1,
-        description = "WhatsApp is installed on your device",
-        recommendation = "Consider uninstalling WhatsApp and switching to Signal, Session, or SimpleX Chat.",
+        description = R.string.privacy_check_whatsapp_app_description,
+        recommendation = R.string.privacy_check_whatsapp_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_whatsapp_app_action,
         packageName = PackageNames.WHATSAPP
     ),
     MESSENGER_APP(
-        displayName = "Messenger",
+        displayName = R.string.privacy_check_messenger_app_name,
         pointDeduction = 1,
-        description = "Facebook Messenger app is installed on your device",
-        recommendation = "Consider uninstalling Messenger and switching to Signal or another privacy-focused messaging app.",
+        description = R.string.privacy_check_messenger_app_description,
+        recommendation = R.string.privacy_check_messenger_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_messenger_app_action,
         packageName = PackageNames.MESSENGER
     ),
 
     // ===== MICROSOFT APPS =====
     EDGE_APP(
-        displayName = "Microsoft Edge",
+        displayName = R.string.privacy_check_edge_app_name,
         pointDeduction = 1,
-        description = "Microsoft Edge app is installed on your device",
-        recommendation = "Consider uninstalling Edge and switching to Brave, Firefox, or DuckDuckGo Browser.",
+        description = R.string.privacy_check_edge_app_description,
+        recommendation = R.string.privacy_check_edge_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_edge_app_action,
         packageName = PackageNames.EDGE
     ),
     OUTLOOK_APP(
-        displayName = "Outlook",
+        displayName = R.string.privacy_check_outlook_app_name,
         pointDeduction = 1,
-        description = "Microsoft Outlook app is installed on your device",
-        recommendation = "Consider uninstalling Outlook and switching to K-9 Mail, FairEmail, or ProtonMail.",
+        description = R.string.privacy_check_outlook_app_description,
+        recommendation = R.string.privacy_check_outlook_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_outlook_app_action,
         packageName = PackageNames.OUTLOOK
     ),
     ONEDRIVE_APP(
-        displayName = "OneDrive",
+        displayName = R.string.privacy_check_onedrive_app_name,
         pointDeduction = 1,
-        description = "Microsoft OneDrive app is installed on your device",
-        recommendation = "Consider uninstalling OneDrive and switching to Nextcloud or Cryptomator.",
+        description = R.string.privacy_check_onedrive_app_description,
+        recommendation = R.string.privacy_check_onedrive_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_onedrive_app_action,
         packageName = PackageNames.ONEDRIVE
     ),
 
     // ===== AMAZON APPS =====
     AMAZON_SHOPPING(
-        displayName = "Amazon Shopping",
+        displayName = R.string.privacy_check_amazon_shopping_name,
         pointDeduction = 1,
-        description = "Amazon Shopping app is installed on your device",
-        recommendation = "Consider uninstalling and using the mobile website for better privacy.",
+        description = R.string.privacy_check_amazon_shopping_description,
+        recommendation = R.string.privacy_check_amazon_shopping_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_amazon_shopping_action,
         packageName = PackageNames.AMAZON_SHOPPING
     ),
     PRIME_VIDEO(
-        displayName = "Prime Video",
+        displayName = R.string.privacy_check_prime_video_name,
         pointDeduction = 1,
-        description = "Amazon Prime Video app is installed on your device",
-        recommendation = "Consider uninstalling Prime Video and using the mobile website instead. Streaming apps collect viewing habits and device data.",
+        description = R.string.privacy_check_prime_video_description,
+        recommendation = R.string.privacy_check_prime_video_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_prime_video_action,
         packageName = PackageNames.PRIME_VIDEO
     ),
 
     // ===== AI/LLM APPS =====
     CHATGPT_APP(
-        displayName = "ChatGPT",
+        displayName = R.string.privacy_check_chatgpt_app_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_chatgpt_app_action,
         packageName = PackageNames.CHATGPT,
         isInformational = true
     ),
     GOOGLE_GEMINI(
-        displayName = "Google Gemini",
+        displayName = R.string.privacy_check_google_gemini_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_google_gemini_action,
         packageName = PackageNames.GEMINI,
         isInformational = true
     ),
     MICROSOFT_COPILOT(
-        displayName = "Microsoft Copilot",
+        displayName = R.string.privacy_check_microsoft_copilot_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_microsoft_copilot_action,
         packageName = PackageNames.COPILOT,
         isInformational = true
     ),
     CLAUDE_APP(
-        displayName = "Claude",
+        displayName = R.string.privacy_check_claude_app_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_claude_app_action,
         packageName = PackageNames.CLAUDE,
         isInformational = true
     ),
     PERPLEXITY_APP(
-        displayName = "Perplexity",
+        displayName = R.string.privacy_check_perplexity_app_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_perplexity_app_action,
         packageName = PackageNames.PERPLEXITY,
         isInformational = true
     ),
     META_AI(
-        displayName = "Meta AI",
+        displayName = R.string.privacy_check_meta_ai_name,
         pointDeduction = 0,
-        description = "AI apps process conversations on cloud servers — be mindful of what you share",
-        recommendation = "Avoid sharing passwords, financial details, or personal information in AI conversations. Review your chat history and data settings in the app.",
+        description = R.string.privacy_check_ai_app_description,
+        recommendation = R.string.privacy_check_ai_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_meta_ai_action,
         packageName = PackageNames.META_AI,
         isInformational = true
     ),
 
     // ===== SOCIAL MEDIA =====
     TIKTOK_APP(
-        displayName = "TikTok",
+        displayName = R.string.privacy_check_tiktok_app_name,
         pointDeduction = 1,
-        description = "TikTok app is installed on your device",
-        recommendation = "Consider uninstalling TikTok due to extensive data collection practices.",
+        description = R.string.privacy_check_tiktok_app_description,
+        recommendation = R.string.privacy_check_tiktok_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_tiktok_app_action,
         packageName = PackageNames.TIKTOK
     ),
     TWITTER_APP(
-        displayName = "Twitter/X",
+        displayName = R.string.privacy_check_twitter_app_name,
         pointDeduction = 1,
-        description = "Twitter/X app is installed on your device",
-        recommendation = "Consider using the mobile website instead of the app for better privacy.",
+        description = R.string.privacy_check_twitter_app_description,
+        recommendation = R.string.privacy_check_twitter_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_twitter_app_action,
         packageName = PackageNames.TWITTER
     ),
     REDDIT_APP(
-        displayName = "Reddit",
+        displayName = R.string.privacy_check_reddit_app_name,
         pointDeduction = 1,
-        description = "Reddit app is installed on your device",
-        recommendation = "Consider using privacy-focused Reddit clients like Infinity or Slide.",
+        description = R.string.privacy_check_reddit_app_description,
+        recommendation = R.string.privacy_check_reddit_app_recommendation,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
+        actionLabel = R.string.privacy_check_reddit_app_action,
         packageName = PackageNames.REDDIT
     ),
 
     // ===== LEGACY (kept for compatibility) =====
     DEFAULT_ASSISTANT(
-        displayName = "System Assistant/Search",
+        displayName = R.string.privacy_check_default_assistant_name,
         pointDeduction = 0,
-        description = "Voice assistants can collect and process your conversations and search history",
-        recommendation = "Review your assistant settings in Settings > Apps and disable Google Assistant or Alexa if you don't use them."
+        description = R.string.privacy_check_default_assistant_description,
+        recommendation = R.string.privacy_check_default_assistant_recommendation
     )
 }

@@ -90,7 +90,7 @@ fun IssueItem(
             // Title and subtitle
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = issue.check.displayName,
+                    text = stringResource(issue.check.displayName),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
@@ -131,7 +131,7 @@ fun IssueItem(
                     ) {
                         if (isInformational) {
                             Text(
-                                text = issue.check.description,
+                                text = stringResource(issue.check.description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -154,7 +154,8 @@ fun IssueItem(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = issue.check.actionLabel ?: stringResource(R.string.label_issue_fix),
+                                        text = issue.check.actionLabel?.let { stringResource(it) }
+                                            ?: stringResource(R.string.label_issue_fix),
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }
@@ -167,7 +168,7 @@ fun IssueItem(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = issue.recommendation,
+                                text = stringResource(issue.recommendation),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -192,7 +193,8 @@ fun IssueItem(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = issue.check.actionLabel ?: stringResource(R.string.label_issue_fix),
+                                        text = issue.check.actionLabel?.let { stringResource(it) }
+                                            ?: stringResource(R.string.label_issue_fix),
                                         style = MaterialTheme.typography.labelMedium
                                     )
                                 }

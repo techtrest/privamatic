@@ -1,50 +1,52 @@
 package com.techtrest.privamatic.data.model
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.techtrest.privamatic.R
 
 /**
  * Types of manual privacy checks users should perform periodically.
  * Each check has a maintenance period and point value.
  */
 enum class ManualCheckType(
-    val displayName: String,
+    @StringRes val displayName: Int,
     val icon: ImageVector,
     val periodDays: Int,
     val pointValue: Int,
-    val description: String
+    @StringRes val description: Int
 ) {
     LOCATION_ALWAYS_ON(
-        displayName = "Always-On Location Access",
+        displayName = R.string.manual_check_location_always_on_name,
         icon = Icons.Default.Place,
         periodDays = 60,
         pointValue = 5,
-        description = "Most apps don't need 24/7 location tracking. Review which apps have \"Always\" access."
+        description = R.string.manual_check_location_always_on_description
     ),
     CAMERA_MIC_ACCESS(
-        displayName = "Camera & Microphone Access",
+        displayName = R.string.manual_check_camera_mic_access_name,
         icon = Icons.Default.Videocam,
         periodDays = 90,
         pointValue = 5,
-        description = "Many apps over-request camera and microphone permissions. Review which apps can access them."
+        description = R.string.manual_check_camera_mic_access_description
     ),
     UNUSED_APPS(
-        displayName = "Unused Apps Review",
+        displayName = R.string.manual_check_unused_apps_name,
         icon = Icons.Default.Apps,
         periodDays = 120,
         pointValue = 5,
-        description = "Unused apps still have permissions and potential vulnerabilities. Find and remove apps you haven't used."
+        description = R.string.manual_check_unused_apps_description
     ),
     ADVERTISING_ID_CHECK(
-        displayName = "Advertising ID",
+        displayName = R.string.manual_check_advertising_id_check_name,
         icon = Icons.Default.TrackChanges,
         periodDays = 180,
         pointValue = 5,
-        description = "Verify your Advertising ID is deleted to prevent cross-app tracking by advertisers."
+        description = R.string.manual_check_advertising_id_check_description
     )
 }
 

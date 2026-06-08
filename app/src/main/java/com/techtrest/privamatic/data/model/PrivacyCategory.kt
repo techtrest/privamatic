@@ -1,5 +1,6 @@
 package com.techtrest.privamatic.data.model
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Business
@@ -10,14 +11,15 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.techtrest.privamatic.R
 
 enum class PrivacyCategory(
-    val displayName: String,
+    @StringRes val displayName: Int,
     val icon: ImageVector,
     val checks: List<PrivacyCheck>
 ) {
     SYSTEM_SECURITY(
-        displayName = "System Security",
+        displayName = R.string.privacy_category_system_security_name,
         icon = Icons.Filled.Security,
         checks = listOf(
             PrivacyCheck.SCREEN_LOCK,
@@ -32,7 +34,7 @@ enum class PrivacyCategory(
         )
     ),
     NETWORK_PRIVACY(
-        displayName = "Network & Tracking Privacy",
+        displayName = R.string.privacy_category_network_privacy_name,
         icon = Icons.Filled.Language,
         checks = listOf(
             PrivacyCheck.VPN_CONNECTION,
@@ -42,7 +44,7 @@ enum class PrivacyCategory(
         )
     ),
     GOOGLE_SERVICES(
-        displayName = "Google Services",
+        displayName = R.string.privacy_category_google_services_name,
         icon = Icons.Filled.Cloud,
         checks = listOf(
             PrivacyCheck.FIND_MY_DEVICE,
@@ -50,7 +52,7 @@ enum class PrivacyCategory(
         )
     ),
     DEFAULT_APPS(
-        displayName = "Default Apps",
+        displayName = R.string.privacy_category_default_apps_name,
         icon = Icons.Filled.Apps,
         checks = listOf(
             PrivacyCheck.DEFAULT_BROWSER,
@@ -61,7 +63,7 @@ enum class PrivacyCategory(
         )
     ),
     GOOGLE_APPS(
-        displayName = "Google Apps",
+        displayName = R.string.privacy_category_google_apps_name,
         icon = Icons.Filled.Business,
         checks = listOf(
             PrivacyCheck.GOOGLE_CHROME,
@@ -77,7 +79,7 @@ enum class PrivacyCategory(
         )
     ),
     META_FACEBOOK_APPS(
-        displayName = "Meta/Facebook",
+        displayName = R.string.privacy_category_meta_facebook_name,
         icon = Icons.Filled.People,
         checks = listOf(
             PrivacyCheck.FACEBOOK_APP,
@@ -87,7 +89,7 @@ enum class PrivacyCategory(
         )
     ),
     MICROSOFT_APPS(
-        displayName = "Microsoft",
+        displayName = R.string.privacy_category_microsoft_name,
         icon = Icons.Filled.Computer,
         checks = listOf(
             PrivacyCheck.EDGE_APP,
@@ -96,7 +98,7 @@ enum class PrivacyCategory(
         )
     ),
     AI_AND_OTHER_APPS(
-        displayName = "AI & Other Apps",
+        displayName = R.string.privacy_category_ai_other_name,
         icon = Icons.Filled.SmartToy,
         checks = listOf(
             PrivacyCheck.CHATGPT_APP,

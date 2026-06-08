@@ -1,29 +1,31 @@
 package com.techtrest.privamatic.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.techtrest.privamatic.R
 
 enum class NavigationTab(
-    val title: String,
+    @StringRes val title: Int,
     val icon: ImageVector,
-    val label: String
+    @StringRes val label: Int
 ) {
     DASHBOARD(
-        title = "Dashboard",
+        title = R.string.nav_tab_dashboard,
         icon = Icons.Default.Dashboard,
-        label = "Dashboard"
+        label = R.string.nav_tab_dashboard
     ),
     ACTIONS(
-        title = "Actions",
+        title = R.string.nav_tab_actions,
         icon = Icons.Default.Bolt,
-        label = "Actions"
+        label = R.string.nav_tab_actions
     ),
     DETAILS(
-        title = "Details",
+        title = R.string.nav_tab_details,
         icon = Icons.AutoMirrored.Filled.List,
-        label = "Details"
+        label = R.string.nav_tab_details
     )
 }

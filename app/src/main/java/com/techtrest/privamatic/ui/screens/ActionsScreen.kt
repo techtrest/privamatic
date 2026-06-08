@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -287,6 +288,7 @@ private fun DismissedQuickWinRow(
     onRestore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.outlinedCardColors(
@@ -309,7 +311,7 @@ private fun DismissedQuickWinRow(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = quickWin.displayTitle,
+                text = quickWin.displayTitle(context),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
@@ -446,8 +448,9 @@ private fun ManualCheckGarminRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val progressColor = getProgressColor(checkState)
-    val statusText = getStatusText(checkState)
+    val statusText = getStatusText(checkState, context)
 
     Surface(
         onClick = onClick,
@@ -481,7 +484,7 @@ private fun ManualCheckGarminRow(
             ) {
                 // Title
                 Text(
-                    text = checkState.type.displayName,
+                    text = stringResource(checkState.type.displayName),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

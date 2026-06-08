@@ -67,7 +67,7 @@ fun QuickWinDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = quickWin.displayTitle,
+                        text = quickWin.displayTitle(context),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -139,7 +139,7 @@ fun QuickWinDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = quickWin.type.description,
+                        text = stringResource(quickWin.type.description),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -160,7 +160,7 @@ fun QuickWinDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = quickWin.type.instructions,
+                        text = stringResource(quickWin.type.instructions),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -188,7 +188,10 @@ fun QuickWinDetailScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(quickWin.type.actionLabel ?: stringResource(R.string.label_common_open_settings))
+                    Text(
+                        quickWin.type.actionLabel?.let { stringResource(it) }
+                            ?: stringResource(R.string.label_common_open_settings)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

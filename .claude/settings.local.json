@@ -36,7 +36,14 @@
       "Bash(sudo dnf install -y imagemagick)",
       "Bash(identify *)",
       "Bash(JAVA_HOME=/home/techtresthome/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2 cd \"/home/techtresthome/Local App Projects/Privamatic\")",
-      "Bash(JAVA_HOME=/home/techtresthome/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2 ./gradlew assembleRelease)"
+      "Bash(JAVA_HOME=/home/techtresthome/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2 ./gradlew assembleRelease)",
+      "Bash(xmllint --noout \"/home/techtresthome/Local App Projects/Privamatic/app/src/main/res/values/strings.xml\")",
+      "Bash(update-java-alternatives --list)",
+      "Bash(alternatives --list)",
+      "Bash(JAVA_OPTS=\"-Djava.version=17\" ./gradlew :app:compileDebugKotlin)",
+      "Bash(GRADLE_OPTS=\"-Djdk.version=17\" ./gradlew :app:compileDebugKotlin)",
+      "Bash(/opt/android-studio/jbr/bin/java -version)",
+      "Bash(JAVA_HOME=/opt/android-studio/jbr ./gradlew :app:compileDebugKotlin)"
     ]
   }
 }

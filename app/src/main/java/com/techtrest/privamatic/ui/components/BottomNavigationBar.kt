@@ -8,6 +8,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.techtrest.privamatic.ui.navigation.NavigationTab
 
 @Composable
@@ -23,11 +24,11 @@ fun BottomNavigationBar(
                 icon = {
                     Icon(
                         imageVector = tab.icon,
-                        contentDescription = tab.label
+                        contentDescription = stringResource(tab.label)
                     )
                 },
                 label = {
-                    Text(text = tab.label)
+                    Text(text = stringResource(tab.label))
                 },
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) }

@@ -68,7 +68,7 @@ fun DetailsScreen(
                 Tab(
                     selected = selectedTab == tab,
                     onClick = { onTabSelected(tab) },
-                    text = { Text(tab.label) }
+                    text = { Text(stringResource(tab.label)) }
                 )
             }
         }

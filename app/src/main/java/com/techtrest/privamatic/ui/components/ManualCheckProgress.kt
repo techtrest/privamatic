@@ -1,9 +1,11 @@
 package com.techtrest.privamatic.ui.components
 
+import android.content.Context
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.techtrest.privamatic.Amber
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.ManualCheckState
 
 /**
@@ -23,11 +25,13 @@ fun getProgressColor(checkState: ManualCheckState): Color {
 /**
  * Human-readable status text describing how long until a manual check is due for review.
  */
-// TODO: pass Context for getString() in translations step
-fun getStatusText(checkState: ManualCheckState): String {
+fun getStatusText(checkState: ManualCheckState, context: Context): String {
     return when {
         checkState.isOverdue -> "Review needed"
-        checkState.daysRemaining == 1 -> "1 day remaining"
-        else -> "${checkState.daysRemaining} days remaining"
+        else -> context.resources.getQuantityString(
+            R.plurals.plural_days_remaining,
+            checkState.daysRemaining,
+            checkState.daysRemaining
+        )
     }
 }

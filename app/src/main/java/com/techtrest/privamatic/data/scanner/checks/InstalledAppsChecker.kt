@@ -194,7 +194,7 @@ class InstalledAppsChecker(private val context: Context) {
                 technicalDetails = "Package: $packageName"
             )
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking ${check.displayName}", e)
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking ${context.getString(check.displayName)}", e)
             PrivacyIssue(
                 check = check,
                 isSecure = true,

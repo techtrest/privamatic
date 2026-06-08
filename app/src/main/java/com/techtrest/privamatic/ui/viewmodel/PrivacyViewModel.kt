@@ -132,7 +132,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
 
     private suspend fun onScanSuccess(result: PrivacyScore) {
         _rawPrivacyScore.value = result
-        _rawQuickWins.value = QuickWinsDetector.detectQuickWins(result)
+        _rawQuickWins.value = QuickWinsDetector.detectQuickWins(result, getApplication())
         _flaggedApps.value = computeFlaggedApps(result)
         val trusted = trustedAppsRepository.trustedPackages.first()
         val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)

@@ -1,5 +1,7 @@
 package com.techtrest.privamatic.data.model
 
+import androidx.annotation.StringRes
+
 data class PrivacyIssue(
     val check: PrivacyCheck,
     val isSecure: Boolean,
@@ -12,7 +14,8 @@ data class PrivacyIssue(
     val pointDeduction: Int
         get() = if (isSecure) 0 else (customPointDeduction ?: check.pointDeduction)
 
-    val recommendation: String
+    @get:StringRes
+    val recommendation: Int
         get() = check.recommendation
 }
 

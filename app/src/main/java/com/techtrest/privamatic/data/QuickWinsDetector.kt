@@ -1,5 +1,6 @@
 package com.techtrest.privamatic.data
 
+import android.content.Context
 import com.techtrest.privamatic.data.model.ActionType
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyScore
@@ -25,7 +26,7 @@ object QuickWinsDetector {
      * sorted by impact (highest first).
      * Only includes wins where the related check is currently insecure.
      */
-    fun detectQuickWins(privacyScore: PrivacyScore): List<QuickWin> {
+    fun detectQuickWins(privacyScore: PrivacyScore, context: Context): List<QuickWin> {
         val quickWins = mutableListOf<QuickWin>()
 
         // System service revocations (high impact)
@@ -47,7 +48,7 @@ object QuickWinsDetector {
         checkDefaultLauncher(privacyScore)?.let { quickWins.add(it) }
 
         // Installed app uninstalls
-        quickWins.addAll(checkInstalledApps(privacyScore))
+        quickWins.addAll(checkInstalledApps(privacyScore, context))
 
         return quickWins.sortedByDescending { it.impact }
     }
@@ -185,14 +186,14 @@ object QuickWinsDetector {
 
     // ===== INSTALLED APP UNINSTALLS =====
 
-    private fun checkInstalledApps(privacyScore: PrivacyScore): List<QuickWin> {
+    private fun checkInstalledApps(privacyScore: PrivacyScore, context: Context): List<QuickWin> {
         return installedAppChecks.mapNotNull { check ->
             val issue = privacyScore.issues.find { it.check == check }
             if (issue != null && !issue.isSecure && !issue.isSystemApp) {
                 QuickWin(
                     type = QuickWinType.UNINSTALL_APP,
                     relatedCheck = check,
-                    currentAppName = check.displayName
+                    currentAppName = context.getString(check.displayName)
                 )
             } else null
         }

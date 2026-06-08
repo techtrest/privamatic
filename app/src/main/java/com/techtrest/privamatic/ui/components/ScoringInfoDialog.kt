@@ -47,9 +47,9 @@ fun ScoringInfoDialog(
 
             PrivacyScoreCalculator.ScoreRating.entries.forEach { rating ->
                 ScoreRatingItem(
-                    range = rating.scoreRange,
-                    label = rating.displayName,
-                    subtitle = rating.subtitle
+                    range = stringResource(rating.scoreRange),
+                    label = stringResource(rating.displayName),
+                    subtitle = stringResource(rating.subtitle)
                 )
             }
 

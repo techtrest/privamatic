@@ -1,5 +1,7 @@
 package com.techtrest.privamatic.data.scanner
 
+import androidx.annotation.StringRes
+import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.data.model.PrivacyScore
 
@@ -64,11 +66,35 @@ object PrivacyScoreCalculator {
         }
     }
 
-    enum class ScoreRating(val displayName: String, val subtitle: String, val scoreRange: String) {
-        EXCELLENT("Excellent", "Strong protection", "85-100"),
-        GOOD("Good", "Good, with minor issues", "70-84"),
-        FAIR("Fair", "Room for improvement", "50-69"),
-        POOR("Needs Attention", "Several issues detected", "30-49"),
-        CRITICAL("Critical", "Immediate action required", "0-29")
+    enum class ScoreRating(
+        @StringRes val displayName: Int,
+        @StringRes val subtitle: Int,
+        @StringRes val scoreRange: Int
+    ) {
+        EXCELLENT(
+            R.string.score_rating_excellent_name,
+            R.string.score_rating_excellent_subtitle,
+            R.string.score_rating_excellent_range
+        ),
+        GOOD(
+            R.string.score_rating_good_name,
+            R.string.score_rating_good_subtitle,
+            R.string.score_rating_good_range
+        ),
+        FAIR(
+            R.string.score_rating_fair_name,
+            R.string.score_rating_fair_subtitle,
+            R.string.score_rating_fair_range
+        ),
+        POOR(
+            R.string.score_rating_poor_name,
+            R.string.score_rating_poor_subtitle,
+            R.string.score_rating_poor_range
+        ),
+        CRITICAL(
+            R.string.score_rating_critical_name,
+            R.string.score_rating_critical_subtitle,
+            R.string.score_rating_critical_range
+        )
     }
 }

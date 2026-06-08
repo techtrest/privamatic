@@ -91,7 +91,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 val rating = PrivacyScoreCalculator.getScoreRating(score)
                 val deviceName = DeviceNameUtil.getMarketingName()
                 val osName = detectOperatingSystem(context)
-                val ratingText = rating.toShortLabel()
+                val ratingText = rating.toShortLabel(context)
 
                 // Record score history and calculate delta
                 val scoreHistoryRepository = ScoreHistoryRepository(context)
@@ -166,7 +166,11 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         // resource qualifiers, avoiding stale programmatic setTextColor values.
         if (showDelta && scoreDelta != null) {
             val isIncrease = scoreDelta > 0
-            val changeText = "${if (isIncrease) "↑" else "↓"}${abs(scoreDelta)}"
+            val changeText = if (isIncrease) {
+                context.getString(R.string.fmt_widget_delta_up, abs(scoreDelta))
+            } else {
+                context.getString(R.string.fmt_widget_delta_down, abs(scoreDelta))
+            }
 
             if (isIncrease) {
                 views.setTextViewText(R.id.widget_privacy_change_up, changeText)
@@ -309,7 +313,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 manufacturer == "oneplus" -> "OnePlus OxygenOS"
                 manufacturer == "oppo" || manufacturer == "realme" -> "ColorOS"
                 manufacturer == "google" -> "Stock Android"
-                else -> "Android ${Build.VERSION.RELEASE}"
+                else -> context.getString(R.string.fmt_android_version, Build.VERSION.RELEASE)
             }
         }
 
@@ -332,6 +336,6 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
             return false
         }
 
-        private fun PrivacyScoreCalculator.ScoreRating.toShortLabel(): String = this.displayName
+        private fun PrivacyScoreCalculator.ScoreRating.toShortLabel(context: Context): String = context.getString(this.displayName)
     }
 }

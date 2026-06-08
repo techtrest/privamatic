@@ -221,7 +221,7 @@ private fun HeroSection(
         }
 
         Text(
-            text = checkState.type.displayName,
+            text = stringResource(checkState.type.displayName),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -231,7 +231,7 @@ private fun HeroSection(
         )
 
         Text(
-            text = checkState.type.description,
+            text = stringResource(checkState.type.description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
@@ -249,6 +249,7 @@ private fun ProgressCard(
     checkState: ManualCheckState,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -298,7 +299,7 @@ private fun ProgressCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = getStatusText(checkState),
+                    text = getStatusText(checkState, context),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

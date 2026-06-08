@@ -102,7 +102,7 @@ fun CategoryGroup(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
-                        text = category.displayName,
+                        text = stringResource(category.displayName),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f)
                     )

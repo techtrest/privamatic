@@ -110,7 +110,7 @@ fun ScoringSystemScreen(
 
             scoringCategories.forEach { (category, checks) ->
                 CategorySection(
-                    categoryName = category.displayName,
+                    categoryName = stringResource(category.displayName),
                     categoryIcon = category.icon,
                     checks = checks,
                     globalMaxPoints = globalMaxPoints
@@ -227,7 +227,7 @@ private fun CheckPointRow(
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = check.displayName,
+            text = stringResource(check.displayName),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
@@ -299,7 +299,7 @@ private fun InformationalSection(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = check.displayName,
+                        text = stringResource(check.displayName),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)

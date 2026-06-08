@@ -92,7 +92,7 @@ fun ScoreCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = rating.displayName,
+                text = stringResource(rating.displayName),
                 style = MaterialTheme.typography.titleMedium,
                 color = scoreColor
             )
@@ -100,7 +100,7 @@ fun ScoreCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = rating.subtitle,
+                text = stringResource(rating.subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

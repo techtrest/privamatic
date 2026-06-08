@@ -895,6 +895,7 @@
     <string name="fmt_numbered_step">%1$d. %2$s</string>
     <string name="fmt_uninstall_app">Uninstall %s</string>
     <string name="fmt_replace_app">Replace %s</string>
+    <string name="fmt_android_version">Android %s</string>
 
     <!-- ============================================================ -->
     <!-- PLURALS -->

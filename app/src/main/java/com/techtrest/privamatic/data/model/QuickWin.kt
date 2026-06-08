@@ -1,5 +1,7 @@
 package com.techtrest.privamatic.data.model
 
+import android.content.Context
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.AdUnits
@@ -15,334 +17,153 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.techtrest.privamatic.R
 
 enum class QuickWinType(
-    val title: String,
-    val description: String,
+    @StringRes val title: Int,
+    @StringRes val description: Int,
     val timeEstimate: String,
     val icon: ImageVector,
-    val instructions: String,
+    @StringRes val instructions: Int,
     val actionType: ActionType? = null,
-    val actionLabel: String? = null
+    @StringRes val actionLabel: Int? = null
 ) {
     // ===== SYSTEM SERVICE REVOCATIONS =====
 
     REVOKE_NOTIFICATION_LISTENERS(
-        title = "Revoke Notification Listeners",
-        description = "Non-system apps can read ALL your notifications",
+        title = R.string.quick_win_revoke_notification_listeners_title,
+        description = R.string.quick_win_revoke_notification_listeners_description,
         timeEstimate = "1 minute",
         icon = Icons.Default.NotificationsOff,
         actionType = ActionType.NOTIFICATION_LISTENER,
-        actionLabel = "Open Notification Settings",
-        instructions = """
-            Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Apps' → 'Special app access'
-            3. Tap 'Notification access'
-            4. Review the list and disable access for non-essential apps
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_revoke_notification_listeners_action,
+        instructions = R.string.quick_win_revoke_notification_listeners_instructions
     ),
 
     REVOKE_ACCESSIBILITY_SERVICES(
-        title = "Revoke Accessibility Services",
-        description = "Non-essential apps can control your entire device",
+        title = R.string.quick_win_revoke_accessibility_services_title,
+        description = R.string.quick_win_revoke_accessibility_services_description,
         timeEstimate = "1 minute",
         icon = Icons.Default.Accessibility,
         actionType = ActionType.ACCESSIBILITY_SETTINGS,
-        actionLabel = "Open Accessibility Settings",
-        instructions = """
-            Apps with accessibility service access can control your entire device and potentially log keystrokes.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Accessibility'
-            3. Review 'Downloaded apps' or 'Installed services'
-            4. Disable any services you don't actively need
-
-            Note: Keep accessibility services that you genuinely use (password managers, screen readers).
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_revoke_accessibility_services_action,
+        instructions = R.string.quick_win_revoke_accessibility_services_instructions
     ),
 
     REVOKE_DEVICE_ADMINS(
-        title = "Revoke Device Administrators",
-        description = "Non-system apps have elevated device control",
+        title = R.string.quick_win_revoke_device_admins_title,
+        description = R.string.quick_win_revoke_device_admins_description,
         timeEstimate = "1 minute",
         icon = Icons.Default.Security,
         actionType = ActionType.DEVICE_ADMIN_SETTINGS,
-        actionLabel = "Open Security Settings",
-        instructions = """
-            Apps with device administrator privileges have elevated control over your device.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Security' → 'Device admin apps'
-            3. Review the list of device administrators
-            4. Deactivate any that you don't recognize or need
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_revoke_device_admins_action,
+        instructions = R.string.quick_win_revoke_device_admins_instructions
     ),
 
     // ===== SETTINGS TOGGLES =====
 
     DISABLE_WIFI_SCANNING(
-        title = "Disable Background Wi-Fi Scanning",
-        description = "Prevents location tracking via Wi-Fi networks",
+        title = R.string.quick_win_disable_wifi_scanning_title,
+        description = R.string.quick_win_disable_wifi_scanning_description,
         timeEstimate = "30 seconds",
         icon = Icons.Default.LocationOff,
         actionType = ActionType.LOCATION_SETTINGS,
-        actionLabel = "Open Location Settings",
-        instructions = """
-            Background Wi-Fi scanning allows apps to track your location even when Wi-Fi is off.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Location'
-            3. Tap 'Location services' or 'Wi-Fi and Bluetooth scanning'
-            4. Disable 'Wi-Fi scanning'
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_disable_wifi_scanning_action,
+        instructions = R.string.quick_win_disable_wifi_scanning_instructions
     ),
 
     DISABLE_ADVERTISING_ID(
-        title = "Disable Advertising ID",
-        description = "Prevents cross-app tracking by advertisers",
+        title = R.string.quick_win_disable_advertising_id_title,
+        description = R.string.quick_win_disable_advertising_id_description,
         timeEstimate = "30 seconds",
         icon = Icons.Default.AdUnits,
         actionType = ActionType.PRIVACY_SETTINGS,
-        actionLabel = "Open Privacy Settings",
-        instructions = """
-            This prevents apps from building an advertising profile and tracking you across different apps.
-
-            Steps:
-            1. Open Settings app
-            2. Scroll to 'Privacy' or 'Google'
-            3. Tap 'Ads'
-            4. Tap 'Delete Advertising ID' or 'Opt out of Ads Personalization'
-            5. Confirm
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_disable_advertising_id_action,
+        instructions = R.string.quick_win_disable_advertising_id_instructions
     ),
 
     ENABLE_PRIVATE_DNS(
-        title = "Enable Private DNS",
-        description = "Blocks tracking and malicious domains at network level",
+        title = R.string.quick_win_enable_private_dns_title,
+        description = R.string.quick_win_enable_private_dns_description,
         timeEstimate = "1 minute",
         icon = Icons.Default.Language,
         actionType = ActionType.NETWORK_SETTINGS,
-        actionLabel = "Open Network Settings",
-        instructions = """
-            Private DNS blocks tracking and malicious domains at the network level for all apps.
-
-            Recommended providers:
-            • Quad9 (dns.quad9.net)
-              Privacy-focused, blocks malware, no logging
-
-            • AdGuard DNS (dns.adguard-dns.com)
-              Blocks ads and trackers
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'Network & Internet'
-            3. Tap 'Private DNS'
-            4. Select 'Private DNS provider hostname'
-            5. Enter: dns.quad9.net
-            6. Tap 'Save'
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_enable_private_dns_action,
+        instructions = R.string.quick_win_enable_private_dns_instructions
     ),
 
     DISABLE_DEVELOPER_OPTIONS(
-        title = "Disable Developer Options",
-        description = "Reduces your exposure to advanced settings that can weaken security",
+        title = R.string.quick_win_disable_developer_options_title,
+        description = R.string.quick_win_disable_developer_options_description,
         timeEstimate = "30 seconds",
         icon = Icons.Default.Code,
         actionType = ActionType.DEVELOPER_SETTINGS,
-        actionLabel = "Open Developer Settings",
-        instructions = """
-            Developer options expose advanced settings that can reduce device security if misconfigured.
-
-            Steps:
-            1. Open Settings app
-            2. Go to 'System' → 'Developer options'
-            3. Toggle off 'Developer options' at the top
-            4. Confirm
-
-            Note: If you need developer options for specific tasks, re-enable only when needed.
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_disable_developer_options_action,
+        instructions = R.string.quick_win_disable_developer_options_instructions
     ),
 
     // ===== DEFAULT APP REPLACEMENTS =====
 
     REPLACE_BROWSER(
-        title = "Replace Browser",
-        description = "Switch to privacy-focused browser",
+        title = R.string.quick_win_replace_browser_title,
+        description = R.string.quick_win_replace_browser_description,
         timeEstimate = "2 minutes",
         icon = Icons.Default.Explore,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Open Default App Settings",
-        instructions = """
-            Privacy-focused browsers block trackers and don't sync your browsing history to cloud servers.
-
-            Recommended alternatives:
-            • Brave (Play Store) - Blocks trackers by default
-            • Firefox (F-Droid and Play Store) - Privacy-focused, customizable
-
-            Or explore more options:
-            → Privacy Guides: privacyguides.org/browsers
-
-            Steps:
-            1. Open F-Droid or Play Store
-            2. Search 'Brave' or 'Firefox'
-            3. Install browser
-            4. Open the new browser
-            5. When prompted, set as default browser
-               (Or: Settings → Apps → Default apps → Browser)
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_replace_browser_action,
+        instructions = R.string.quick_win_replace_browser_instructions
     ),
 
     REPLACE_KEYBOARD(
-        title = "Replace Keyboard",
-        description = "Switch to privacy-focused keyboard",
+        title = R.string.quick_win_replace_keyboard_title,
+        description = R.string.quick_win_replace_keyboard_description,
         timeEstimate = "2 minutes",
         icon = Icons.Default.Keyboard,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Open Default App Settings",
-        instructions = """
-            Your current keyboard may send your typing data to cloud servers for processing.
-
-            Recommended alternatives:
-            • FUTO Keyboard (Play Store)
-              Best privacy + features, offline voice typing
-            • AnySoftKeyboard (F-Droid & Play Store)
-              Mature, highly customizable
-
-            Or explore more options:
-            → F-Droid: Browse privacy keyboards
-            → Privacy Guides: privacyguides.org/android
-
-            Steps:
-            1. Open F-Droid or Play Store
-            2. Search 'privacy keyboard'
-            3. Install keyboard
-            4. Open Settings → System → Languages & Input
-            5. Tap 'On-screen keyboard' or 'Virtual keyboard'
-            6. Select your new keyboard as default
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_replace_keyboard_action,
+        instructions = R.string.quick_win_replace_keyboard_instructions
     ),
 
     REPLACE_DEFAULT_SMS(
-        title = "Replace SMS App",
-        description = "Switch to privacy-focused messaging app",
+        title = R.string.quick_win_replace_default_sms_title,
+        description = R.string.quick_win_replace_default_sms_description,
         timeEstimate = "2 minutes",
         icon = Icons.Default.Sms,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Open Default App Settings",
-        instructions = """
-            Your current SMS app may collect your messaging data and contacts.
-
-            Recommended alternatives:
-            • Fossify Messages (F-Droid & Play Store)
-              Open source, privacy-focused, no ads
-            • QKSMS (F-Droid)
-              Lightweight and private
-
-            Steps:
-            1. Install a privacy-focused messaging app
-            2. Open Settings → Apps → Default apps
-            3. Tap 'SMS app'
-            4. Select your new messaging app
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_replace_default_sms_action,
+        instructions = R.string.quick_win_replace_default_sms_instructions
     ),
 
     REPLACE_DEFAULT_EMAIL(
-        title = "Replace Email App",
-        description = "Switch to privacy-focused email client",
+        title = R.string.quick_win_replace_default_email_title,
+        description = R.string.quick_win_replace_default_email_description,
         timeEstimate = "2 minutes",
         icon = Icons.Default.Email,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Open Default App Settings",
-        instructions = """
-            Your current email app may scan your emails for advertising and data collection.
-
-            Recommended alternatives:
-            • K-9 Mail (F-Droid & Play Store) - Open source
-            • FairEmail (F-Droid & Play Store) - Privacy-focused
-            • ProtonMail (Play Store) - Encrypted email
-
-            Steps:
-            1. Install a privacy-focused email app
-            2. Open Settings → Apps → Default apps
-            3. Tap 'Email app' (if available)
-            4. Select your new email app
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_replace_default_email_action,
+        instructions = R.string.quick_win_replace_default_email_instructions
     ),
 
     REPLACE_DEFAULT_LAUNCHER(
-        title = "Replace Launcher",
-        description = "Switch to privacy-focused launcher",
+        title = R.string.quick_win_replace_default_launcher_title,
+        description = R.string.quick_win_replace_default_launcher_description,
         timeEstimate = "2 minutes",
         icon = Icons.Default.Home,
         actionType = ActionType.DEFAULT_APPS_SETTINGS,
-        actionLabel = "Open Default App Settings",
-        instructions = """
-            Your current launcher may collect usage patterns, app habits, and behavioral data.
-
-            Recommended alternatives:
-            • Lawnchair (F-Droid & Play Store) - Modern and customizable
-            • KISS Launcher (F-Droid & Play Store) - Lightweight
-            • Neo Launcher (F-Droid) - Feature-rich
-
-            Steps:
-            1. Install a privacy-focused launcher
-            2. Open Settings → Apps → Default apps
-            3. Tap 'Home app'
-            4. Select your new launcher
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_replace_default_launcher_action,
+        instructions = R.string.quick_win_replace_default_launcher_instructions
     ),
 
     // ===== APP UNINSTALLS =====
 
     UNINSTALL_APP(
-        title = "Uninstall App",
-        description = "Remove a privacy-invasive app from your device",
+        title = R.string.quick_win_uninstall_app_title,
+        description = R.string.quick_win_uninstall_app_description,
         timeEstimate = "30 seconds",
         icon = Icons.Default.Delete,
         actionType = ActionType.OPEN_APP_SETTINGS,
-        actionLabel = "Open App Settings",
-        instructions = """
-            You can improve your privacy by uninstalling or disabling this app.
-
-            Steps:
-            1. Tap 'Open App Settings' below
-            2. Tap 'Uninstall' or 'Disable'
-            3. Confirm
-
-            If the app came pre-installed, you may only be able to disable it rather than fully uninstall it.
-
-            After completing this, rescan to see your improved score!
-        """.trimIndent()
+        actionLabel = R.string.quick_win_uninstall_app_action,
+        instructions = R.string.quick_win_uninstall_app_instructions
     )
 }
 
@@ -356,19 +177,18 @@ data class QuickWin(
      * e.g., "Replace SwiftKey" instead of generic "Replace Keyboard"
      * e.g., "Uninstall Chrome" instead of generic "Uninstall App"
      */
-    val displayTitle: String
-        get() = when {
-            currentAppName != null -> when (type) {
-                QuickWinType.UNINSTALL_APP -> "Uninstall $currentAppName"
-                QuickWinType.REPLACE_BROWSER,
-                QuickWinType.REPLACE_KEYBOARD,
-                QuickWinType.REPLACE_DEFAULT_SMS,
-                QuickWinType.REPLACE_DEFAULT_EMAIL,
-                QuickWinType.REPLACE_DEFAULT_LAUNCHER -> "Replace $currentAppName"
-                else -> type.title
-            }
-            else -> type.title
+    fun displayTitle(context: Context): String = when {
+        currentAppName != null -> when (type) {
+            QuickWinType.UNINSTALL_APP -> context.getString(R.string.fmt_uninstall_app, currentAppName)
+            QuickWinType.REPLACE_BROWSER,
+            QuickWinType.REPLACE_KEYBOARD,
+            QuickWinType.REPLACE_DEFAULT_SMS,
+            QuickWinType.REPLACE_DEFAULT_EMAIL,
+            QuickWinType.REPLACE_DEFAULT_LAUNCHER -> context.getString(R.string.fmt_replace_app, currentAppName)
+            else -> context.getString(type.title)
         }
+        else -> context.getString(type.title)
+    }
 
     /**
      * Get impact (point value) from the related PrivacyCheck
