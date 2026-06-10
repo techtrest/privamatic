@@ -1,1 +1,6 @@
-Fixed: Dashboard tracking and security counters now correctly exclude whitelisted apps.
+- Security patch date check — flags outdated and end-of-life devices
+- Ad ID check auto-passes on GMS-free devices (GrapheneOS, LineageOS)
+- microG correctly detected and not penalised
+- Wi-Fi scanning explanation updated to reflect real-world retail tracking
+- Privacy-friendly app allowlists updated (Thunderbird, Kvaesitso added; Niagara removed)
+- Fixed: dashboard counters incorrectly counting whitelisted apps as issues
