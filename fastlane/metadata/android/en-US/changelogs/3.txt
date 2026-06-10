@@ -1,0 +1,1 @@
+Fixed: Dashboard tracking and security counters now correctly exclude whitelisted apps.
