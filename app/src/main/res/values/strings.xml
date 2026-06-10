@@ -802,7 +802,7 @@
     <!-- ============================================================ -->
     <!-- ABOUT DIALOG -->
     <!-- ============================================================ -->
-    <string name="copy_about_body">Privamatic gives your Android device a privacy score — a clear, actionable number that shows how exposed you are and what to fix.\n\nAll analysis runs locally on your device. No telemetry, no data collection, no network requests, no Google Play Services. Everything stays with you.\n\nBuilt for privacy-conscious users, developers, and anyone who wants to understand and improve their Android privacy — no technical knowledge required.\n\nOpen source and available on F-Droid.</string>
+    <string name="copy_about_body">Privamatic gives your Android device a privacy score — a clear, actionable number that shows exactly how exposed you are and what to fix.\n\nAll analysis runs entirely on your device. No internet connection, no telemetry, no data collection, no accounts, no cloud sync. Everything stays with you — always.\n\nBuilt for privacy-conscious users, developers, and anyone who wants to understand and improve their Android privacy — no technical knowledge required.\n\nOpen source. Available on F-Droid. No Google Play Store — intentionally.</string>
     <string name="label_about_close">Close</string>
 
     <!-- ============================================================ -->
