@@ -618,7 +618,7 @@
     <string name="tip_encryption_good_content">With encryption enabled, your phone\'s data is unreadable without your PIN when powered off — even with physical access to the storage chip.</string>
 
     <string name="tip_biometric_good_title">Your Biometric Security</string>
-    <string name="tip_biometric_good_content">Your biometric data stays in your device\'s secure enclave. It never leaves the chip, isn\'t sent to any server, and can\'t be extracted even by the OS itself.</string>
+    <string name="tip_biometric_good_content">Your biometric data stays in your device\'s secure enclave. It never leaves the chip, isn\'t sent to any server, and can\'t be extracted even by the OS itself. For higher-risk situations — such as border crossings or legal proceedings — a strong PIN offers additional protection, as it cannot be physically compelled.</string>
 
     <string name="tip_private_dns_good_title">Your DNS Protection</string>
     <string name="tip_private_dns_good_content">Your Private DNS works across every app — even ones that try to use their own tracking domains. It\'s one of the most effective single settings on your device.</string>
