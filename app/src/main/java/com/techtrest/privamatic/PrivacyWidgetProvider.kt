@@ -235,6 +235,9 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         /** Broadcast action used by AlarmManager, BootReceiver, and the app. */
         const val ACTION_UPDATE_WIDGET = "com.techtrest.privamatic.ACTION_UPDATE_WIDGET"
 
+        /** Broadcast action sent by AlarmManager at 23:50 to record a daily snapshot. */
+        const val ACTION_MIDNIGHT_SNAPSHOT = "com.techtrest.privamatic.ACTION_MIDNIGHT_SNAPSHOT"
+
         private const val ALARM_REQUEST_CODE = 1001
 
         /** Six hours in milliseconds. */

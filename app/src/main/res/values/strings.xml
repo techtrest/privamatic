@@ -963,7 +963,7 @@
     <string name="label_history_filter_six_months">6M</string>
     <string name="label_history_filter_year">1Y</string>
     <string name="label_history_filter_all">All</string>
-    <string name="label_history_no_data">Not enough data yet. Your score history will appear here after a few scans.</string>
+    <string name="label_history_no_data">Your first data point will appear tonight. Privamatic records your score once a day.</string>
     <string name="label_history_tap_prompt">Tap a point to see details</string>
     <string name="label_history_selected_score">Score: %1$d</string>
     <string name="label_history_clear">Clear history</string>

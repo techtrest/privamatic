@@ -31,6 +31,7 @@ class BootReceiver : BroadcastReceiver() {
 
         PrivacyWidgetProvider.schedulePeriodicUpdates(context)
         PrivacyWidgetProvider.requestImmediateUpdate(context)
+        SnapshotReceiver.scheduleMidnightSnapshot(context)
     }
 
     companion object {

@@ -23,6 +23,8 @@ class MainActivity : ComponentActivity() {
         // Enable edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        SnapshotReceiver.scheduleMidnightSnapshot(this)
+
         setContent {
             PrivacyWidgetTheme {
                 val onboardingPrefs = remember { OnboardingPreferences(applicationContext) }

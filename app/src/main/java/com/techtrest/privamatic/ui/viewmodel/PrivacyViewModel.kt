@@ -10,7 +10,6 @@ import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.ScoreHistoryRepository
 import com.techtrest.privamatic.data.TrustedAppsAdjuster
 import com.techtrest.privamatic.data.TrustedAppsRepository
-import com.techtrest.privamatic.data.model.CheckDeduction
 import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.PrivacySnapshot
@@ -162,10 +161,6 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         val trusted = trustedAppsRepository.trustedPackages.first()
         val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
         _scoreHistory.value = scoreHistoryRepository.recordScore(adjustedScore.score)
-        val deductions = adjustedScore.issues
-            .filter { it.pointDeduction > 0 }
-            .map { CheckDeduction(checkName = it.check.name, points = it.pointDeduction) }
-        snapshotRepository.recordSnapshot(adjustedScore.score, deductions)
         _historySnapshots.value = snapshotRepository.getSnapshots(_selectedFilter.value)
         _scanState.value = PrivacyScanState.Success(adjustedScore)
     }
