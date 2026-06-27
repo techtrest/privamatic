@@ -82,6 +82,13 @@ enum class PrivacyCheck(
         description = R.string.privacy_check_security_patch_description,
         recommendation = R.string.privacy_check_security_patch_recommendation
     ),
+    OLD_TARGET_SDK(
+        displayName = R.string.privacy_check_old_target_sdk_name,
+        pointDeduction = 1,
+        description = R.string.privacy_check_old_target_sdk_description,
+        recommendation = R.string.privacy_check_old_target_sdk_recommendation,
+        isInformational = false
+    ),
 
     // ===== NETWORK & TRACKING PRIVACY =====
     VPN_CONNECTION(

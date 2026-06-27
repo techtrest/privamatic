@@ -1,6 +1,7 @@
 package com.techtrest.privamatic.data.scanner
 
 import android.content.Context
+import com.techtrest.privamatic.data.TrustedAppsRepository
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
 import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.data.model.PrivacyScore
@@ -42,6 +43,8 @@ class PrivacyScanner(private val context: Context) {
         issues.add(systemServicesChecker.checkDeviceAdminApps())
         issues.add(installedAppsChecker.checkBackgroundLocationApps())
         issues.add(securityChecker.checkSecurityPatch())
+        val trusted = TrustedAppsRepository(context).trustedPackages.first()
+        issues.add(installedAppsChecker.checkOldTargetSdkApps(trusted))
 
         // ===== NETWORK & TRACKING PRIVACY CHECKS =====
         issues.add(networkChecker.checkVpnConnection())

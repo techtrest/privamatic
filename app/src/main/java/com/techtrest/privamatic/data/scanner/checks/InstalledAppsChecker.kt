@@ -168,6 +168,64 @@ class InstalledAppsChecker(private val context: Context) {
         }
     }
 
+    // ===== OLD TARGET SDK CHECK =====
+
+    fun checkOldTargetSdkApps(trustedPackages: Set<String> = emptySet()): PrivacyIssue {
+        return try {
+            @Suppress("DEPRECATION")
+            val packages = packageManager.getInstalledPackages(0)
+
+            val oldSdkApps = packages.filter { packageInfo ->
+                val targetSdk = packageInfo.applicationInfo?.targetSdkVersion ?: return@filter false
+                targetSdk <= OLD_SDK_THRESHOLD &&
+                    !PackageManagerUtil.isSystemApp(packageManager, packageInfo.packageName) &&
+                    packageInfo.packageName !in trustedPackages
+            }
+
+            if (oldSdkApps.isEmpty()) {
+                PrivacyIssue(
+                    check = PrivacyCheck.OLD_TARGET_SDK,
+                    isSecure = true,
+                    currentStatus = "All apps target modern Android versions",
+                    technicalDetails = "Checked ${packages.size} installed packages"
+                )
+            } else {
+                val count = oldSdkApps.size
+                val appNames = oldSdkApps.map {
+                    PackageManagerUtil.getAppName(packageManager, it.packageName)
+                }
+                val flaggedPackages = oldSdkApps.map { it.packageName }
+                val pointDeduction = minOf(count * PrivacyCheck.OLD_TARGET_SDK.pointDeduction, MAX_DEDUCTION)
+
+                val statusText = when {
+                    count <= 3 -> "$count app(s) target old Android versions: ${appNames.joinToString(", ")}"
+                    else -> {
+                        val shown = appNames.take(3).joinToString(", ")
+                        val remaining = count - 3
+                        "$count app(s) target old Android versions: $shown and $remaining more"
+                    }
+                }
+
+                PrivacyIssue(
+                    check = PrivacyCheck.OLD_TARGET_SDK,
+                    isSecure = false,
+                    currentStatus = statusText,
+                    technicalDetails = "Apps targeting API ≤ $OLD_SDK_THRESHOLD: ${flaggedPackages.joinToString(", ")}",
+                    customPointDeduction = pointDeduction,
+                    flaggedPackages = flaggedPackages
+                )
+            }
+        } catch (e: Exception) {
+            if (BuildConfig.DEBUG) Log.e(TAG, "Error checking old target SDK apps", e)
+            PrivacyIssue(
+                check = PrivacyCheck.OLD_TARGET_SDK,
+                isSecure = true,
+                currentStatus = "Unable to determine",
+                technicalDetails = "Error: ${e.message}"
+            )
+        }
+    }
+
     // ===== HELPER METHODS =====
 
     /**
@@ -238,5 +296,7 @@ class InstalledAppsChecker(private val context: Context) {
 
     companion object {
         private const val TAG = "InstalledAppsChecker"
+        private const val OLD_SDK_THRESHOLD = 22
+        private const val MAX_DEDUCTION = 5
     }
 }

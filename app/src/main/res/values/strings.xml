@@ -104,6 +104,10 @@
     <string name="privacy_check_security_patch_name">Security Patch</string>
     <string name="privacy_check_security_patch_description">Your device\'s security patch date shows when it last received fixes for known vulnerabilities. Older patches leave your device exposed to security risks that have since been fixed.</string>
     <string name="privacy_check_security_patch_recommendation">Check for system updates in Settings > System > System update. If no updates are available, your device may be end-of-life and no longer supported by the manufacturer.</string>
+    <string name="privacy_check_old_target_sdk_name">Outdated App Compatibility</string>
+    <string name="privacy_check_old_target_sdk_description">Apps targeting Android 5.1 or older bypass modern permission controls and can access sensitive data without asking you first</string>
+    <string name="privacy_check_old_target_sdk_recommendation">Review and uninstall apps targeting old Android versions. These apps were built before runtime permissions existed and may silently access contacts, storage, and other sensitive data. Look for updated versions or modern alternatives.</string>
+
     <string name="status_security_patch_current">Up to date</string>
     <string name="status_security_patch_unknown">Unable to determine patch date</string>
     <string name="fmt_security_patch_ageing">Ageing — %d months old</string>

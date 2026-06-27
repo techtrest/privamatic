@@ -31,7 +31,8 @@ enum class PrivacyCategory(
             PrivacyCheck.ACCESSIBILITY_SERVICE,
             PrivacyCheck.DEVICE_ADMIN,
             PrivacyCheck.BACKGROUND_LOCATION_APPS,
-            PrivacyCheck.SECURITY_PATCH
+            PrivacyCheck.SECURITY_PATCH,
+            PrivacyCheck.OLD_TARGET_SDK
         )
     ),
     NETWORK_PRIVACY(
