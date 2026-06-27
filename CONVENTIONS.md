@@ -4,8 +4,9 @@
 - **Package**: `com.techtrest.privamatic` (NOT `com.techtrest.privacywidget` — grep before prompting)
 - **Source root**: `app/src/main/java/com/techtrest/privamatic/`
 - **Project path**: `~/Local App Projects/Privamatic` — always quote in shell commands (spaces)
-- **Build command**: `JAVA_HOME=/opt/android-studio/jbr ./gradlew compileDebugKotlin`
-  — system JDK 25 breaks Kotlin parser; never omit JAVA_HOME prefix
+- **Build command (MiniPC)**: `JAVA_HOME=/opt/android-studio/jbr ./gradlew compileDebugKotlin`
+- **Build command (Framework laptop)**: `JAVA_HOME=/home/techtrest/.local/share/android-studio/jbr ./gradlew compileDebugKotlin`
+  — system JDK 25 breaks Kotlin parser on both machines; never omit JAVA_HOME prefix
 - **Default branch**: `master` (not `main`)
 
 ## File Structure
