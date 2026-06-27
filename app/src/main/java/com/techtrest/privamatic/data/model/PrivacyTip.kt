@@ -146,7 +146,7 @@ object PrivacyTips {
         PrivacyTip(
             id = "biometric_good",
             title = "Your Biometric Security",
-            content = "Your biometric data stays in your device\u2019s secure enclave. It never leaves the chip, isn\u2019t sent to any server, and can\u2019t be extracted even by the OS itself.",
+            content = "Your biometric data stays in your device\u2019s secure enclave. It never leaves the chip, isn\u2019t sent to any server, and can\u2019t be extracted even by the OS itself. For higher-risk situations — such as border crossings or legal proceedings — a strong PIN offers additional protection, as it cannot be physically compelled.",
             layer = TipLayer.REINFORCING,
             relatedCheck = PrivacyCheck.BIOMETRIC_AUTH
         ),

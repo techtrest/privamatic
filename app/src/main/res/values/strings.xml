@@ -70,7 +70,7 @@
 
     <string name="privacy_check_biometric_auth_name">Biometric Authentication</string>
     <string name="privacy_check_biometric_auth_description">Biometric authentication should be enabled for added security</string>
-    <string name="privacy_check_biometric_auth_recommendation">Set up fingerprint or face unlock in Settings > Security > Biometrics for convenient and secure authentication.</string>
+    <string name="privacy_check_biometric_auth_recommendation">Set up fingerprint or face unlock in Settings > Security > Biometrics for convenient and secure authentication. Note: if you regularly cross borders or face legal proceedings, a PIN-only setup offers stronger protection as it cannot be physically compelled.</string>
 
     <string name="privacy_check_usb_debugging_name">USB Debugging</string>
     <string name="privacy_check_usb_debugging_description">USB debugging should be disabled for security</string>
