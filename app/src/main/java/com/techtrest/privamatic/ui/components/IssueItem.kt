@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
@@ -160,7 +161,7 @@ fun IssueItem(
                                     )
                                 }
                             }
-                        } else if (!effectivelySecure) {
+                        } else if (!effectivelySecure || issue.check == PrivacyCheck.BIOMETRIC_AUTH) {
                             Text(
                                 text = stringResource(R.string.label_issue_recommendation),
                                 style = MaterialTheme.typography.labelLarge,
