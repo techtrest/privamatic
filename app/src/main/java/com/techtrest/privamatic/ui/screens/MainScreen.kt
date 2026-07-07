@@ -411,8 +411,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     if (showSettingsScreen) {
         SettingsScreen(
             onBackClick = { showSettingsScreen = false },
-            onClearHistory = { viewModel.clearHistory() },
-            onInsertFakeHistory = { viewModel.insertFakeHistory() }
+            onClearHistory = { viewModel.clearHistory() }
         )
     }
 

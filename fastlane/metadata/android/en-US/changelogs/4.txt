@@ -1,0 +1,8 @@
+- Privacy Score History: daily score tracking with line chart and filter strip (1W/1M/3M/6M/1Y/All)
+- SDK Fingerprinting: detect known tracker SDKs embedded in your apps, powered by Exodus Privacy
+- Score Breakdown tab: see exactly which checks cost you points
+- Outdated App check: flags apps targeting Android 5.1 or older (pre-runtime permissions)
+- Security patch scoring: tiered deductions based on how outdated your security patch is
+- Biometric check: now shows PIN advantage note for high-risk situations
+- Tab reorder: SDK tab promoted to second position
+- Trusted Apps tab: renamed from Apps for clarity

@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.OnboardingPreferences
 import com.techtrest.privamatic.data.maintenance.MaintenanceManager
@@ -55,7 +53,6 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     onBackClick: () -> Unit,
     onClearHistory: () -> Unit,
-    onInsertFakeHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -211,12 +208,6 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            }
-
-            if (BuildConfig.DEBUG) {
-                Button(onClick = onInsertFakeHistory) {
-                    Text("Insert fake history (debug)")
                 }
             }
         }
