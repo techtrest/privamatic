@@ -1,5 +1,6 @@
 package com.techtrest.privamatic.ui.screens
 
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.techtrest.privamatic.R
@@ -208,10 +210,17 @@ private fun SdkSummaryHeader(
             text = pluralStringResource(R.plurals.plural_sdk_apps_found, appCount, appCount),
             style = MaterialTheme.typography.titleSmall
         )
+        val context = LocalContext.current
         Text(
             text = stringResource(R.string.label_sdk_attribution),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable {
+                val intent = Intent(Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://exodus-privacy.eu.org"))
+                context.startActivity(intent)
+            }
         )
     }
 }
