@@ -975,4 +975,34 @@
     <string name="label_history_clear_confirm">This will permanently delete all score history. This cannot be undone.</string>
     <string name="copy_history_empty_deductions">No deductions recorded for this scan.</string>
 
+    <!-- ============================================================ -->
+    <!-- SDK FINGERPRINTING TAB -->
+    <!-- ============================================================ -->
+    <string name="details_tab_sdk">SDK</string>
+    <string name="label_sdk_scan_button">Scan for tracker SDKs</string>
+    <string name="label_sdk_scanning">Scanning app manifests…</string>
+    <string name="fmt_sdk_last_scan">Last scan: %1$s</string>
+    <string name="copy_sdk_intro">Detect known tracking SDKs embedded in your installed apps by fingerprinting their manifest components.</string>
+    <string name="label_sdk_attribution">Powered by Exodus Privacy tracker database</string>
+    <string name="label_sdk_empty">No tracker SDKs found in your apps</string>
+    <string name="label_sdk_error">SDK scan failed. Please try again.</string>
+    <string name="label_sdk_expand">Show trackers</string>
+    <string name="label_sdk_collapse">Hide trackers</string>
+    <string name="tracker_category_advertisement_name">Advertisement</string>
+    <string name="tracker_category_analytics_name">Analytics</string>
+    <string name="tracker_category_location_name">Location</string>
+    <string name="tracker_category_profiling_name">Profiling</string>
+    <string name="tracker_category_identification_name">Identification</string>
+    <string name="tracker_category_crash_reporting_name">Crash reporting</string>
+
+    <plurals name="plural_sdk_apps_found">
+        <item quantity="one">1 app with tracker SDKs</item>
+        <item quantity="other">%d apps with tracker SDKs</item>
+    </plurals>
+
+    <plurals name="plural_sdk_tracker_count">
+        <item quantity="one">1 tracker</item>
+        <item quantity="other">%d trackers</item>
+    </plurals>
+
 </resources>

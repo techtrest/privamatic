@@ -8,6 +8,7 @@ import com.techtrest.privamatic.data.HistoryFilter
 import com.techtrest.privamatic.data.PrivacySnapshotRepository
 import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.ScoreHistoryRepository
+import com.techtrest.privamatic.data.SdkScanRepository
 import com.techtrest.privamatic.data.TrustedAppsAdjuster
 import com.techtrest.privamatic.data.TrustedAppsRepository
 import com.techtrest.privamatic.data.model.FlaggedApp
@@ -15,8 +16,10 @@ import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.PrivacySnapshot
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.data.model.ScoreHistory
+import com.techtrest.privamatic.data.model.SdkScanResult
 import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.data.scanner.PrivacyScanner
+import com.techtrest.privamatic.data.scanner.SdkScanner
 import com.techtrest.privamatic.data.util.PackageManagerUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -38,12 +41,20 @@ sealed class PrivacyScanState {
     data class Error(val message: String) : PrivacyScanState()
 }
 
+sealed class SdkScanState {
+    data object Idle : SdkScanState()
+    data object Scanning : SdkScanState()
+    data object Error : SdkScanState()
+}
+
 class PrivacyViewModel(application: Application) : AndroidViewModel(application) {
 
     private val privacyScanner = PrivacyScanner(application)
     private val scoreHistoryRepository = ScoreHistoryRepository(application)
     private val snapshotRepository = PrivacySnapshotRepository(application)
     private val trustedAppsRepository = TrustedAppsRepository(application)
+    private val sdkScanner = SdkScanner(application)
+    private val sdkScanRepository = SdkScanRepository(application)
 
     private val _scanState = MutableStateFlow<PrivacyScanState>(PrivacyScanState.Idle)
     val scanState: StateFlow<PrivacyScanState> = _scanState.asStateFlow()
@@ -85,6 +96,12 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     private val _historySnapshots = MutableStateFlow<List<PrivacySnapshot>>(emptyList())
     val historySnapshots: StateFlow<List<PrivacySnapshot>> = _historySnapshots.asStateFlow()
 
+    private val _sdkScanResults = MutableStateFlow<SdkScanResult?>(null)
+    val sdkScanResults: StateFlow<SdkScanResult?> = _sdkScanResults.asStateFlow()
+
+    private val _sdkScanState = MutableStateFlow<SdkScanState>(SdkScanState.Idle)
+    val sdkScanState: StateFlow<SdkScanState> = _sdkScanState.asStateFlow()
+
     private var currentScanJob: Job? = null
     private var isInitialLoad = true
 
@@ -98,6 +115,37 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
             }
         }
         performScan()
+        loadSdkResults()
+    }
+
+    fun runSdkScan() {
+        if (_sdkScanState.value is SdkScanState.Scanning) return
+        viewModelScope.launch {
+            _sdkScanState.value = SdkScanState.Scanning
+            try {
+                val trusted = trustedAppsRepository.trustedPackages.first()
+                val findings = sdkScanner.scan(trusted)
+                val result = SdkScanResult(
+                    timestamp = System.currentTimeMillis(),
+                    findings = findings
+                )
+                sdkScanRepository.save(result)
+                _sdkScanResults.value = result
+                _sdkScanState.value = SdkScanState.Idle
+            } catch (_: Exception) {
+                _sdkScanState.value = SdkScanState.Error
+            }
+        }
+    }
+
+    fun loadSdkResults() {
+        viewModelScope.launch {
+            sdkScanRepository.load()?.let { cached ->
+                if (_sdkScanResults.value == null) {
+                    _sdkScanResults.value = cached
+                }
+            }
+        }
     }
 
     fun performScan() {

@@ -46,8 +46,10 @@ import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyCategory
 import com.techtrest.privamatic.data.model.PrivacyScore
+import com.techtrest.privamatic.data.model.SdkScanResult
 import com.techtrest.privamatic.ui.components.CategoryGroup
 import com.techtrest.privamatic.ui.navigation.DetailsTab
+import com.techtrest.privamatic.ui.viewmodel.SdkScanState
 
 @Composable
 fun DetailsScreen(
@@ -60,6 +62,9 @@ fun DetailsScreen(
     onDismissAppsBanner: () -> Unit,
     onTrustApp: (String) -> Unit,
     onUntrustApp: (String) -> Unit,
+    sdkScanResult: SdkScanResult?,
+    sdkScanState: SdkScanState,
+    onRunSdkScan: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -85,6 +90,11 @@ fun DetailsScreen(
                 onDismissAppsBanner = onDismissAppsBanner,
                 onTrustApp = onTrustApp,
                 onUntrustApp = onUntrustApp
+            )
+            DetailsTab.SDK -> SdkTabContent(
+                scanResult = sdkScanResult,
+                scanState = sdkScanState,
+                onRunScan = onRunSdkScan
             )
             DetailsTab.BREAKDOWN -> BreakdownTab(privacyScore = privacyScore)
         }
