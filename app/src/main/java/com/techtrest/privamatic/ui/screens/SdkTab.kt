@@ -2,6 +2,7 @@ package com.techtrest.privamatic.ui.screens
 
 import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -356,8 +357,12 @@ private fun TrackerRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            categories.forEach { category ->
-                CategoryChip(category = category)
+            if (categories.isEmpty()) {
+                UnknownCategoryChip()
+            } else {
+                categories.forEach { category ->
+                    CategoryChip(category = category)
+                }
             }
         }
     }
@@ -391,6 +396,23 @@ private fun CategoryChip(
             text = stringResource(category.displayNameRes),
             style = MaterialTheme.typography.labelSmall,
             color = contentColor,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun UnknownCategoryChip(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Text(
+            text = stringResource(R.string.label_sdk_category_unknown),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }

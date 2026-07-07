@@ -988,6 +988,7 @@
     <string name="label_sdk_error">SDK scan failed. Please try again.</string>
     <string name="label_sdk_expand">Show trackers</string>
     <string name="label_sdk_collapse">Hide trackers</string>
+    <string name="label_sdk_category_unknown">Unknown</string>
     <string name="tracker_category_advertisement_name">Advertisement</string>
     <string name="tracker_category_analytics_name">Analytics</string>
     <string name="tracker_category_location_name">Location</string>
