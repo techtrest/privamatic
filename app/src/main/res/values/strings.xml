@@ -892,7 +892,7 @@
     <string name="label_onboarding_step_scan">Scan</string>
     <string name="label_onboarding_step_score">Score</string>
     <string name="label_onboarding_step_act">Act</string>
-    <string name="copy_onboarding_how_it_works_body">45+ checks across security, tracking, and your apps. Weighted by real-world impact.</string>
+    <string name="copy_onboarding_how_it_works_body">50+ checks across security, tracking, and your apps. Weighted by real-world impact.</string>
     <string name="copy_onboarding_pragmatic_headline">The pragmatic approach.</string>
     <string name="copy_onboarding_pragmatic_body">Privacy that fits real life. No paranoia, no impossible standards — just meaningful improvements.</string>
 

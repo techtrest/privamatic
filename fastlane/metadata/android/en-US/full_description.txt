@@ -2,7 +2,7 @@ Privamatic audits your Android device and gives you a clear 0-100 privacy score 
 
 Whether you're just starting to take privacy seriously or you're already running GrapheneOS, Privamatic shows you exactly what's exposing your data and how to fix it, step by step.
 
-45+ automated checks cover system security (screen lock, encryption, USB debugging, biometrics, security patch date), network privacy (VPN, Private DNS, Wi-Fi scanning), surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants), and default apps (browser, keyboard, launcher, email). Correctly handles de-Googled setups — microG is detected and not penalised, GrapheneOS sandboxed Play is recognised, and checks that don't apply to your setup are automatically skipped.
+50+ automated checks cover system security (screen lock, encryption, USB debugging, biometrics, security patch date), network privacy (VPN, Private DNS, Wi-Fi scanning), surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants), and default apps (browser, keyboard, launcher, email). Correctly handles de-Googled setups — microG is detected and not penalised, GrapheneOS sandboxed Play is recognised, and checks that don't apply to your setup are automatically skipped.
 
 Trusted Apps — whitelist FOSS apps that legitimately use accessibility, notification, or location permissions. Toggle an app as trusted and its score penalty is removed instantly. You decide what you trust.
 
