@@ -10,8 +10,8 @@ import com.techtrest.privamatic.R
 
 enum class DetailsTab(@StringRes val label: Int) {
     CHECKS(R.string.details_tab_checks),
-    APPS(R.string.details_tab_apps),
     SDK(R.string.details_tab_sdk),
+    APPS(R.string.details_tab_apps),
     BREAKDOWN(R.string.tab_breakdown)
 }
 

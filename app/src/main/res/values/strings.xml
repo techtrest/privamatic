@@ -24,7 +24,7 @@
     <string name="details_sub_tab_surveillance">Surveillance</string>
     <string name="details_sub_tab_security">Security</string>
     <string name="details_tab_checks">Checks</string>
-    <string name="details_tab_apps">Apps</string>
+    <string name="details_tab_apps">Trusted</string>
 
     <!-- ============================================================ -->
     <!-- SCORE RATINGS -->
