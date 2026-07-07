@@ -5,12 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.techtrest.privamatic.PrivacyWidgetProvider
 import com.techtrest.privamatic.data.HistoryFilter
+import com.techtrest.privamatic.data.PrivacyDatabase
 import com.techtrest.privamatic.data.PrivacySnapshotRepository
 import com.techtrest.privamatic.data.QuickWinsDetector
 import com.techtrest.privamatic.data.ScoreHistoryRepository
 import com.techtrest.privamatic.data.SdkScanRepository
 import com.techtrest.privamatic.data.TrustedAppsAdjuster
 import com.techtrest.privamatic.data.TrustedAppsRepository
+import com.techtrest.privamatic.data.model.CheckDeduction
 import com.techtrest.privamatic.data.model.FlaggedApp
 import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.PrivacySnapshot
@@ -205,6 +207,31 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             snapshotRepository.clearAll()
             _historySnapshots.value = emptyList()
+        }
+    }
+
+    fun insertFakeHistory() {
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val dayMs = 24L * 60 * 60 * 1000
+            val fakeScores = listOf(72, 75, 71, 78, 80, 77, 83, 85, 82, 88, 91, 93, 89, 93)
+            val fakeDeductions = listOf(
+                CheckDeduction("USB_DEBUGGING", 4),
+                CheckDeduction("DEVELOPER_OPTIONS", 1),
+                CheckDeduction("VPN_CONNECTION", 7)
+            )
+            val dao = PrivacyDatabase.getInstance(getApplication()).snapshotDao()
+            fakeScores.forEachIndexed { i, score ->
+                val timestamp = now - (fakeScores.size - 1 - i) * dayMs
+                dao.insert(
+                    PrivacySnapshot(
+                        timestamp = timestamp,
+                        score = score,
+                        deductionsJson = CheckDeduction.encode(fakeDeductions)
+                    )
+                )
+            }
+            loadHistory()
         }
     }
 

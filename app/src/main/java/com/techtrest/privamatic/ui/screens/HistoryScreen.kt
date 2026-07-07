@@ -47,13 +47,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectTapGestures
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.HistoryFilter
@@ -64,6 +66,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.sqrt
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -331,15 +334,17 @@ private fun ScoreLineChart(
         val canvasWidthPx = with(density) { maxWidth.toPx() }
         val canvasHeightPx = with(density) { 280.dp.toPx() }
         val paddingPx = with(density) { 24.dp.toPx() }
-        val dotRadiusPx = with(density) { 8.dp.toPx() }
-        val selectedRadiusPx = with(density) { 12.dp.toPx() }
+        val dotRadiusPx = with(density) { 4.dp.toPx() }
+        val selectedRadiusPx = with(density) { 6.dp.toPx() }
         val touchRadiusPx = with(density) { 24.dp.toPx() }
         val strokeWidthPx = with(density) { 2.dp.toPx() }
 
-        val chartLeft = paddingPx
+        val yAxisLabelWidthPx = with(density) { 28.dp.toPx() }
+        val chartLeft = yAxisLabelWidthPx
         val chartRight = canvasWidthPx - paddingPx
-        val chartBottom = canvasHeightPx - paddingPx
-        val chartTop = paddingPx
+        val xAxisLabelHeightPx = with(density) { 20.dp.toPx() }
+        val chartBottom = canvasHeightPx - paddingPx - xAxisLabelHeightPx
+        val chartTop = with(density) { 32.dp.toPx() }
         val chartW = chartRight - chartLeft
         val chartH = chartBottom - chartTop
 
@@ -350,6 +355,15 @@ private fun ScoreLineChart(
                          else chartLeft + (i.toFloat() / (n - 1)) * chartW
                 val y = chartBottom - ((snapshot.score - yMin) / scoreRange) * chartH
                 Offset(x, y)
+            }
+        }
+
+        val textPaint = remember {
+            android.graphics.Paint().apply {
+                textSize = with(density) { 10.sp.toPx() }
+                color = android.graphics.Color.GRAY
+                textAlign = android.graphics.Paint.Align.RIGHT
+                isAntiAlias = true
             }
         }
 
@@ -374,12 +388,22 @@ private fun ScoreLineChart(
             var gridScore = (yMin / 10) * 10
             while (gridScore <= yMax) {
                 val y = chartBottom - ((gridScore - yMin) / scoreRange) * chartH
-                drawLine(
-                    color = gridColor,
-                    start = Offset(chartLeft, y),
-                    end = Offset(chartRight, y),
-                    strokeWidth = strokeWidthPx / 2f
-                )
+                if (y >= chartTop && y <= chartBottom) {
+                    drawLine(
+                        color = gridColor,
+                        start = Offset(chartLeft, y),
+                        end = Offset(chartRight, y),
+                        strokeWidth = strokeWidthPx / 2f
+                    )
+                    drawIntoCanvas { canvas ->
+                        canvas.nativeCanvas.drawText(
+                            gridScore.toString(),
+                            chartLeft - with(density) { 6.dp.toPx() },
+                            y + textPaint.textSize / 3f,
+                            textPaint
+                        )
+                    }
+                }
                 gridScore += 10
             }
 
