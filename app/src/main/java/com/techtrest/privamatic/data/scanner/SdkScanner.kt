@@ -110,7 +110,11 @@ class SdkScanner(private val context: Context) {
             val signatures = tracker.optString("code_signature")
                 .split('|')
                 .map { it.trim() }
-                .filter { it.length >= MIN_SIGNATURE_LENGTH && it.count { c -> c == '.' } >= MIN_SIGNATURE_DOTS }
+                .filter {
+                    it.length >= MIN_SIGNATURE_LENGTH &&
+                        it.count { c -> c == '.' } >= MIN_SIGNATURE_DOTS &&
+                        !it.startsWith(".")
+                }
             if (signatures.isEmpty()) continue
 
             val categoriesArray = tracker.optJSONArray("categories")
@@ -138,6 +142,6 @@ class SdkScanner(private val context: Context) {
     companion object {
         private const val TRACKERS_ASSET = "trackers.json"
         private const val MIN_SIGNATURE_LENGTH = 8
-        private const val MIN_SIGNATURE_DOTS = 2
+        private const val MIN_SIGNATURE_DOTS = 1
     }
 }
