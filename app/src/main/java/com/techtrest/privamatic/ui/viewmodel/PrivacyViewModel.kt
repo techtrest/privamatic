@@ -113,6 +113,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
                 val rawScore = _rawPrivacyScore.value ?: return@collect
                 if (_scanState.value is PrivacyScanState.Scanning) return@collect
                 _scanState.value = PrivacyScanState.Success(TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted))
+                PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
             }
         }
         performScan()
