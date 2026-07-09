@@ -21,6 +21,7 @@ import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.data.scanner.PrivacyScanner
 import com.techtrest.privamatic.data.scanner.SdkScanner
 import com.techtrest.privamatic.data.util.PackageManagerUtil
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -167,6 +168,8 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
                 }
 
                 PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _scanState.value = PrivacyScanState.Error(
                     e.message ?: "An unknown error occurred during scanning"
