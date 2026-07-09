@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
@@ -311,6 +312,7 @@ private fun ScoreLineChart(
     val primaryColor = MaterialTheme.colorScheme.primary
     val gridColor = MaterialTheme.colorScheme.outlineVariant
     val selectedColor = MaterialTheme.colorScheme.secondary
+    val axisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     val scores = snapshots.map { it.score }
     val rawMax = scores.max() + 5
@@ -358,10 +360,10 @@ private fun ScoreLineChart(
             }
         }
 
-        val textPaint = remember {
+        val textPaint = remember(axisLabelColor) {
             android.graphics.Paint().apply {
                 textSize = with(density) { 10.sp.toPx() }
-                color = android.graphics.Color.GRAY
+                color = axisLabelColor.toArgb()
                 textAlign = android.graphics.Paint.Align.RIGHT
                 isAntiAlias = true
             }

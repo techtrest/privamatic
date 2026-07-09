@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.techtrest.privamatic.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtrest.privamatic.data.PrivacyTipSelector
@@ -252,7 +251,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
                                         text = stringResource(R.string.label_main_scanning),
-                                        fontSize = 16.sp,
+                                        style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -350,14 +349,14 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                 ) {
                                     Text(
                                         text = stringResource(R.string.label_main_error),
-                                        fontSize = 20.sp,
+                                        style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.error
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = state.message,
-                                        fontSize = 14.sp,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
