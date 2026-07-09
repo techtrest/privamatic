@@ -1,5 +1,6 @@
 package com.techtrest.privamatic.ui.screens
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
@@ -219,7 +220,11 @@ private fun SdkSummaryHeader(
             modifier = Modifier.clickable {
                 val intent = Intent(Intent.ACTION_VIEW,
                     android.net.Uri.parse("https://exodus-privacy.eu.org"))
-                context.startActivity(intent)
+                try {
+                    context.startActivity(intent)
+                } catch (_: ActivityNotFoundException) {
+                    // No browser installed — nothing to fall back to, tap is a no-op.
+                }
             }
         )
     }
