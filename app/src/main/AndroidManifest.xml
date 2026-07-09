@@ -46,6 +46,14 @@
         </receiver>
 
         <receiver
+            android:name=".PackageReplacedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".SnapshotReceiver"
             android:exported="false">
             <intent-filter>

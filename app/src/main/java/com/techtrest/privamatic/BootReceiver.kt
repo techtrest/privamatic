@@ -22,7 +22,10 @@ class BootReceiver : BroadcastReceiver() {
 
         if (BuildConfig.DEBUG) Log.d(TAG, "Boot completed – restoring widget alarm and requesting immediate update")
 
-        // Only bother if at least one widget is actually placed on the home screen
+        // Snapshot recording must resume regardless of whether a widget is placed
+        SnapshotReceiver.scheduleMidnightSnapshot(context)
+
+        // Only bother with widget updates if at least one widget is actually placed on the home screen
         val manager = AppWidgetManager.getInstance(context)
         val ids = manager.getAppWidgetIds(
             ComponentName(context, PrivacyWidgetProvider::class.java)
@@ -31,7 +34,6 @@ class BootReceiver : BroadcastReceiver() {
 
         PrivacyWidgetProvider.schedulePeriodicUpdates(context)
         PrivacyWidgetProvider.requestImmediateUpdate(context)
-        SnapshotReceiver.scheduleMidnightSnapshot(context)
     }
 
     companion object {
