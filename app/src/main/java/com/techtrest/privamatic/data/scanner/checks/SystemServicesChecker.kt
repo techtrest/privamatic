@@ -137,28 +137,32 @@ class SystemServicesChecker(private val context: Context) {
                 )
             }
 
-            // Whitelist for legitimate apps (password managers, accessibility tools)
+            // Whitelist of exact package names for legitimate password managers.
+            // System accessibility tools (TalkBack, Samsung accessibility, etc.) are
+            // deliberately not listed here — PackageManagerUtil.isSystemApp() below
+            // already excludes them without relying on string matching.
             val whitelist = setOf(
-                "com.x8bit.bitwarden",
-                "com.bitwarden.authenticator",
-                "keepass",
-                "keepassdroid",
-                "com.kunzisoft.keepass",
-                "org.pwsafe.android",
-                "com.lastpass",
-                "com.onepassword",
-                "com.dashlane",
-                "org.thoughtcrime.securesms", // Signal
-                "com.google.android.marvin.talkback", // TalkBack
-                "com.samsung.accessibility", // Samsung accessibility
-                "android.accessibility" // System accessibility
+                "com.x8bit.bitwarden", // Bitwarden
+                "com.bitwarden.authenticator", // Bitwarden Authenticator
+                "com.kunzisoft.keepass.libre", // KeePassDX (F-Droid)
+                "com.kunzisoft.keepass.free", // KeePassDX (Play, free)
+                "com.kunzisoft.keepass.pro", // KeePassDX (Play, pro)
+                "com.android.keepass", // KeePassDroid
+                "keepass2android.keepass2android", // Keepass2Android
+                "keepass2android.keepass2android_nonet", // Keepass2Android offline
+                "org.pwsafe.android", // Password Safe
+                "com.lastpass.lpandroid", // LastPass
+                "com.onepassword.android", // 1Password (current package)
+                "com.agilebits.onepassword", // 1Password (legacy package)
+                "com.dashlane", // Dashlane
+                "org.thoughtcrime.securesms" // Signal
             )
 
             val servicePackages = enabledServices.map { it.resolveInfo.serviceInfo.packageName }.distinct()
 
             // Filter out whitelisted and system apps
             val suspiciousServices = servicePackages.filter { pkg ->
-                !PackageManagerUtil.isSystemApp(packageManager, pkg) && !whitelist.any { pkg.contains(it, ignoreCase = true) }
+                !PackageManagerUtil.isSystemApp(packageManager, pkg) && pkg !in whitelist
             }
 
             if (suspiciousServices.isEmpty()) {
