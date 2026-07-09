@@ -78,7 +78,7 @@ class NetworkSecurityChecker(private val context: Context) {
                             )
                         }
                     }
-                    "opportunistic" -> PrivacyIssue(
+                    "opportunistic", null -> PrivacyIssue(
                         check = PrivacyCheck.PRIVATE_DNS,
                         isSecure = true,
                         currentStatus = "Automatic mode (opportunistic)",
@@ -94,7 +94,7 @@ class NetworkSecurityChecker(private val context: Context) {
                         check = PrivacyCheck.PRIVATE_DNS,
                         isSecure = false,
                         currentStatus = "Not configured",
-                        technicalDetails = if (privateDnsMode == null) "Not configured" else "Unknown mode: $privateDnsMode"
+                        technicalDetails = "Unknown mode: $privateDnsMode"
                     )
                 }
 
