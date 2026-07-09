@@ -8,6 +8,10 @@
         <!-- Exclude privacy-sensitive preference stores from Google Cloud Backup -->
         <exclude domain="sharedpref" path="ad_id_prefs"/>
         <exclude domain="file" path="datastore/maintenance_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/sdk_scan_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/trusted_apps_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/quick_win_dismissals.preferences_pb"/>
+        <exclude domain="sharedpref" path="score_history"/>
         <exclude domain="database" path="privacy_history.db"/>
         <exclude domain="database" path="privacy_history.db-shm"/>
         <exclude domain="database" path="privacy_history.db-wal"/>
@@ -15,6 +19,10 @@
     <device-transfer>
         <exclude domain="sharedpref" path="ad_id_prefs"/>
         <exclude domain="file" path="datastore/maintenance_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/sdk_scan_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/trusted_apps_prefs.preferences_pb"/>
+        <exclude domain="file" path="datastore/quick_win_dismissals.preferences_pb"/>
+        <exclude domain="sharedpref" path="score_history"/>
         <exclude domain="database" path="privacy_history.db"/>
         <exclude domain="database" path="privacy_history.db-shm"/>
         <exclude domain="database" path="privacy_history.db-wal"/>
