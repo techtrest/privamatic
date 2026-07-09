@@ -11,7 +11,8 @@ enum class PrivacyCheck(
     val actionType: ActionType? = null,
     @StringRes val actionLabel: Int? = null,
     val packageName: String? = null,
-    val isInformational: Boolean = false
+    val isInformational: Boolean = false,
+    val maxDeduction: Int? = null
 ) {
     // ===== SYSTEM SECURITY =====
     SCREEN_LOCK(
@@ -87,7 +88,8 @@ enum class PrivacyCheck(
         pointDeduction = 1,
         description = R.string.privacy_check_old_target_sdk_description,
         recommendation = R.string.privacy_check_old_target_sdk_recommendation,
-        isInformational = false
+        isInformational = false,
+        maxDeduction = 5
     ),
 
     // ===== NETWORK & TRACKING PRIVACY =====
@@ -453,5 +455,15 @@ enum class PrivacyCheck(
         pointDeduction = 0,
         description = R.string.privacy_check_default_assistant_description,
         recommendation = R.string.privacy_check_default_assistant_recommendation
-    )
+    );
+
+    /**
+     * Total deduction for [count] flagged packages, clamped to [maxDeduction] when set.
+     * The single formula used by both scan-time checkers and TrustedAppsAdjuster —
+     * they must never compute per-package deductions independently.
+     */
+    fun cappedDeductionFor(count: Int): Int {
+        val total = count * pointDeduction
+        return maxDeduction?.let { minOf(total, it) } ?: total
+    }
 }

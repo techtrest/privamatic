@@ -138,7 +138,7 @@ class InstalledAppsChecker(private val context: Context) {
             } else {
                 val count = appsWithBgLocation.size
                 val appNames = appsWithBgLocation.map { PackageManagerUtil.getAppName(packageManager, it) }
-                val pointDeduction = count * PrivacyCheck.BACKGROUND_LOCATION_APPS.pointDeduction
+                val pointDeduction = PrivacyCheck.BACKGROUND_LOCATION_APPS.cappedDeductionFor(count)
                 val statusText = when {
                     count <= 3 -> "$count app(s) have background location: ${appNames.joinToString(", ")}"
                     else -> {
@@ -170,16 +170,18 @@ class InstalledAppsChecker(private val context: Context) {
 
     // ===== OLD TARGET SDK CHECK =====
 
-    fun checkOldTargetSdkApps(trustedPackages: Set<String> = emptySet()): PrivacyIssue {
+    fun checkOldTargetSdkApps(): PrivacyIssue {
         return try {
             @Suppress("DEPRECATION")
             val packages = packageManager.getInstalledPackages(0)
 
+            // Trust filtering deliberately NOT applied here — the raw result must list
+            // all non-system old-SDK apps so TrustedAppsAdjuster (the single owner of
+            // trust logic) can recompute deductions when apps are trusted or untrusted.
             val oldSdkApps = packages.filter { packageInfo ->
                 val targetSdk = packageInfo.applicationInfo?.targetSdkVersion ?: return@filter false
                 targetSdk <= OLD_SDK_THRESHOLD &&
-                    !PackageManagerUtil.isSystemApp(packageManager, packageInfo.packageName) &&
-                    packageInfo.packageName !in trustedPackages
+                    !PackageManagerUtil.isSystemApp(packageManager, packageInfo.packageName)
             }
 
             if (oldSdkApps.isEmpty()) {
@@ -195,7 +197,7 @@ class InstalledAppsChecker(private val context: Context) {
                     PackageManagerUtil.getAppName(packageManager, it.packageName)
                 }
                 val flaggedPackages = oldSdkApps.map { it.packageName }
-                val pointDeduction = minOf(count * PrivacyCheck.OLD_TARGET_SDK.pointDeduction, MAX_DEDUCTION)
+                val pointDeduction = PrivacyCheck.OLD_TARGET_SDK.cappedDeductionFor(count)
 
                 val statusText = when {
                     count <= 3 -> "$count app(s) target old Android versions: ${appNames.joinToString(", ")}"
@@ -297,6 +299,5 @@ class InstalledAppsChecker(private val context: Context) {
     companion object {
         private const val TAG = "InstalledAppsChecker"
         private const val OLD_SDK_THRESHOLD = 22
-        private const val MAX_DEDUCTION = 5
     }
 }

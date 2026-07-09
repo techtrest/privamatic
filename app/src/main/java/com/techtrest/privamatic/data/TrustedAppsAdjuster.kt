@@ -16,6 +16,6 @@ object TrustedAppsAdjuster {
         if (issue.isSecure || issue.flaggedPackages.isEmpty()) return issue
         val untrustedCount = issue.flaggedPackages.count { it !in trusted }
         if (untrustedCount == issue.flaggedPackages.size) return issue
-        return issue.copy(customPointDeduction = untrustedCount * issue.check.pointDeduction)
+        return issue.copy(customPointDeduction = issue.check.cappedDeductionFor(untrustedCount))
     }
 }
