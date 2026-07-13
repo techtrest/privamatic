@@ -1,0 +1,8 @@
+- Fixed: trusting an app could incorrectly lower your privacy score
+- Fixed: SDK scan results and trusted apps list were included in Google cloud backup
+- Fixed: Private DNS check wrongly penalised devices using the secure default setting
+- Fixed: score history and widget alarm now restored correctly after reboot and app updates
+- Fixed: widget now updates immediately when you trust or untrust an app
+- Fixed: Exodus Privacy link no longer crashes on devices without a browser
+- SDK tab now detects 37 additional tracker SDKs including Braze, AppLovin, and mParticle
+- Accessibility service whitelist now uses exact package names to prevent spoofing
