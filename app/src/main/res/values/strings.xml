@@ -143,7 +143,7 @@
 
     <string name="privacy_check_google_play_services_name">Google Play Services</string>
     <string name="privacy_check_google_play_services_description">Google Play Services has deep access to your device and enables extensive tracking and data collection across all apps</string>
-    <string name="privacy_check_google_play_services_recommendation">Consider using GrapheneOS to run Google Play Services with limited access, significantly reducing its reach on your device.</string>
+    <string name="privacy_check_google_play_services_recommendation">Consider using GrapheneOS to run Google Play Services with limited access, or if using Stock Android (where you can\'t remove it as easily) consider disabling it if possible. Both options significantly reduce its reach on your device.</string>
     <string name="privacy_check_google_play_services_action">Open App Settings</string>
     <string name="status_google_play_services_microg">MicroG installed (privacy-friendly replacement)</string>
     <string name="status_google_play_services_sandboxed">Installed (sandboxed)</string>
@@ -153,7 +153,7 @@
     <!-- ============================================================ -->
     <string name="privacy_check_default_browser_name">Default Browser</string>
     <string name="privacy_check_default_browser_description">Privacy-invasive browser detected as default</string>
-    <string name="privacy_check_default_browser_recommendation">Switch to a privacy-respecting browser like Brave, Firefox, or DuckDuckGo Browser. Available on Google Play Store.</string>
+    <string name="privacy_check_default_browser_recommendation">Switch to a privacy-respecting browser like Brave, Firefox, or DuckDuckGo Browser. Available on Google Play Store and some on F-Droid.</string>
     <string name="privacy_check_default_browser_action">Change Default</string>
 
     <string name="privacy_check_default_keyboard_name">Default Keyboard</string>
@@ -168,12 +168,12 @@
 
     <string name="privacy_check_default_email_name">Default Email</string>
     <string name="privacy_check_default_email_description">Privacy-invasive email app detected as default</string>
-    <string name="privacy_check_default_email_recommendation">Switch to a privacy-respecting email client like K-9 Mail, FairEmail, or ProtonMail. Available on Google Play Store.</string>
+    <string name="privacy_check_default_email_recommendation">Switch to a privacy-respecting email client like K-9 Mail, FairEmail, or ProtonMail. Available on F-Droid (Recommended) and the Google Play Store.</string>
     <string name="privacy_check_default_email_action">Change Default</string>
 
     <string name="privacy_check_default_launcher_name">Default Launcher</string>
     <string name="privacy_check_default_launcher_description">Privacy-invasive launcher detected as default</string>
-    <string name="privacy_check_default_launcher_recommendation">Switch to a privacy-respecting launcher like Lawnchair, KISS Launcher, or Neo Launcher. Available on Google Play Store.</string>
+    <string name="privacy_check_default_launcher_recommendation">Switch to a privacy-respecting launcher like Lawnchair, KISS Launcher, or Neo Launcher. Available on F-Droid (Recommended) and the Google Play Store.</string>
     <string name="privacy_check_default_launcher_action">Change Default</string>
 
     <!-- ============================================================ -->
@@ -191,7 +191,7 @@
 
     <string name="privacy_check_google_maps_name">Google Maps</string>
     <string name="privacy_check_google_maps_description">Google Maps app is installed on your device</string>
-    <string name="privacy_check_google_maps_recommendation">Consider uninstalling Google Maps and switching to OsmAnd or Organic Maps.</string>
+    <string name="privacy_check_google_maps_recommendation">Consider uninstalling Google Maps and switching to OsmAnd or CoMaps.</string>
     <string name="privacy_check_google_maps_action">Open App Settings</string>
 
     <string name="privacy_check_google_photos_name">Google Photos</string>
@@ -476,7 +476,7 @@
     <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need\n\nAfter completing this, rescan to see your improved score!</string>
 
     <!-- ============================================================ -->
-    <!-- QUICK WIN TYPES — DISABLE WIFI SCANNING -->
+    <!-- QUICK WIN TYPES — DISABLE WI-FI SCANNING -->
     <!-- ============================================================ -->
     <string name="quick_win_disable_wifi_scanning_title">Disable Background Wi-Fi Scanning</string>
     <string name="quick_win_disable_wifi_scanning_description">Your phone is visible to nearby tracking systems even with Wi-Fi off</string>
@@ -602,7 +602,7 @@
     <string name="tip_no_biometric_title">Adding Biometrics</string>
     <string name="tip_no_biometric_content">Adding biometric authentication makes it faster to unlock your device, which means you\'re more likely to keep a strong PIN. Convenience and security working together.</string>
 
-    <string name="tip_wifi_scanning_title">Background WiFi Scanning</string>
+    <string name="tip_wifi_scanning_title">Background Wi-Fi Scanning</string>
     <string name="tip_wifi_scanning_content">Even with Wi-Fi off, your phone broadcasts signals that shops and malls use to track how long you visit and how often you return. Disabling background scanning makes you invisible to these systems with no impact on daily use.</string>
 
     <string name="tip_find_my_device_title">Find My Device Trade-off</string>
@@ -630,7 +630,7 @@
     <string name="tip_private_dns_good_content">Your Private DNS works across every app — even ones that try to use their own tracking domains. It\'s one of the most effective single settings on your device.</string>
 
     <string name="tip_vpn_good_title">Your VPN Protection</string>
-    <string name="tip_vpn_good_content">Your VPN encrypts all traffic leaving your device. On public WiFi, others on the network only see encrypted data going to one server — nothing useful.</string>
+    <string name="tip_vpn_good_content">Your VPN encrypts all traffic leaving your device. On public Wi-Fi, others on the network only see encrypted data going to one server — nothing useful.</string>
 
     <string name="tip_ad_id_good_title">Ad Tracking Blocked</string>
     <string name="tip_ad_id_good_content">Without an Advertising ID, apps can still show ads, but they can\'t easily build a cross-app profile of your interests and behavior. The ads just become less targeted.</string>
@@ -644,8 +644,8 @@
     <string name="tip_photo_metadata_title">Hidden Photo Data</string>
     <string name="tip_photo_metadata_content">Photos contain hidden metadata — GPS coordinates, timestamp, device model. Before sharing sensitive photos, strip this data using apps like Scrambled Exif. It takes one tap.</string>
 
-    <string name="tip_public_wifi_title">Public WiFi Risks</string>
-    <string name="tip_public_wifi_content">Public WiFi is easy to impersonate. Anyone can create a network called \'Airport_Free_WiFi\'. A VPN makes this a non-issue since all your traffic is encrypted regardless.</string>
+    <string name="tip_public_wifi_title">Public Wi-Fi Risks</string>
+    <string name="tip_public_wifi_content">Public Wi-Fi is easy to impersonate. Anyone can create a network called \'Airport_Free_Wi-Fi\'. A VPN makes this a non-issue since all your traffic is encrypted regardless.</string>
 
     <string name="tip_browser_fingerprinting_title">Browser Fingerprinting</string>
     <string name="tip_browser_fingerprinting_content">Browser fingerprinting identifies you by combining your screen size, fonts, timezone, and GPU into a unique signature. This works even without cookies. Firefox has the best built-in protections.</string>
@@ -656,14 +656,14 @@
     <string name="tip_free_vpns_title">The Cost of Free VPNs</string>
     <string name="tip_free_vpns_content">Free VPNs need revenue — most sell your browsing data or inject ads. Privacy-respecting VPNs like Mullvad or Proton VPN cost a few euros per month and have audited no-log policies.</string>
 
-    <string name="tip_wifi_probes_title">WiFi Probe Requests</string>
-    <string name="tip_wifi_probes_content">Your phone broadcasts WiFi probe requests — searching for known networks by name. This can reveal places you\'ve been. Disabling auto-join for old networks reduces this leakage.</string>
+    <string name="tip_wifi_probes_title">Wi-Fi Probe Requests</string>
+    <string name="tip_wifi_probes_content">Your phone broadcasts Wi-Fi probe requests — searching for known networks by name. This can reveal places you\'ve been. Disabling auto-join for old networks reduces this leakage.</string>
 
     <string name="tip_clipboard_title">Clipboard Privacy</string>
     <string name="tip_clipboard_content">Clipboard data is accessible to any foreground app on older Android versions. Use your password manager\'s autofill instead of copying passwords — it\'s both safer and faster.</string>
 
     <string name="tip_device_name_title">Your Device Name</string>
-    <string name="tip_device_name_content">Your device name is visible to anyone nearby scanning Bluetooth or WiFi Direct. Setting it to something generic like \'Phone\' prevents it from identifying you personally.</string>
+    <string name="tip_device_name_content">Your device name is visible to anyone nearby scanning Bluetooth or Wi-Fi Direct. Setting it to something generic like \'Phone\' prevents it from identifying you personally.</string>
 
     <string name="tip_delete_account_first_title">Uninstall Isn\'t Enough</string>
     <string name="tip_delete_account_first_content">Deleting an app removes it from your device but not from the company\'s servers. Use \'Delete Account\' in the app first, then uninstall. GDPR gives EU residents the legal right to request deletion.</string>
@@ -809,7 +809,7 @@
     <!-- ============================================================ -->
     <!-- ABOUT DIALOG -->
     <!-- ============================================================ -->
-    <string name="copy_about_body">Privamatic gives your Android device a privacy score — a clear, actionable number that shows exactly how exposed you are and what to fix.\n\nAll analysis runs entirely on your device. No internet connection, no telemetry, no data collection, no accounts, no cloud sync. Everything stays with you — always.\n\nBuilt for privacy-conscious users, developers, and anyone who wants to understand and improve their Android privacy — no technical knowledge required.\n\nOpen source. Available on F-Droid. No Google Play Store — intentionally.</string>
+    <string name="copy_about_body">Privamatic gives your Android device a privacy score — a clear, actionable number that shows exactly how exposed you are and what to fix.\n\nAll analysis runs entirely on your device. No internet connection, no telemetry, no data collection, no accounts, no cloud sync. Everything stays with you — always.\n\nBuilt for privacy-conscious users, developers, and anyone who wants to understand and improve their Android privacy — no technical knowledge required.\n\nOpen source. Available on F-Droid. No Google Play Store — intentionally.\n\nLicence: GNU GENERAL PUBLIC LICENSE VERSION 3 (GPLV3)\n\n</string>
     <string name="label_about_close">Close</string>
 
     <!-- ============================================================ -->
