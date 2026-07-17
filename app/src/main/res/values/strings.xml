@@ -594,7 +594,7 @@
     <string name="tip_no_private_dns_content">Without Private DNS, your DNS lookups are sent unencrypted to your provider. Enabling it takes 30 seconds and blocks known trackers across all your apps automatically.</string>
 
     <string name="tip_google_maps_title">Google Maps Trade-off</string>
-    <string name="tip_google_maps_content">Google Maps is excellent, but it logs every search, route, and visit to your Google account. If you mainly need offline navigation, Organic Maps offers that without any tracking.</string>
+    <string name="tip_google_maps_content">Google Maps is excellent, but it logs every search, route, and visit to your Google account. If you mainly need offline navigation, CoMaps offers that without any tracking.</string>
 
     <string name="tip_notification_listener_title">Notification Access Risks</string>
     <string name="tip_notification_listener_content">Apps with notification access can read all your notifications — messages, banking alerts, verification codes. Worth reviewing whether each app truly needs this level of access.</string>
