@@ -78,7 +78,7 @@ object PrivacyTips {
         PrivacyTip(
             id = "google_maps",
             title = "Google Maps Trade-off",
-            content = "Google Maps is excellent, but it logs every search, route, and visit to your Google account. If you mainly need offline navigation, Organic Maps offers that without any tracking.",
+            content = "Google Maps is excellent, but it logs every search, route, and visit to your Google account. If you mainly need offline navigation, CoMaps and OsmAND offers that without any tracking.",
             layer = TipLayer.ISSUE_AWARE,
             relatedCheck = PrivacyCheck.GOOGLE_MAPS
         ),
