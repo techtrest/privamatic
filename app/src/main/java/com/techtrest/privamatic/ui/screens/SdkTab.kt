@@ -355,16 +355,26 @@ private fun TrackerRow(
     categories: List<TrackerCategory>,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Name is unweighted, so it is measured first and takes its natural
+        // width; the FlowRow gets weight(1f) and only claims the width left
+        // over. This is the inverse of the earlier buggy layout (weighted
+        // name, unweighted chips), where the chips measured first and
+        // squeezed the name into a character-wrapping sliver.
         Text(
             text = trackerName,
             style = MaterialTheme.typography.bodySmall
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(1f),
+            // End alignment keeps chips right-aligned on every wrapped row.
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (categories.isEmpty()) {
