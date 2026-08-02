@@ -355,17 +355,13 @@ private fun TrackerRow(
     categories: List<TrackerCategory>,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = trackerName,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f)
+            style = MaterialTheme.typography.bodySmall
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
