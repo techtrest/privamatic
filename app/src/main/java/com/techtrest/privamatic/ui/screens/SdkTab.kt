@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +71,11 @@ fun SdkTabContent(
     onRunScan: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Expand state is hoisted here, keyed by package name, so it survives a
+    // row being disposed and recomposed as it scrolls out of and back into
+    // the LazyColumn's retention window.
+    var expandedPackages by rememberSaveable { mutableStateOf(setOf<String>()) }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
@@ -100,7 +106,17 @@ fun SdkTabContent(
                     item(key = "empty") { SdkEmptyState() }
                 } else {
                     items(scanResult.findings, key = { it.packageName }) { app ->
-                        SdkAppRow(app = app)
+                        SdkAppRow(
+                            app = app,
+                            isExpanded = app.packageName in expandedPackages,
+                            onToggleExpand = {
+                                expandedPackages = if (app.packageName in expandedPackages) {
+                                    expandedPackages - app.packageName
+                                } else {
+                                    expandedPackages + app.packageName
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -249,6 +265,8 @@ private fun SdkEmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun SdkAppRow(
     app: AppSdkFindings,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -257,8 +275,6 @@ private fun SdkAppRow(
             context.packageManager.getApplicationIcon(app.packageName).toBitmap()
         } catch (_: Exception) { null }
     }
-
-    var isExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -275,7 +291,7 @@ private fun SdkAppRow(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded }
+                    .clickable { onToggleExpand() }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
