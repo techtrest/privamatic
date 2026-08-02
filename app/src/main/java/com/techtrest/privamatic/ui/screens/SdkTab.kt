@@ -1,6 +1,7 @@
 package com.techtrest.privamatic.ui.screens
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
@@ -41,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +64,30 @@ import com.techtrest.privamatic.ui.viewmodel.SdkScanState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+/**
+ * Process-lifetime cache of app icons, keyed by package name. Each icon is
+ * decoded from PackageManager at most once; shared across all SdkAppRow
+ * instances so scrolling a re-entered row is instant.
+ */
+private object SdkIconCache {
+    private val cache = ConcurrentHashMap<String, Bitmap>()
+
+    fun get(packageName: String): Bitmap? = cache[packageName]
+
+    fun load(context: Context, packageName: String): Bitmap? {
+        cache[packageName]?.let { return it }
+        return try {
+            context.packageManager.getApplicationIcon(packageName).toBitmap()
+                .also { cache[packageName] = it }
+        } catch (_: Exception) {
+            null
+        }
+    }
+}
 
 @Composable
 fun SdkTabContent(
@@ -252,10 +278,18 @@ private fun SdkAppRow(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val iconBitmap: Bitmap? = remember(app.packageName) {
-        try {
-            context.packageManager.getApplicationIcon(app.packageName).toBitmap()
-        } catch (_: Exception) { null }
+    // Load the icon off the main thread so composition never blocks while
+    // scrolling. Seed with the cached bitmap (if any) to avoid a flicker when
+    // a row re-enters composition.
+    val iconBitmap: Bitmap? by produceState<Bitmap?>(
+        initialValue = SdkIconCache.get(app.packageName),
+        key1 = app.packageName
+    ) {
+        if (value == null) {
+            value = withContext(Dispatchers.IO) {
+                SdkIconCache.load(context, app.packageName)
+            }
+        }
     }
 
     var isExpanded by remember { mutableStateOf(false) }
@@ -279,9 +313,10 @@ private fun SdkAppRow(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (iconBitmap != null) {
+                val bitmap = iconBitmap
+                if (bitmap != null) {
                     Image(
-                        painter = BitmapPainter(iconBitmap.asImageBitmap()),
+                        painter = BitmapPainter(bitmap.asImageBitmap()),
                         contentDescription = stringResource(R.string.fmt_app_icon_cd, app.appName),
                         modifier = Modifier
                             .size(40.dp)
