@@ -28,7 +28,7 @@ class SdkScanner(private val context: Context) {
      * Scans all user-installed apps for known tracker SDKs.
      * Runs on a background dispatcher; safe to call from the main thread.
      */
-    suspend fun scan(trustedPackages: Set<String>): List<AppSdkFindings> =
+    suspend fun scan(): List<AppSdkFindings> =
         withContext(Dispatchers.Default) {
             val trackers = loadTrackerDefinitions()
             val packageManager = context.packageManager
@@ -37,7 +37,6 @@ class SdkScanner(private val context: Context) {
                 .asSequence()
                 .mapNotNull { it.packageName }
                 .filter { it != context.packageName }
-                .filter { it !in trustedPackages }
                 .filter { !PackageManagerUtil.isSystemApp(packageManager, it) }
                 .mapNotNull { packageName -> scanApp(packageManager, packageName, trackers) }
                 .sortedWith(compareByDescending<AppSdkFindings> { it.trackers.size }.thenBy { it.appName })

@@ -125,8 +125,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             _sdkScanState.value = SdkScanState.Scanning
             try {
-                val trusted = trustedAppsRepository.trustedPackages.first()
-                val findings = sdkScanner.scan(trusted)
+                val findings = sdkScanner.scan()
                 val result = SdkScanResult(
                     timestamp = System.currentTimeMillis(),
                     findings = findings
