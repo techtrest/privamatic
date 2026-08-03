@@ -18,8 +18,13 @@ class GoogleServicesChecker(private val context: Context) {
      * Check Google Play Services installation state.
      * Stage 1: Not installed → isSecure = true
      * Stage 2: MicroG present → isSecure = true (privacy-friendly replacement)
-     * Stage 3: MATCH_SYSTEM_ONLY succeeds → isSecure = false (genuinely privileged)
-     * Stage 4: MATCH_SYSTEM_ONLY throws → isSecure = true (sandboxed)
+     * Stage 3: Installed but disabled → isSecure = true (cannot run, so cannot track)
+     * Stage 4: MATCH_SYSTEM_ONLY succeeds → isSecure = false (genuinely privileged)
+     * Stage 5: MATCH_SYSTEM_ONLY throws → isSecure = true (sandboxed)
+     *
+     * Disabling GMS via Settings is the only removal route on non-rooted stock
+     * Android, so it is scored the same as absent. getApplicationInfo() still
+     * resolves a disabled package, hence the explicit `enabled` check.
      *
      * Note: appInfo.flags and UID cannot be trusted in isolation —
      * GrapheneOS sets FLAG_SYSTEM on sandboxed GMS, and LineageOS real GMS can have
@@ -55,6 +60,12 @@ class GoogleServicesChecker(private val context: Context) {
                     isSecure = true,
                     currentStatus = context.getString(R.string.status_google_play_services_microg),
                     technicalDetails = "MicroG is an open-source Google Play Services replacement"
+                )
+                !appInfo.enabled -> PrivacyIssue(
+                    check = PrivacyCheck.GOOGLE_PLAY_SERVICES,
+                    isSecure = true,
+                    currentStatus = context.getString(R.string.status_google_play_services_disabled),
+                    technicalDetails = "$GMS_PACKAGE is installed but disabled and cannot run"
                 )
                 isRealSystemApp -> PrivacyIssue(
                     check = PrivacyCheck.GOOGLE_PLAY_SERVICES,

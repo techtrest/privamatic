@@ -147,6 +147,7 @@
     <string name="privacy_check_google_play_services_action">Open App Settings</string>
     <string name="status_google_play_services_microg">MicroG installed (privacy-friendly replacement)</string>
     <string name="status_google_play_services_sandboxed">Installed (sandboxed)</string>
+    <string name="status_google_play_services_disabled">Installed but disabled</string>
 
     <!-- ============================================================ -->
     <!-- PRIVACY CHECKS — DEFAULT APPS -->
