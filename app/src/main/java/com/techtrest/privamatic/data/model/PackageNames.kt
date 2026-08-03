@@ -46,4 +46,18 @@ object PackageNames {
     const val TIKTOK = "com.zhiliaoapp.musically"
     const val TWITTER = "com.twitter.android"
     const val REDDIT = "com.reddit.frontpage"
+
+    /**
+     * Alternative packages that carry the same privacy exposure as their primary app,
+     * keyed by the primary package name used in [PrivacyCheck.packageName]. A check
+     * matches if the primary package *or* any of its variants is installed.
+     *
+     * Additive lookup only — checks absent from this map are unaffected.
+     * Messenger Lite is deliberately omitted: it is discontinued and delisted.
+     */
+    val VARIANT_PACKAGES: Map<String, List<String>> = mapOf(
+        WHATSAPP to listOf("com.whatsapp.w4b"),      // WhatsApp Business
+        INSTAGRAM to listOf("com.instagram.lite"),   // Instagram Lite
+        FACEBOOK to listOf("com.facebook.lite")      // Facebook Lite
+    )
 }

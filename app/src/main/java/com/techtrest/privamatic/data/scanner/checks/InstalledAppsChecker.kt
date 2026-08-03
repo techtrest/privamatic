@@ -243,15 +243,26 @@ class InstalledAppsChecker(private val context: Context) {
             )
 
         return try {
-            val isInstalled = isAppInstalled(packageName)
-            val isSystem = isInstalled && PackageManagerUtil.isSystemApp(packageManager, packageName)
+            // Some apps ship under several package names with identical privacy
+            // exposure (WhatsApp Business, Instagram/Facebook Lite). Checks with no
+            // VARIANT_PACKAGES entry resolve to the primary package alone, unchanged.
+            val candidates = listOf(packageName) + PackageNames.VARIANT_PACKAGES[packageName].orEmpty()
+            val installedPackage = candidates.firstOrNull { isAppInstalled(it) }
+            val isSystem = installedPackage != null &&
+                PackageManagerUtil.isSystemApp(packageManager, installedPackage)
 
             PrivacyIssue(
                 check = check,
-                isSecure = !isInstalled,
+                isSecure = installedPackage == null,
                 isSystemApp = isSystem,
-                currentStatus = if (isInstalled) "Installed" else "Not installed",
-                technicalDetails = "Package: $packageName"
+                currentStatus = if (installedPackage != null) "Installed" else "Not installed",
+                // Name the package that actually matched, so support can tell a
+                // variant install from the standard app
+                technicalDetails = when {
+                    installedPackage != null -> "Package: $installedPackage"
+                    candidates.size > 1 -> "Checked: ${candidates.joinToString(", ")}"
+                    else -> "Package: $packageName"
+                }
             )
         } catch (e: Exception) {
             if (BuildConfig.DEBUG) Log.e(TAG, "Error checking ${context.getString(check.displayName)}", e)
