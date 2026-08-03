@@ -98,8 +98,8 @@ object PrivacyTips {
         ),
         PrivacyTip(
             id = "wifi_scanning",
-            title = "Background WiFi Scanning",
-            content = "Background WiFi scanning lets Google collect nearby network names even when WiFi is off. Disabling it has no noticeable impact on daily use.",
+            title = "Background Wi-Fi Scanning",
+            content = "Background Wi-Fi scanning lets Google collect nearby network names even when Wi-Fi is off. Disabling it has no noticeable impact on daily use.",
             layer = TipLayer.ISSUE_AWARE,
             relatedCheck = PrivacyCheck.WIFI_SCANNING
         ),
@@ -160,7 +160,7 @@ object PrivacyTips {
         PrivacyTip(
             id = "vpn_good",
             title = "Your VPN Protection",
-            content = "Your VPN encrypts all traffic leaving your device. On public WiFi, others on the network only see encrypted data going to one server \u2014 nothing useful.",
+            content = "Your VPN encrypts all traffic leaving your device. On public Wi-Fi, others on the network only see encrypted data going to one server \u2014 nothing useful.",
             layer = TipLayer.REINFORCING,
             relatedCheck = PrivacyCheck.VPN_CONNECTION
         ),
@@ -191,8 +191,8 @@ object PrivacyTips {
         ),
         PrivacyTip(
             id = "public_wifi",
-            title = "Public WiFi Risks",
-            content = "Public WiFi is easy to impersonate. Anyone can create a network called \u2018Airport_Free_WiFi\u2019. A VPN makes this a non-issue since all your traffic is encrypted regardless.",
+            title = "Public Wi-Fi Risks",
+            content = "Public Wi-Fi is easy to impersonate. Anyone can create a network called \u2018Airport_Free_Wi-Fi\u2019. A VPN makes this a non-issue since all your traffic is encrypted regardless.",
             layer = TipLayer.EDUCATIONAL
         ),
         PrivacyTip(
@@ -215,8 +215,8 @@ object PrivacyTips {
         ),
         PrivacyTip(
             id = "wifi_probes",
-            title = "WiFi Probe Requests",
-            content = "Your phone broadcasts WiFi probe requests \u2014 searching for known networks by name. This can reveal places you\u2019ve been. Disabling auto-join for old networks reduces this leakage.",
+            title = "Wi-Fi Probe Requests",
+            content = "Your phone broadcasts Wi-Fi probe requests \u2014 searching for known networks by name. This can reveal places you\u2019ve been. Disabling auto-join for old networks reduces this leakage.",
             layer = TipLayer.EDUCATIONAL
         ),
         PrivacyTip(
@@ -228,7 +228,7 @@ object PrivacyTips {
         PrivacyTip(
             id = "device_name",
             title = "Your Device Name",
-            content = "Your device name is visible to anyone nearby scanning Bluetooth or WiFi Direct. Setting it to something generic like \u2018Phone\u2019 prevents it from identifying you personally.",
+            content = "Your device name is visible to anyone nearby scanning Bluetooth or Wi-Fi Direct. Setting it to something generic like \u2018Phone\u2019 prevents it from identifying you personally.",
             layer = TipLayer.EDUCATIONAL
         ),
         PrivacyTip(
