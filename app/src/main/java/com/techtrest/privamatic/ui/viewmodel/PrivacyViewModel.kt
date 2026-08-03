@@ -224,6 +224,8 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
 
     private fun computeFlaggedApps(rawScore: PrivacyScore): List<FlaggedApp> {
         val pm = getApplication<Application>().packageManager
+        // Resolved once per scan — the companion-package lookup must not run per package
+        val isMicroGInstalled = PackageManagerUtil.isMicroGInstalled(pm)
         return rawScore.issues
             .filter { !it.isSecure && it.flaggedPackages.isNotEmpty() }
             .flatMap { issue ->
@@ -232,7 +234,12 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
                         packageName = packageName,
                         appName = PackageManagerUtil.getAppName(pm, packageName),
                         associatedCheck = issue.check,
-                        isBlacklisted = FlaggedApp.isBlacklisted(packageName),
+                        // microG runs under Google's package name, so it matches the
+                        // "com.google." blacklist prefix despite being the privacy-
+                        // respecting replacement. Never blacklist it — the user needs
+                        // the trust toggle enabled to accept its trade-offs.
+                        isBlacklisted = FlaggedApp.isBlacklisted(packageName) &&
+                            !PackageManagerUtil.isMicroGPackage(packageName, isMicroGInstalled),
                         isSystemApp = PackageManagerUtil.isSystemApp(pm, packageName)
                     )
                 }

@@ -8,6 +8,7 @@ import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.PrivacyIssue
+import com.techtrest.privamatic.data.util.PackageManagerUtil
 
 class GoogleServicesChecker(private val context: Context) {
 
@@ -33,7 +34,7 @@ class GoogleServicesChecker(private val context: Context) {
                 null
             }
 
-            val isMicroG = isMicroG()
+            val isMicroG = PackageManagerUtil.isMicroGInstalled(packageManager)
 
             val isRealSystemApp = try {
                 packageManager.getApplicationInfo(GMS_PACKAGE, PackageManager.MATCH_SYSTEM_ONLY)
@@ -128,25 +129,9 @@ class GoogleServicesChecker(private val context: Context) {
         }
     }
 
-    private fun isMicroG(): Boolean {
-        return MICROG_COMPANION_PACKAGES.any { pkg ->
-            try {
-                packageManager.getApplicationInfo(pkg, 0)
-                true
-            } catch (e: PackageManager.NameNotFoundException) {
-                false
-            }
-        }
-    }
-
     companion object {
         private const val TAG = "GoogleServicesChecker"
         private const val GMS_PACKAGE = "com.google.android.gms"
-        private val MICROG_COMPANION_PACKAGES = listOf(
-            "org.microg.gms.self",       // microG Settings — most reliable, present in all standard builds
-            "org.microg.gms.droidguard", // SafetyNet module — optional
-            "org.microg.nlp"             // Network location provider — older builds
-        )
         private const val FIND_MY_DEVICE_PACKAGE = "com.google.android.apps.adm"
     }
 }

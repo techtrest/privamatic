@@ -34,4 +34,39 @@ object PackageManagerUtil {
             true
         }
     }
+
+    /**
+     * Whether microG is installed, detected by the presence of any of its companion
+     * packages. microG itself installs under Google's package name via signature
+     * spoofing, so [MICROG_SPOOFED_PACKAGE] alone proves nothing — the companions do.
+     *
+     * This lookup hits the PackageManager; call it once per scan, not per package.
+     */
+    fun isMicroGInstalled(packageManager: PackageManager): Boolean {
+        return MICROG_COMPANION_PACKAGES.any { pkg ->
+            try {
+                packageManager.getApplicationInfo(pkg, 0)
+                true
+            } catch (e: PackageManager.NameNotFoundException) {
+                false
+            }
+        }
+    }
+
+    /**
+     * Whether [packageName] is served by microG rather than by Google. Takes the
+     * already-resolved [isMicroGInstalled] result so callers can evaluate microG
+     * presence once and still check many packages cheaply.
+     */
+    fun isMicroGPackage(packageName: String, isMicroGInstalled: Boolean): Boolean =
+        isMicroGInstalled && packageName == MICROG_SPOOFED_PACKAGE
+
+    /** The Google package name microG installs itself under. */
+    private const val MICROG_SPOOFED_PACKAGE = "com.google.android.gms"
+
+    private val MICROG_COMPANION_PACKAGES = listOf(
+        "org.microg.gms.self",       // microG Settings — most reliable, present in all standard builds
+        "org.microg.gms.droidguard", // SafetyNet module — optional
+        "org.microg.nlp"             // Network location provider — older builds
+    )
 }
