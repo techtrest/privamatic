@@ -94,14 +94,23 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
     // Privacy tips — revision counter allows "Next tip" to trigger reselection
     var tipRevision by remember { mutableStateOf(0) }
+    // ID of the tip on screen, so reselection can exclude it and always show something new
+    val displayedTipId = remember { mutableStateOf<String?>(null) }
     val currentTip: PrivacyTip? = remember(scanState, tipRevision) {
         val score = (scanState as? PrivacyScanState.Success)?.privacyScore ?: return@remember null
-        PrivacyTipSelector.selectTip(score, tipHistory.getRecentlyShownIds())
+        PrivacyTipSelector.selectTip(
+            score,
+            tipHistory.getRecentlyShownIds(),
+            excludeId = displayedTipId.value
+        )
     }
 
     // Record the displayed tip as shown as a side effect, not inside remember
     LaunchedEffect(currentTip) {
-        currentTip?.let { tipHistory.markShown(it.id) }
+        currentTip?.let {
+            tipHistory.markShown(it.id)
+            displayedTipId.value = it.id
+        }
     }
 
     var showInfoDialog by remember { mutableStateOf(false) }
