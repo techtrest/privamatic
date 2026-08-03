@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.techtrest.privamatic.R
@@ -73,7 +74,16 @@ fun DetailsScreen(
                 Tab(
                     selected = selectedTab == tab,
                     onClick = { onTabSelected(tab) },
-                    text = { Text(stringResource(tab.label)) }
+                    // TabRow splits width evenly, so at large font scales the longest
+                    // label ("Breakdown") would wrap and make its tab taller than the
+                    // rest. Truncate instead of wrapping to keep the row even.
+                    text = {
+                        Text(
+                            text = stringResource(tab.label),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
             }
         }
