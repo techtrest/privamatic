@@ -1,0 +1,9 @@
+- Fixed: trusting an app no longer hides its tracker SDKs from the SDK tab — trust now only affects your score, never what you can see
+- Fixed: SDK tab scrolling is now much smoother
+- Fixed: long tracker names no longer wrap awkwardly in the SDK tab
+- Fixed: expanded tracker details no longer collapse when scrolling
+- Fixed: "next tip" now always shows a new tip, and educational tips appear more often
+- Fixed: microG is no longer blocked from being marked as trusted
+- Fixed: disabled Google Play Services is now correctly detected (previously only fully removed GMS was recognized)
+- Fixed: WhatsApp Business, Instagram Lite, and Facebook Lite are now correctly detected
+- Fixed: the Breakdown tab label no longer wraps at large font sizes
