@@ -1,15 +1,33 @@
-Privamatic audits your Android device and gives you a clear 0-100 privacy score based on your actual settings — not guesswork.
+Privamatic audits your Android device and gives you a clear 0–100 privacy score based on your actual settings — not guesswork.
 
 Whether you're just starting to take privacy seriously or you're already running GrapheneOS, Privamatic shows you exactly what's exposing your data and how to fix it, step by step.
 
-50+ automated checks cover system security (screen lock, encryption, USB debugging, biometrics, security patch date), network privacy (VPN, Private DNS, Wi-Fi scanning), surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants), and default apps (browser, keyboard, launcher, email). Correctly handles de-Googled setups — microG is detected and not penalised, GrapheneOS sandboxed Play is recognised, and checks that don't apply to your setup are automatically skipped.
+50+ automated checks cover:
+- System security (screen lock, encryption, USB debugging, biometrics)
+- Network privacy (VPN, Private DNS, Wi-Fi scanning)
+- Surveillance apps (Google, Meta, Microsoft, TikTok, AI assistants)
+- Default apps (browser, keyboard, launcher, email)
 
-Trusted Apps — whitelist FOSS apps that legitimately use accessibility, notification, or location permissions. Toggle an app as trusted and its score penalty is removed instantly. You decide what you trust.
+microG is detected and not penalised, GrapheneOS sandboxed Play is recognised, and checks that don't apply to your setup are automatically skipped.
 
-Quick Wins surface the easiest improvements first — each one includes plain-English instructions and a direct link to the relevant Settings page.
+Quick Wins surface the easiest improvements first — each one includes plain-English instructions and a direct link to the relevant Settings page so you never have to hunt around.
+
+Score Breakdown shows exactly which checks are costing you points, sorted by impact.
+
+Score History tracks your privacy score over time with a line chart, so you can see whether you're actually improving.
+
+SDK Fingerprinting scans your installed apps for known tracker SDKs — see exactly which apps are embedding ad networks, analytics, and profiling tools, powered by the Exodus Privacy database.
+
+Trusted Apps let you whitelist FOSS apps that legitimately use accessibility, notification, or location permissions. Trusted apps are removed from your score penalty in real time — you decide what you trust.
 
 Manual Checks remind you to periodically review location permissions, camera and microphone access, and unused apps — the things that can't be checked automatically.
 
 A home screen widget keeps your privacy score visible at a glance, with Material You theming that adapts to your wallpaper.
 
-Fully offline — no network requests, no analytics, no accounts, no cloud sync. All data stays on your device.
+Privacy is built in:
+- Fully offline — no network requests, ever
+- No accounts, no cloud sync, no analytics
+- All data stays on your device
+- Open source (GPLv3)
+
+Works on any Android 8.0+ device. Especially useful on GrapheneOS, CalyxOS, and LineageOS.
