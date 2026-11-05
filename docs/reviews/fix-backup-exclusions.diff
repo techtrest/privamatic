@@ -15,8 +15,8 @@ index 0000000..ccb1f5b
 +
 +## Hard rules
 +
-+- Device: **Pixel 8 `38041FDJH001MA` only.** Every adb call is `adb -s 38041FDJH001MA ...`.
-+  Never use the Pixel 9 (`55290DLAQ000MR`) or any other serial, not even read-only. `adb devices -l` is fine.
++- Device: **Pixel 8 `<test serial>` only.** Every adb call is `adb -s <test serial> ...`.
++  Never use the Pixel 9 (`<daily phone serial>`) or any other serial, not even read-only. `adb devices -l` is fine.
 +- Never edit, create or delete source files, Gradle files or docs. The only files you write are screenshots and
 +  check output under `docs/screens/<run>/` (the prompt gives `<run>`).
 +- Never run git (not even `git status`) and never run `gh`.
@@ -38,21 +38,21 @@ index 0000000..ccb1f5b
 +   `JAVA_HOME=/home/techtresthome/.local/share/jdk/temurin-21 ./gradlew :app:assembleDebug`
 +   Then confirm the APK is fresh: `ls -l --time-style=full-iso app/build/outputs/apk/debug/app-debug.apk` and `date`.
 +   The APK's mtime must be after the build started. If it isn't, the verdict for the whole run is FAIL (stale APK).
-+2. **Install.** `adb -s 38041FDJH001MA install -r -t app/build/outputs/apk/debug/app-debug.apk`
++2. **Install.** `adb -s <test serial> install -r -t app/build/outputs/apk/debug/app-debug.apk`
 +3. **Cold start.**
-+   `adb -s 38041FDJH001MA shell am force-stop com.techtrest.privamatic.debug`
-+   `adb -s 38041FDJH001MA logcat -c -b crash`
-+   `adb -s 38041FDJH001MA shell am start -W -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`
++   `adb -s <test serial> shell am force-stop com.techtrest.privamatic.debug`
++   `adb -s <test serial> logcat -c -b crash`
++   `adb -s <test serial> shell am start -W -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`
 +4. **Screenshots** (the ones the prompt asks for; at least one after launch):
 +   `mkdir -p docs/screens/<run>` then
-+   `adb -s 38041FDJH001MA exec-out screencap -p > docs/screens/<run>/<name>.png`
++   `adb -s <test serial> exec-out screencap -p > docs/screens/<run>/<name>.png`
 +   Open every screenshot with **Read** and describe what is actually visible: screen title, key rows and values,
 +   dialogs, error text. Do not describe what you expected to see. If the image is blank or shows another app, say so.
-+   To reach a screen, `adb -s 38041FDJH001MA shell uiautomator dump /sdcard/ui.xml` plus
-+   `adb -s 38041FDJH001MA shell cat /sdcard/ui.xml` gives tap coordinates, and `input tap` is allowed on the Pixel 8.
++   To reach a screen, `adb -s <test serial> shell uiautomator dump /sdcard/ui.xml` plus
++   `adb -s <test serial> shell cat /sdcard/ui.xml` gives tap coordinates, and `input tap` is allowed on the Pixel 8.
 +5. **Extra checks:** exactly those in the prompt.
-+6. **Crash buffer:** `adb -s 38041FDJH001MA logcat -d -b crash` (expect empty), and
-+   `adb -s 38041FDJH001MA shell pidof com.techtrest.privamatic.debug` (the app is still alive, if it should be).
++6. **Crash buffer:** `adb -s <test serial> logcat -d -b crash` (expect empty), and
++   `adb -s <test serial> shell pidof com.techtrest.privamatic.debug` (the app is still alive, if it should be).
 +
 +## Report format
 +

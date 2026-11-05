@@ -236,52 +236,51 @@ $ grep -n -E 'allowBackup|dataExtractionRules|fullBackupContent' app/src/main/An
 
 ```
 $ adb devices -l                     (first run: only the Pixel 8; the Pixel 9 was connected mid-run, second run:)
-38041FDJH001MA   device usb:7-1 product:shiba model:Pixel_8 device:shiba transport_id:1
-55290DLAQ000MR   device usb:5-1 product:tokay model:Pixel_9 device:tokay transport_id:2
+<test serial>   device usb:7-1 product:shiba model:Pixel_8 device:shiba transport_id:1
+<daily phone serial>   device usb:5-1 product:tokay model:Pixel_9 device:tokay transport_id:2
 ```
 
-**Pixel 8: `38041FDJH001MA`** (stock, dedicated test device)
+**Pixel 8** (stock, dedicated test device)
 ```
-$ adb -s 38041FDJH001MA shell getprop ro.product.model          → Pixel 8
-$ adb -s 38041FDJH001MA shell getprop ro.build.version.release  → 17   (SDK 37)
-$ adb -s 38041FDJH001MA shell getprop ro.build.fingerprint
+$ adb -s <test serial> shell getprop ro.product.model          → Pixel 8
+$ adb -s <test serial> shell getprop ro.build.version.release  → 17   (SDK 37)
+$ adb -s <test serial> shell getprop ro.build.fingerprint
 google/shiba/shiba:17/CP3A.260905.009/16091614:user/release-keys
-$ adb -s 38041FDJH001MA shell pm list packages | grep -i privamatic
+$ adb -s <test serial> shell pm list packages | grep -i privamatic
 package:com.techtrest.privamatic.debug
-$ adb -s 38041FDJH001MA shell dumpsys package com.techtrest.privamatic.debug
+$ adb -s <test serial> shell dumpsys package com.techtrest.privamatic.debug
     versionCode=9 minSdk=26 targetSdk=35   versionName=1.5.1
     installerPackageName=null   initiatingPackageName=com.android.shell
     firstInstallTime=2026-10-03 17:21:37   lastUpdateTime=2026-10-05 19:40:24
-$ adb -s 38041FDJH001MA shell dumpsys package com.techtrest.privamatic   → (empty; not installed)
-$ adb -s 38041FDJH001MA shell pm list users  → only user 0 (Owner)
+$ adb -s <test serial> shell dumpsys package com.techtrest.privamatic   → (empty; not installed)
+$ adb -s <test serial> shell pm list users  → only user 0 (Owner)
 ```
 - The F-Droid release `com.techtrest.privamatic` is **not installed** on the Pixel 8. Only the debug build is,
   installed with `adb install` (`installerPackageName=null`, initiated by the shell).
 - The UX audit recorded build CP2A.260805.005. The device is now on CP3A.260905.009, so it has taken an OTA since 2026-10-03.
 
-**Pixel 9: `55290DLAQ000MR`** (GrapheneOS, daily phone; only read-only commands were run)
+**Pixel 9** (GrapheneOS, daily phone; only read-only commands were run)
 ```
-$ adb -s 55290DLAQ000MR shell getprop ro.product.model          → Pixel 9
-$ adb -s 55290DLAQ000MR shell getprop ro.build.version.release  → 17   (SDK 37)
-$ adb -s 55290DLAQ000MR shell getprop ro.build.fingerprint
-google/tokay/tokay:17/CP3A.261005.005/2026101601:user/release-keys
-$ adb -s 55290DLAQ000MR shell pm list packages | grep -i grapheneos
+$ adb -s <daily phone serial> shell getprop ro.product.model          → Pixel 9
+$ adb -s <daily phone serial> shell getprop ro.build.version.release  → 17   (SDK 37)
+$ adb -s <daily phone serial> shell getprop ro.build.fingerprint
+(value removed: personal device detail)
+$ adb -s <daily phone serial> shell pm list packages | grep -i grapheneos
 package:app.grapheneos.info  package:app.grapheneos.gmscompat.config  package:app.grapheneos.setupwizard
-$ adb -s 55290DLAQ000MR shell pm list packages | grep -i privamatic
+$ adb -s <daily phone serial> shell pm list packages | grep -i privamatic
 package:com.techtrest.privamatic
-$ adb -s 55290DLAQ000MR shell dumpsys package com.techtrest.privamatic
+$ adb -s <daily phone serial> shell dumpsys package com.techtrest.privamatic
     versionCode=9 minSdk=26 targetSdk=35   versionName=1.5.1
     installerPackageName=org.fdroid.fdroid   initiatingPackageName=org.fdroid.fdroid
-    firstInstallTime=2026-09-15 17:26:23   lastUpdateTime=2026-10-10 13:21:46
-    User 0: installed=true    User 10/11: installed=false    (User 12: present, state not shown in trimmed output)
-$ adb -s 55290DLAQ000MR shell dumpsys package com.techtrest.privamatic.debug   → (empty; not installed)
-$ adb -s 55290DLAQ000MR shell pm list users
-  0:Owner (running)   10:No GMS   11:Tracker Profile   12:Private space (running)
+    User 0: installed=true    (other users removed: personal device detail)
+$ adb -s <daily phone serial> shell dumpsys package com.techtrest.privamatic.debug   → (empty; not installed)
+$ adb -s <daily phone serial> shell pm list users
+  (output removed: personal device detail; more than one user exists)
 ```
 - The GrapheneOS fingerprint uses the stock `google/tokay` format. It is identified by its `app.grapheneos.*` packages
-  and its numeric build id `2026101601`. `ro.grapheneos.release_version` is empty.
+  and its numeric build id. `ro.grapheneos.release_version` is empty.
 - The F-Droid release v1.5.1 (versionCode 9) is installed for user 0 only. The debug build is not installed.
-- The phone has **four users**: Owner, No GMS, Tracker Profile, and Private space. Any install or adb command
+- The phone has **more than one user**. Any install or adb command
   that leaves out `--user` can land in the wrong profile. CONVENTIONS already says to use `adb install --user 0`.
 
 No emulator was running.
@@ -355,7 +354,7 @@ suites=16 tests=146 failures=0 errors=0 skipped=0 latest_timestamp=2026-10-20T18
 8. **No Room migrations, and `exportSchema = false`.** The first schema change to `privacy_snapshots` will crash
    upgrades or wipe score history unless a migration is written. Worth a STATE.md or CLAUDE.md note.
 9. **The Pixel 9 is a multi-user daily phone** with the F-Droid build from `org.fdroid.fdroid`. The guard hook
-   should block every `adb -s 55290DLAQ000MR` command except read-only ones (`getprop`, `pm list`, `dumpsys`),
+   should block every `adb -s <daily phone serial>` command except read-only ones (`getprop`, `pm list`, `dumpsys`),
    and should reject any adb call that doesn't name a device with `-s`. With two phones attached, a bare `adb` errors out
    at best, and at worst hits the wrong phone when only one is connected.
 10. **The Pixel 8 has no F-Droid install.** The "compare against the F-Droid release" workflow in CONVENTIONS

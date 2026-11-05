@@ -32,16 +32,7 @@
       "Bash(ssh:*)",
       "Bash(scp:*)",
       "Bash(rsync:*)",
-      "Bash(sudo:*)",
-      "Bash(adb -s 55290DLAQ000MR uninstall:*)",
-      "Bash(adb -s 55290DLAQ000MR shell pm:*)",
-      "Bash(adb -s 55290DLAQ000MR shell cmd:*)",
-      "Bash(adb -s 55290DLAQ000MR shell rm:*)",
-      "Bash(adb -s 55290DLAQ000MR shell run-as:*)",
-      "Bash(adb -s 55290DLAQ000MR shell settings:*)",
-      "Bash(adb -s 55290DLAQ000MR shell input:*)",
-      "Bash(adb -s 55290DLAQ000MR shell am clear-debug-app:*)",
-      "Bash(adb -s 55290DLAQ000MR push:*)"
+      "Bash(sudo:*)"
     ]
   },
   "hooks": {
