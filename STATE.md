@@ -10,7 +10,7 @@ v1.5.2 (versionCode 10) is tagged on `2a95fa3` and pushed (`origin/master` = `2a
 The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
-- the narrowed `.claude/settings.local.json` (untracked; it now holds only the allow list);
+- the narrowed `.claude/settings.local.json` (untracked; the allow list, plus the Pixel 9 adb deny rules since 2026-11-05);
 - the inventory.
 
 CONVENTIONS.md is the single rulebook: `.cursorrules` now points to it, and the duplicate docs are deleted.
@@ -43,13 +43,14 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
-- Push `master` with the device-details cleanup.
+- Push `master` (this STATE update; the device-details cleanup is already on `origin/master`).
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
+  Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
 - After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation).
 
 ## Done (moved from Next, 2026-10-25)
 
-- [x] [S] Default Keyboard row strings moved to `strings.xml`; `.gitignore` covers `docs/store/`, `docs/store-graphics/`, `docs/audits/` (2026-10-25, run below).
+- [x] [S] Default Keyboard row strings moved to `strings.xml`; `.gitignore` covers `docs/store/`, `docs/store-graphics/`, `docs/audits/` (2026-10-25, see archive).
 - [x] [S] Step 1b — trial fix: Default Launcher row debug text. See archive.
 - [x] [S] Same leak in browser, SMS, email rows (2026-10-21, `666a434`).
 - [x] [S] `QuickWinsDetector.extractAppName` parsed UI copy; replaced by `PrivacyIssue.appName` (`666a434`).
@@ -98,7 +99,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - **Fail closed:** missing `jq`, bad JSON or a script error exit 2, which blocks. The hook command ends in `|| exit 2`, so a missing `guard.sh` blocks too.
 - **Log:** every deny and ask goes to `.claude/hook.log` (git-ignored) as timestamp, decision, rule id and the first 200 characters of the command.
 - **Test:** `bash scripts/test-hook.sh` prints one line per case and exits non-zero on any failure. It needs no device and uses fake serials from a temp file (`GUARD_DEVICES_FILE`, test only).
-- **Serials:** read from `.claude/devices.local`, parsed and never sourced. The Pixel 9 adb deny rules left `settings.json`, so the hook is the only layer for them.
+- **Serials:** read from `.claude/devices.local`, parsed and never sourced. The Pixel 9 adb deny rules moved from `settings.json` to the gitignored `settings.local.json` as a second layer, so each machine needs its own copy.
 - **Hook contract** (code.claude.com/docs/en/hooks, via Context7, 2026-10-20):
   - **Input:** JSON on stdin with `tool_name`, `tool_input` (`command`, `file_path`, …) and `cwd`.
   - **Output:** `hookSpecificOutput.permissionDecision` is `allow`, `deny`, `ask` or `defer`, with a `permissionDecisionReason`. Precedence is deny > defer > ask > allow.
@@ -115,6 +116,12 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-05 — second layer and branch cleanup (`chore/state-second-layer`, merged into local `master`)
+
+- [x] `settings.local.json`: the 9 Pixel 9 adb deny rules added, identical to those removed from `settings.json`; allow list unchanged. `git check-ignore` confirms it is ignored; `git grep` for the serials on `master` empty; `test-hook.sh` 441/441.
+- [x] Local branches deleted, `master` only left. The other 15 were merged. `design/widget-centre-change` was unmerged, not on the remote, approved by Oliver: tip `86cb2db`, restorable until git prunes it. Remote untouched. Its design docs still name the branch and tip (`docs/decisions/widget-centre-change.md:5`, `docs/screens/widget-centre-change/measurements.md:3`).
+- Not verified: Claude Code enforcing these deny rules live; trying one means attempting a write on the Pixel 9. Same rule text as before the move.
+
 ### 2026-11-05 — private device details (`chore/private-device-details`, merged into local `master`)
 
 - [x] Inventory: 62 lines in 8 tracked files held a serial or the Pixel 9 user count; now 0. `techtresthome`: 14 occurrences in 6 files, reported, not changed.
@@ -126,19 +133,4 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] 8 mutations of the new checks each turn the suite red. `compileDebugKotlin` OK; no `app/` changes.
 - Not verified: a real adb call through the new hook (no phone allowed in this run). External review not run: this run's prompt ends at self-review and merge.
 
-### 2026-10-25 — release run v1.5.2 (`release/v1.5.2`, merged into local `master`)
-
-- [x] Version 1.5.1 / 9 → 1.5.2 / 10. Changelog `changelogs/10.txt`: Oliver's four lines verbatim, "-" bullets as in `9.txt`; 456 characters (limit 500).
-- [x] What's new: one release's notes at a time, keyed by `WhatsNew.NOTES_INTRODUCED_IN` (was 8, so 1.5.0/1.5.1 dismissers would see nothing).
-      Now 10 with the same four lines as strings (card draws the bullet). 4 new tests on the shipped values: update from 8, 9 or 1.4.1 shows; fresh install doesn't.
-- [x] Gates: `compileDebugKotlin` OK; `testDebugUnitTest --rerun` 189 tests, 0 failures; `assembleRelease` OK, `app-release-unsigned.apk`,
-      badging versionCode 10 / 1.5.2, `signingConfig = null`, no signature files. Release dex has none of `debug_delta`, `debug_opacity`,
-      `debug_device_name`, `debug_clear`, `widget_debug_override` (debug dex has them, so the check works).
-- [x] Pixel 8, `install -r` over debug 1.5.1 (last seen 9): card "What's new in 1.5.2" showed with all four lines; "Got it" stored 10;
-      Back + `am start` (new activity, no force-stop) showed no card. Widget rendered "Pixel 8 / Stock Android, ↑3, 53 Fair". Crash buffer empty.
-      Restored: app drawer open, font scale 1.0 (drawer scroll position differs). Note: `install -r` itself ends the old process.
-- [x] "Switch it off completely" holds on Android 8–11: no background uses its own layout (`PrivacyWidgetProvider.kt:172-176`). Code reading only.
-- [x] Open issues #6, #7, #11: none addressed by 1.5.2. No external review: version, copy and notes only.
-- [x] Store texts (Oliver accepted both proposals): `full_description.txt` widget line 25 and backups line 30 replaced as written; merged into `master` again.
-
-Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
+Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
