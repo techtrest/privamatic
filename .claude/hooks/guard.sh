@@ -15,8 +15,6 @@ trap '__rc=$?; if [ "$__rc" -ne 0 ] && [ "$__rc" -ne 2 ]; then
 
 fail() { echo "guard.sh: $*; call blocked to be safe." >&2; exit 2; }
 
-P8=38041FDJH001MA                 # Pixel 8, test device
-P9=55290DLAQ000MR                 # Pixel 9, Oliver's daily phone
 DEBUG_PKG=com.techtrest.privamatic.debug
 GUARD_COMMIT=c837e59              # branches without it still track .claude/settings.local.json
 MAX_DEPTH=8                       # nesting of $(...), bash -c, heredocs, adb shell
@@ -26,6 +24,46 @@ PLAIN_RE='^[A-Za-z0-9_./:=,+@%~-]+'
 HOOK_DIR=${BASH_SOURCE[0]%/*}
 [[ $HOOK_DIR == "${BASH_SOURCE[0]}" ]] && HOOK_DIR=.
 LOG=${GUARD_LOG:-$HOOK_DIR/../hook.log}
+
+# ---------------------------------------------------------------- device serials
+#
+# The serials live in the gitignored .claude/devices.local (CLAUDE.md, "Devices").
+# GUARD_DEVICES_FILE overrides the path for scripts/test-hook.sh only; the hook sees Claude
+# Code's environment, so a prefix on a Bash command can't change it.
+# The file is parsed, never sourced: nothing in it can run or end the hook before a decision.
+# Anything wrong sets DEVICES_PROBLEM, and every adb call or Gradle task that targets a device
+# is then denied. An empty P8 must never reach a comparison: ser="" would match it.
+
+P8=""                             # TEST_DEVICE_SERIAL: Pixel 8, test device
+P9=""                             # DAILY_PHONE_SERIAL: Pixel 9, Oliver's daily phone
+DEVICES_PROBLEM=""
+
+serial_value() {  # serial_value VALUE: sets SERIAL to the cleaned value, or "" if it is not a serial
+  local v=$1
+  v=${v%%[[:space:]]#*}                  # trailing comment
+  v=${v#"${v%%[![:space:]]*}"}           # leading space
+  v=${v%"${v##*[![:space:]]}"}           # trailing space, CR included
+  if [[ $v == \"*\" || $v == \'*\' ]]; then v=${v:1:${#v}-2}; fi
+  if [[ $v =~ ^[A-Za-z0-9._:-]+$ ]]; then SERIAL=$v; else SERIAL=""; fi
+}
+
+load_devices() {
+  local f=${GUARD_DEVICES_FILE:-$HOOK_DIR/../devices.local} line
+  if [[ ! -f $f || ! -r $f ]]; then DEVICES_PROBLEM="the devices file is missing"; return; fi
+  while IFS= read -r line || [[ -n $line ]]; do
+    line=${line#export }
+    case $line in
+      TEST_DEVICE_SERIAL=*) serial_value "${line#*=}"; P8=$SERIAL ;;
+      DAILY_PHONE_SERIAL=*) serial_value "${line#*=}"; P9=$SERIAL ;;
+    esac
+  done < "$f"
+  if [[ -z $P8 ]]; then DEVICES_PROBLEM="TEST_DEVICE_SERIAL is empty or invalid in the devices file"
+  elif [[ -z $P9 ]]; then DEVICES_PROBLEM="DAILY_PHONE_SERIAL is empty or invalid in the devices file"
+  elif [[ $P8 == "$P9" ]]; then DEVICES_PROBLEM="both serials in the devices file are the same"
+  fi
+}
+SERIAL=""
+load_devices
 
 # ---------------------------------------------------------------- decisions
 
@@ -287,12 +325,12 @@ note_assign() {  # note_assign NAME=VALUE
   if [[ $nm == ANDROID_SERIAL ]]; then EXPORTED_SERIAL=$v; fi
 }
 
-is_cfg_path() {  # .claude/settings*.json, .claude/hooks/**, or .claude itself
+is_cfg_path() {  # .claude/settings*.json, .claude/hooks/**, .claude/devices.local, or .claude itself
   local p=$1
   [[ $p == '~'* ]] && p=${HOME-}${p#'~'}
   [[ $p != /* ]] && p=$SIM_DIR/$p
   case $p in
-    */.claude/*settings*|*/.claude/*hooks*|*/.claude|*/.claude/) return 0 ;;
+    */.claude/*settings*|*/.claude/*hooks*|*/.claude/*devices.local*|*/.claude|*/.claude/) return 0 ;;
   esac
   return 1
 }
@@ -507,7 +545,7 @@ analyze_local() {
          wr=$inplace ;;
     python|python3|perl|ruby|node)
       for a in "${A[@]:1}"; do
-        if [[ $a == *.claude/*settings* || $a == *.claude/*hooks* ]]; then
+        if [[ $a == *.claude/*settings* || $a == *.claude/*hooks* || $a == *.claude/*devices.local* ]]; then
           decide ask claude-config-write "$name touches $a (Claude settings or guard hook); confirm."; break
         fi
       done ;;
@@ -931,6 +969,12 @@ analyze_adb() {
     case "$sub ${rest[*]}" in
       "devices "|"devices -l"|"start-server "|"kill-server "|"version ") return ;;
     esac
+  fi
+  if [[ -n $DEVICES_PROBLEM ]]; then
+    decide deny devices-file "adb $sub targets a device, but $DEVICES_PROBLEM: create .claude/devices.local, see CLAUDE.md."
+    return
+  fi
+  if (( ! ${#S[@]} )); then
     decide deny adb-no-serial "adb needs -s <serial> (CLAUDE.md Devices); the test device is adb -s $P8."
     return
   fi
@@ -1027,6 +1071,10 @@ analyze_gradle() {
     esac
   done
   [[ -z $dev ]] && return
+  if [[ -n $DEVICES_PROBLEM ]]; then
+    decide deny devices-file "Gradle task $dev targets a device, but $DEVICES_PROBLEM: create .claude/devices.local, see CLAUDE.md."
+    return
+  fi
   for a in "${E[@]}"; do [[ $a == ANDROID_SERIAL=* ]] && ser=${a#*=}; done
   [[ -z $ser ]] && ser=$EXPORTED_SERIAL
   if [[ $ser != "$P8" ]]; then
@@ -1064,7 +1112,7 @@ case $TOOL in
     p=$FPATH
     [[ $p != /* ]] && p=$CWD/$p
     case $p in
-      */.claude/hooks/*|*/.claude/settings*.json)
+      */.claude/hooks/*|*/.claude/settings*.json|*/.claude/devices.local)
         decide ask edit-claude-config "$TOOL changes $FPATH (Claude settings or guard hook); confirm." ;;
     esac
     case $p in

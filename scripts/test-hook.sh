@@ -3,6 +3,7 @@
 # Usage: bash scripts/test-hook.sh   — one line per case, exits non-zero on any failure.
 # Decisions: none (no output), allow, ask, deny, block (exit 2).
 # Needs jq and git. Touches no device and nothing outside a temp dir.
+# Uses fake serials from a temp devices file; it never reads the real .claude/devices.local.
 
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -10,8 +11,10 @@ HOOK=$ROOT/.claude/hooks/guard.sh
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 export GUARD_LOG=$TMP/hook.log
-P8=38041FDJH001MA
-P9=55290DLAQ000MR
+P8=FAKE0TEST0SERIAL
+P9=FAKE0DAILY0SERIAL
+export GUARD_DEVICES_FILE=$TMP/devices.local
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P9" > "$GUARD_DEVICES_FILE"
 DBG=com.techtrest.privamatic.debug
 APK=app/build/outputs/apk/debug/app-debug.apk
 pass=0 fail=0
@@ -326,6 +329,95 @@ if [[ -f $ROOT/.claude/settings.json ]]; then
     check absent "$(jq -r --arg r "$rule" 'if (.permissions.deny | index($r)) then "present" else "absent" end' "$ROOT/.claude/settings.json")" "settings.json deny list has no $rule"
   done
 fi
+
+echo "== hook covers the Pixel 9 adb deny entries dropped from settings.json"
+b deny "adb -s $P9 uninstall com.techtrest.privamatic"
+b deny "adb -s $P9 shell pm list packages"
+b deny "adb -s $P9 shell cmd package list packages"
+b deny "adb -s $P9 shell rm /sdcard/x"
+b deny "adb -s $P9 shell run-as $DBG ls"
+b deny "adb -s $P9 shell settings put global x 1"
+b deny "adb -s $P9 shell input tap 1 1"
+b deny "adb -s $P9 shell am clear-debug-app"
+b deny "adb -s $P9 push x /sdcard/"
+if [[ -f $ROOT/.claude/settings.json ]]; then
+  check 0 "$(jq '[.permissions.deny[] | select(startswith("Bash(adb -s"))] | length' "$ROOT/.claude/settings.json")" "settings.json deny list names no serial"
+fi
+
+echo "== devices file: fail closed"
+# dev EXPECTED COMMAND DEVICES_FILE: runs COMMAND with that devices file.
+dev() { check "$1" "$(run "$(bash_json "$2" "$ROOT")" GUARD_DEVICES_FILE="$3")" "[${3##*/}] $2"; }
+DF=$TMP/df
+mkdir -p "$DF"
+: > "$DF/empty-file"
+printf 'TEST_DEVICE_SERIAL=\nDAILY_PHONE_SERIAL=%s\n' "$P9" > "$DF/empty-test"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=\n' "$P8" > "$DF/empty-daily"
+printf 'TEST_DEVICE_SERIAL=%s\n' "$P8" > "$DF/no-daily-line"
+printf 'TEST_DEVICE_SERIAL="   "\nDAILY_PHONE_SERIAL=%s\n' "$P9" > "$DF/blank-test"
+printf 'TEST_DEVICE_SERIAL=<serial>\nDAILY_PHONE_SERIAL=%s\n' "$P9" > "$DF/placeholder-test"
+printf 'TEST_DEVICE_SERIAL=$(id)\nDAILY_PHONE_SERIAL=%s\n' "$P9" > "$DF/command-test"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P8" > "$DF/same-twice"
+for f in "$TMP/no-such-file" "$DF" "$DF/empty-file" "$DF/empty-test" "$DF/empty-daily" "$DF/no-daily-line" "$DF/blank-test" "$DF/placeholder-test" "$DF/command-test" "$DF/same-twice"; do
+  dev deny "adb -s $P8 install -r $APK" "$f"
+  dev deny "adb -s $P8 shell getprop" "$f"
+  dev deny "adb -s $P9 shell getprop" "$f"
+  dev deny "adb -s $P9 exec-out screencap -p > p9.png" "$f"
+  dev deny 'adb -s emulator-5554 shell ls' "$f"
+  dev deny 'adb -s "" shell ls' "$f"
+  dev deny 'adb -s $D shell getprop' "$f"
+  dev deny 'adb shell ls' "$f"
+  dev deny './gradlew :app:installDebug' "$f"
+  dev deny "ANDROID_SERIAL=$P8 ./gradlew :app:installDebug" "$f"
+  dev deny 'ANDROID_SERIAL= ./gradlew connectedAndroidTest' "$f"
+  dev none 'adb devices' "$f"
+  dev none 'adb devices -l' "$f"
+  dev none 'adb start-server' "$f"
+  dev none 'adb kill-server' "$f"
+  dev none 'adb version' "$f"
+  dev none './gradlew :app:compileDebugKotlin' "$f"
+  dev none 'git status' "$f"
+done
+dev deny 'git push' "$TMP/no-such-file"
+why=$(printf '%s' "$(bash_json "adb -s $P8 shell ls" "$ROOT")" | GUARD_DEVICES_FILE=$TMP/no-such-file "$BASH" "$HOOK" | jq -r '.hookSpecificOutput.permissionDecisionReason')
+check yes "$([[ $why == *'create .claude/devices.local, see CLAUDE.md'* ]] && echo yes || echo no)" "deny reason says to create the file"
+
+echo "== devices file: accepted forms"
+printf '# comment\n\nexport TEST_DEVICE_SERIAL="%s"  # Pixel 8\nDAILY_PHONE_SERIAL='"'"'%s'"'"'\r\nOTHER=1\n' "$P8" "$P9" > "$DF/forms"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s' "$P8" "$P9" > "$DF/no-final-newline"
+for f in "$DF/forms" "$DF/no-final-newline"; do
+  dev none "adb -s $P8 shell pm clear $DBG" "$f"
+  dev deny "adb -s $P9 shell pm clear $DBG" "$f"
+  dev allow "adb -s $P9 shell getprop" "$f"
+  dev none "ANDROID_SERIAL=$P8 ./gradlew :app:installDebug" "$f"
+done
+
+echo "== devices file: default path next to the hook; a command prefix can't redirect it"
+mkdir -p "$TMP/proj/.claude/hooks"
+cp "$HOOK" "$TMP/proj/.claude/hooks/guard.sh"
+real_hook=$HOOK
+HOOK=$TMP/proj/.claude/hooks/guard.sh
+sibling() { check "$1" "$(run "$(bash_json "$2" "$ROOT")" -u GUARD_DEVICES_FILE)" "[sibling $3] $2"; }
+sibling deny "adb -s $P8 shell ls" "absent"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P9" > "$TMP/proj/.claude/devices.local"
+sibling none "adb -s $P8 shell ls" "present"
+sibling deny "adb -s $P9 shell pm clear $DBG" "present"
+HOOK=$real_hook
+b deny "GUARD_DEVICES_FILE=/tmp/x adb -s $P9 shell pm clear $DBG"
+b deny "export GUARD_DEVICES_FILE=/tmp/x; adb -s $P9 shell pm clear $DBG"
+
+echo "== devices file: writes need confirmation, reads don't"
+b ask  "echo 'TEST_DEVICE_SERIAL=x' > .claude/devices.local"
+b ask  "echo x >> .claude/devices.local"
+b ask  "sed -i 's/a/b/' .claude/devices.local"
+b ask  'cp /tmp/x .claude/devices.local'
+b ask  'mv .claude/devices.local /tmp/'
+b ask  'rm .claude/devices.local'
+b ask  'jq . x.json | tee .claude/devices.local'
+b ask  "python3 -c \"open('.claude/devices.local','w')\""
+e ask  Write ".claude/devices.local"
+e ask  Edit "$ROOT/.claude/devices.local"
+b none 'cat .claude/devices.local'
+b none 'git check-ignore .claude/devices.local'
 
 echo "== fail closed"
 check block "$(run "$(bash_json 'git status' "$ROOT")" PATH=/nonexistent)" "jq not on PATH -> exit 2"

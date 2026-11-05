@@ -82,8 +82,13 @@
 
 ## Devices
 - Every adb call uses `-s <serial>`. Never bare `adb` (only `adb devices` / `adb devices -l` are fine).
-- **Pixel 8 `38041FDJH001MA`** — test device. Free for builds, installs, tests, UI automation.
-- **Pixel 9 `55290DLAQ000MR`** — GrapheneOS, Oliver's daily phone, real score history, four users.
+- The serials are in `.claude/devices.local` (gitignored, one per machine) as `TEST_DEVICE_SERIAL` (Pixel 8) and `DAILY_PHONE_SERIAL` (Pixel 9).
+  - At session start, read that file and type its values literally into adb commands; the guard hook can't resolve variables.
+  - Never write a serial into a tracked file. Use the role name instead, also in evidence and in pasted `adb devices` output.
+  - If the file is missing or a serial is empty, the hook denies every adb command that targets a device. Create it with these two
+    `NAME=value` lines; Claude's writes to it need Oliver's confirmation.
+- **Pixel 8** — test device. Free for builds, installs, tests, UI automation.
+- **Pixel 9** — Oliver's daily phone, GrapheneOS, real score history.
   - Use only when Oliver asks in this run.
   - Allowed: `screencap`, app-filtered `logcat`, `getprop`, `dumpsys package`.
   - When asked: install the debug build with `install --user 0`.
@@ -111,10 +116,10 @@ JAVA_HOME=/home/techtresthome/.local/share/jdk/temurin-21 ./gradlew :app:assembl
 - Unit tests always run with `--rerun`. Without it Gradle may report UP-TO-DATE and run nothing.
 - The "SDK XML version 4" warning is harmless.
 - Install on the Pixel 8:
-  `adb -s 38041FDJH001MA install -r app/build/outputs/apk/debug/app-debug.apk`
+  `adb -s <test serial from .claude/devices.local> install -r app/build/outputs/apk/debug/app-debug.apk`
 - Before judging any UI change, force-stop, then cold-start:
-  `adb -s 38041FDJH001MA shell am force-stop com.techtrest.privamatic.debug`
-  `adb -s 38041FDJH001MA shell am start -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`
+  `adb -s <test serial from .claude/devices.local> shell am force-stop com.techtrest.privamatic.debug`
+  `adb -s <test serial from .claude/devices.local> shell am start -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`
 - Backup tests: after `pm clear` the app is stopped, and Android won't back it up ("Backup is not allowed").
   Run `pm unstop` (or launch the app) before `bmgr backupnow`.
 

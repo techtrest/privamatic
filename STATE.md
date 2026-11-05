@@ -19,9 +19,12 @@ The guard hook is merged into local `master` and passed its live smoke test (see
 `device-verify` is registered only in sessions started after it was committed. Until then, a general-purpose agent reads its file.
 `.claude/settings.local.json` is untracked since `c837e59`, so a `git pull` on the Framework laptop, or a switch to any
 pre-`c837e59` branch, overwrites or deletes it. Back it up first. The guard hook now denies such switches.
+Device serials are only in the gitignored `.claude/devices.local`, one per machine; tracked files use role names. Old commits keep the numbers (accepted).
 
 ## Next
 
+- [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
+  So far proven only by feeding JSON to the hook (2026-11-05 run below).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
 - [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
@@ -40,7 +43,9 @@ pre-`c837e59` branch, overwrites or deletes it. Back it up first. The guard hook
 
 ## Blocked on me
 
-- (nothing). After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation).
+- Push `master` with the device-details cleanup.
+- Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
+- After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation).
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -78,8 +83,9 @@ It is the real guard. The allow and deny lists are a convenience.
   - a switch or checkout to anything without `c837e59` (resolved locally, then as `origin/<x>`), and `--orphan`;
   - gh writes, `ssh`/`scp`/`rsync`/`sftp`, `sudo`/`su`;
   - adb without `-s`, except `devices [-l]`, `start-server`, `kill-server`, `version`;
+  - every adb call or Gradle task that targets a device, if `.claude/devices.local` is missing, or a serial is empty, invalid or the same in both lines;
   - on the Pixel 9, a variable serial or an unknown serial: data/package/settings changes (`pm`, `cmd`, `rm`, `run-as`, `settings`, `input`, `am` writes, `push`, `uninstall`, install without `--user 0`, `logcat -c`, device-side redirects);
-  - Gradle `install*`/`uninstall*`/`connected*` without `ANDROID_SERIAL=38041FDJH001MA`;
+  - Gradle `install*`/`uninstall*`/`connected*` without `ANDROID_SERIAL=<test serial>`;
   - keystore reads, `keytool`, and printing `*PASSWORD*`/`*KEY*`/`*SECRET*`/`*TOKEN*` variables or the whole environment.
 - **Allow silently:** Pixel 9 `exec-out screencap -p > *.png`, `shell getprop [prop]`, `shell dumpsys package <debug>`,
   `shell pidof <debug>`, `logcat --pid=…`, optionally piped into `grep`/`head`/`tail`/`wc`. This applies only when every part of the command is on that list; otherwise ask.
@@ -87,11 +93,12 @@ It is the real guard. The allow and deny lists are a convenience.
   - any other Pixel 9 or unknown-serial command;
   - `git branch -D`, or a switch target it can't resolve;
   - unknown `gh` subcommands;
-  - Bash writes to `.claude/settings*.json` or `.claude/hooks/**`;
+  - Bash writes to `.claude/settings*.json`, `.claude/hooks/**` or `.claude/devices.local` (swapping its values would free the Pixel 9);
   - Edit/Write on those paths, or on Gradle files whose new text contains `signingConfig`.
 - **Fail closed:** missing `jq`, bad JSON or a script error exit 2, which blocks. The hook command ends in `|| exit 2`, so a missing `guard.sh` blocks too.
 - **Log:** every deny and ask goes to `.claude/hook.log` (git-ignored) as timestamp, decision, rule id and the first 200 characters of the command.
-- **Test:** `bash scripts/test-hook.sh` prints one line per case and exits non-zero on any failure. It needs no device.
+- **Test:** `bash scripts/test-hook.sh` prints one line per case and exits non-zero on any failure. It needs no device and uses fake serials from a temp file (`GUARD_DEVICES_FILE`, test only).
+- **Serials:** read from `.claude/devices.local`, parsed and never sourced. The Pixel 9 adb deny rules left `settings.json`, so the hook is the only layer for them.
 - **Hook contract** (code.claude.com/docs/en/hooks, via Context7, 2026-10-20):
   - **Input:** JSON on stdin with `tool_name`, `tool_input` (`command`, `file_path`, …) and `cwd`.
   - **Output:** `hookSpecificOutput.permissionDecision` is `allow`, `deny`, `ask` or `defer`, with a `permissionDecisionReason`. Precedence is deny > defer > ask > allow.
@@ -108,6 +115,17 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-05 — private device details (`chore/private-device-details`, merged into local `master`)
+
+- [x] Inventory: 62 lines in 8 tracked files held a serial or the Pixel 9 user count; now 0. `techtresthome`: 14 occurrences in 6 files, reported, not changed.
+- [x] Also removed from `docs/workflow/inventory.md`: Pixel 9 profile names and user ids, fingerprint and build id, install times.
+- [x] `guard.sh` reads the serials from `.claude/devices.local` and fails closed. An empty `P8` would have let Gradle `install*` through (`ser="" == P8=""`), so that path checks the file first.
+- [x] `settings.json`: the 9 `adb -s <daily phone serial> …` deny rules removed; the hook denies all 9, each with a test. `settings.local.json` (untracked) keeps its Pixel 8 allow rule: no serial-free rule has the same effect.
+- [x] Gates, no device and no adb: `git grep` empty; `test-hook.sh` 441/441 (was 224). Master's unchanged suite through old and new guard with the real serials: 224/224, 220 guard pairs, 0 byte differences.
+- [x] Hand-made JSON with the real serials, old and new agree: Pixel 8 install none, Pixel 9 screencap allow, Pixel 9 `pm clear` deny, unknown serial ask/deny. Missing file: all deny, `adb devices -l` none.
+- [x] 8 mutations of the new checks each turn the suite red. `compileDebugKotlin` OK; no `app/` changes.
+- Not verified: a real adb call through the new hook (no phone allowed in this run). External review not run: this run's prompt ends at self-review and merge.
+
 ### 2026-10-25 — release run v1.5.2 (`release/v1.5.2`, merged into local `master`)
 
 - [x] Version 1.5.1 / 9 → 1.5.2 / 10. Changelog `changelogs/10.txt`: Oliver's four lines verbatim, "-" bullets as in `9.txt`; 456 characters (limit 500).
@@ -123,17 +141,4 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Open issues #6, #7, #11: none addressed by 1.5.2. No external review: version, copy and notes only.
 - [x] Store texts (Oliver accepted both proposals): `full_description.txt` widget line 25 and backups line 30 replaced as written; merged into `master` again.
 
-### 2026-10-25 — keyboard strings and .gitignore (`chore/keyboard-strings-gitignore`)
-
-- [x] Keyboard row: "Using %s" reuses `fmt_default_app_using`; new `status_no_default_keyboard`, `status_default_keyboard_unknown`, `fmt_technical_ime`; error detail reuses `fmt_technical_error`. Wording unchanged, copy voice OK.
-- [x] Scoring: `compileDebugKotlin` OK; `testDebugUnitTest --rerun` 185 tests, 0 failures (includes `DefaultAppsCheckerScoringTest`).
-- [x] Device (Pixel 8, device-verify, no force-stop): row text identical before and after ("Using HeliBoard", "IME: helium314.keyboard/.latin.LatinIME"); crash buffer empty. Image: `docs/screens/2026-10-25-keyboard-row/before-after.png`. Not verified: the "No default keyboard set" and error paths (no way to set them on the device).
-- [x] `git check-ignore`: all three folders and `ROADMAP.md` ignored. `git log --all -- docs/audits ROADMAP.md` empty; nothing tracked there.
-
-### 2026-10-25 — project-tracker contract (`chore/tracker-contract`, merged into local `master`)
-
-- [x] `ROADMAP.md` added from the tracker draft, reconciled against STATE, git log, GitHub and code; gitignored (`git check-ignore` → `.gitignore:66:/ROADMAP.md`).
-- [x] STATE `## Next` in contract format, `## Blocked on me` added, done items moved to `## Done`; "not pushed" lines corrected (`origin/master` = `3f5a553`).
-- [x] CLAUDE.md end-of-run rule points at ROADMAP.md and the contract. No code changes, so no build gate.
-
-Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run): `docs/state-archive/2026-10.md`.
+Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
