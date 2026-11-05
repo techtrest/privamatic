@@ -43,7 +43,7 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
-- Push `master` (this STATE update; the device-details cleanup is already on `origin/master`).
+- Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md; the device-details cleanup is already on `origin/master`).
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
 - After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation).
@@ -115,6 +115,11 @@ It is the real guard. The allow and deny lists are a convenience.
 - None open. (Device name at large text: Oliver accepted the ellipsis; added to the spec 2026-10-24.)
 
 ## Runs
+
+### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)
+
+- [x] CLAUDE.md, Session: rules for `STATE:` lines and `ADD Open decisions: …[blocked]` lines. Rules only: no block with a `STATE:` line has been applied yet.
+- Tracker contract support is a separate ROADMAP item, in `~/Documents/project-tracker`.
 
 ### 2026-11-05 — second layer and branch cleanup (`chore/state-second-layer`, merged into local `master`)
 

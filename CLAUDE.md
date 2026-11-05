@@ -17,6 +17,10 @@
     (same subject; the quote may be partial or paraphrased), apply it, and report "matched '<quote>' → line N".
     A line that matches no item, or more than one, stays in the inbox and goes under **Blocked on me**.
     A DONE for an item that is already ticked is not an error: drop it from the inbox and mention it.
+    A block can also contain lines of the form `STATE: <note for STATE.md>`.
+    - A STATE: line goes into STATE.md, not ROADMAP.md: tick the matching "Blocked on me" item, or add the note as a ticked item under the current run or "Done".
+      Report "STATE: <note> → <where>" and remove it from the inbox. If it can't be placed, it stays in the inbox and goes under **Blocked on me**.
+    - "ADD Open decisions: …[blocked]" lines are decisions waiting on Oliver beyond one session; a later DONE closes them.
   - If it is empty, ask Oliver once: "Any decisions from chats since the roadmap was last updated (<date from ROADMAP.md>)?
     Paste a ROADMAP UPDATE block, or say none." Then continue with the session's actual task.
 - At start, read CLAUDE.md, STATE.md and the relevant spec.
