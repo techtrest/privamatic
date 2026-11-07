@@ -86,12 +86,14 @@
 
 ## Devices
 - Every adb call uses `-s <serial>`. Never bare `adb` (only `adb devices` / `adb devices -l` are fine).
-- The serials are in `.claude/devices.local` (gitignored, one per machine) as `TEST_DEVICE_SERIAL` (Pixel 8) and `DAILY_PHONE_SERIAL` (Pixel 9).
+- The serials are in `.claude/devices.local` (gitignored, one per machine) as `TEST_DEVICE_SERIAL` (Pixel 8), `DAILY_PHONE_SERIAL` (Pixel 9) and `LEGACY_TEST_SERIAL` (Samsung S8).
   - At session start, read that file and type its values literally into adb commands; the guard hook can't resolve variables.
   - Never write a serial into a tracked file. Use the role name instead, also in evidence and in pasted `adb devices` output.
-  - If the file is missing or a serial is empty, the hook denies every adb command that targets a device. Create it with these two
+  - If the file is missing or the Pixel 8 or Pixel 9 serial is empty, the hook denies every adb command that targets a device. Create it with these
     `NAME=value` lines; Claude's writes to it need Oliver's confirmation.
+  - `LEGACY_TEST_SERIAL` is optional: without it, only the S8 counts as an unknown device. If it equals another serial, every device command is denied.
 - **Pixel 8** — test device. Free for builds, installs, tests, UI automation.
+- **Samsung S8** — legacy test device, stock Android 9, free like the Pixel 8.
 - **Pixel 9** — Oliver's daily phone, GrapheneOS, real score history.
   - Use only when Oliver asks in this run.
   - Allowed: `screencap`, app-filtered `logcat`, `getprop`, `dumpsys package`.

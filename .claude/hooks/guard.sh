@@ -36,6 +36,7 @@ LOG=${GUARD_LOG:-$HOOK_DIR/../hook.log}
 
 P8=""                             # TEST_DEVICE_SERIAL: Pixel 8, test device
 P9=""                             # DAILY_PHONE_SERIAL: Pixel 9, Oliver's daily phone
+LEGACY=""                         # LEGACY_TEST_SERIAL: Samsung S8, free like the Pixel 8. Optional: empty means it is unknown
 DEVICES_PROBLEM=""
 
 serial_value() {  # serial_value VALUE: sets SERIAL to the cleaned value, or "" if it is not a serial
@@ -55,15 +56,22 @@ load_devices() {
     case $line in
       TEST_DEVICE_SERIAL=*) serial_value "${line#*=}"; P8=$SERIAL ;;
       DAILY_PHONE_SERIAL=*) serial_value "${line#*=}"; P9=$SERIAL ;;
+      LEGACY_TEST_SERIAL=*) serial_value "${line#*=}"; LEGACY=$SERIAL ;;
     esac
   done < "$f"
   if [[ -z $P8 ]]; then DEVICES_PROBLEM="TEST_DEVICE_SERIAL is empty or invalid in the devices file"
   elif [[ -z $P9 ]]; then DEVICES_PROBLEM="DAILY_PHONE_SERIAL is empty or invalid in the devices file"
   elif [[ $P8 == "$P9" ]]; then DEVICES_PROBLEM="both serials in the devices file are the same"
+  elif [[ -n $LEGACY && ( $LEGACY == "$P8" || $LEGACY == "$P9" ) ]]; then
+    DEVICES_PROBLEM="LEGACY_TEST_SERIAL is the same as another serial in the devices file"
   fi
 }
 SERIAL=""
 load_devices
+
+is_free_device() {  # the Pixel 8, or the S8 when its serial is set; an empty LEGACY never matches
+  [[ $1 == "$P8" ]] || [[ -n $LEGACY && $1 == "$LEGACY" ]]
+}
 
 # ---------------------------------------------------------------- decisions
 
@@ -981,7 +989,7 @@ analyze_adb() {
   for s in "${S[@]}"; do
     if [[ -z $s || $s == *'$'* || $s == *'`'* ]]; then cls=var; break
     elif [[ $s == "$P9" ]]; then cls=p9
-    elif [[ $s != "$P8" ]]; then cls=unknown
+    elif ! is_free_device "$s"; then cls=unknown
     fi
   done
   [[ $cls == p8 ]] && return
@@ -1077,7 +1085,7 @@ analyze_gradle() {
   fi
   for a in "${E[@]}"; do [[ $a == ANDROID_SERIAL=* ]] && ser=${a#*=}; done
   [[ -z $ser ]] && ser=$EXPORTED_SERIAL
-  if [[ $ser != "$P8" ]]; then
+  if ! is_free_device "$ser"; then
     decide deny gradle-device-task "Gradle task $dev talks to a device; prefix ANDROID_SERIAL=$P8 in the same command (CLAUDE.md Devices)."
   fi
 }
