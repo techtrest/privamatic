@@ -5,8 +5,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
 
 ## Current
 
-Released version is v1.5.1 (versionCode 9). F-Droid serves it, and it is installed on the Pixel 9.
-v1.5.2 (versionCode 10) is tagged on `2a95fa3` and pushed (`origin/master` = `2a95fa3`, tag checked on the remote 2026-10-25); waiting for the F-Droid build.
+Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
 The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
@@ -43,10 +42,10 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
-- Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md; the device-details cleanup is already on `origin/master`).
+- [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
-- After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation).
+- [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -84,9 +83,9 @@ It is the real guard. The allow and deny lists are a convenience.
   - a switch or checkout to anything without `c837e59` (resolved locally, then as `origin/<x>`), and `--orphan`;
   - gh writes, `ssh`/`scp`/`rsync`/`sftp`, `sudo`/`su`;
   - adb without `-s`, except `devices [-l]`, `start-server`, `kill-server`, `version`;
-  - every adb call or Gradle task that targets a device, if `.claude/devices.local` is missing, or a serial is empty, invalid or the same in both lines;
+  - every adb call or Gradle task that targets a device, if `.claude/devices.local` is missing, the Pixel 8 or Pixel 9 serial is empty or invalid, or any two serials are the same;
   - on the Pixel 9, a variable serial or an unknown serial: data/package/settings changes (`pm`, `cmd`, `rm`, `run-as`, `settings`, `input`, `am` writes, `push`, `uninstall`, install without `--user 0`, `logcat -c`, device-side redirects);
-  - Gradle `install*`/`uninstall*`/`connected*` without `ANDROID_SERIAL=<test serial>`;
+  - Gradle `install*`/`uninstall*`/`connected*` without `ANDROID_SERIAL=<test serial or legacy serial>`;
   - keystore reads, `keytool`, and printing `*PASSWORD*`/`*KEY*`/`*SECRET*`/`*TOKEN*` variables or the whole environment.
 - **Allow silently:** Pixel 9 `exec-out screencap -p > *.png`, `shell getprop [prop]`, `shell dumpsys package <debug>`,
   `shell pidof <debug>`, `logcat --pid=…`, optionally piped into `grep`/`head`/`tail`/`wc`. This applies only when every part of the command is on that list; otherwise ask.
@@ -99,7 +98,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - **Fail closed:** missing `jq`, bad JSON or a script error exit 2, which blocks. The hook command ends in `|| exit 2`, so a missing `guard.sh` blocks too.
 - **Log:** every deny and ask goes to `.claude/hook.log` (git-ignored) as timestamp, decision, rule id and the first 200 characters of the command.
 - **Test:** `bash scripts/test-hook.sh` prints one line per case and exits non-zero on any failure. It needs no device and uses fake serials from a temp file (`GUARD_DEVICES_FILE`, test only).
-- **Serials:** read from `.claude/devices.local`, parsed and never sourced. The Pixel 9 adb deny rules moved from `settings.json` to the gitignored `settings.local.json` as a second layer, so each machine needs its own copy.
+- **Serials:** read from `.claude/devices.local`, parsed and never sourced. `LEGACY_TEST_SERIAL` (Samsung S8) is free like the Pixel 8; if it is missing, empty or invalid, only the S8 counts as unknown. The Pixel 9 adb deny rules moved from `settings.json` to the gitignored `settings.local.json` as a second layer, so each machine needs its own copy.
 - **Hook contract** (code.claude.com/docs/en/hooks, via Context7, 2026-10-20):
   - **Input:** JSON on stdin with `tool_name`, `tool_input` (`command`, `file_path`, …) and `cwd`.
   - **Output:** `hookSpecificOutput.permissionDecision` is `allow`, `deny`, `ask` or `defer`, with a `permissionDecisionReason`. Precedence is deny > defer > ask > allow.
@@ -116,6 +115,13 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-07 — legacy test device and widget hardening
+
+- [x] v1.5.2 live on F-Droid (Oliver, 2026-11-07)
+- [x] Samsung Galaxy S8 (stock Android 9) is a free legacy test device, like the Pixel 8 (Oliver, 2026-11-07)
+- [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
+- [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
+
 ### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)
 
 - [x] CLAUDE.md, Session: rules for `STATE:` lines and `ADD Open decisions: …[blocked]` lines. Rules only: no block with a `STATE:` line has been applied yet.
@@ -127,15 +133,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Local branches deleted, `master` only left. The other 15 were merged. `design/widget-centre-change` was unmerged, not on the remote, approved by Oliver: tip `86cb2db`, restorable until git prunes it. Remote untouched. Its design docs still name the branch and tip (`docs/decisions/widget-centre-change.md:5`, `docs/screens/widget-centre-change/measurements.md:3`).
 - Not verified: Claude Code enforcing these deny rules live; trying one means attempting a write on the Pixel 9. Same rule text as before the move.
 
-### 2026-11-05 — private device details (`chore/private-device-details`, merged into local `master`)
-
-- [x] Inventory: 62 lines in 8 tracked files held a serial or the Pixel 9 user count; now 0. `techtresthome`: 14 occurrences in 6 files, reported, not changed.
-- [x] Also removed from `docs/workflow/inventory.md`: Pixel 9 profile names and user ids, fingerprint and build id, install times.
-- [x] `guard.sh` reads the serials from `.claude/devices.local` and fails closed. An empty `P8` would have let Gradle `install*` through (`ser="" == P8=""`), so that path checks the file first.
-- [x] `settings.json`: the 9 `adb -s <daily phone serial> …` deny rules removed; the hook denies all 9, each with a test. `settings.local.json` (untracked) keeps its Pixel 8 allow rule: no serial-free rule has the same effect.
-- [x] Gates, no device and no adb: `git grep` empty; `test-hook.sh` 441/441 (was 224). Master's unchanged suite through old and new guard with the real serials: 224/224, 220 guard pairs, 0 byte differences.
-- [x] Hand-made JSON with the real serials, old and new agree: Pixel 8 install none, Pixel 9 screencap allow, Pixel 9 `pm clear` deny, unknown serial ask/deny. Missing file: all deny, `adb devices -l` none.
-- [x] 8 mutations of the new checks each turn the suite red. `compileDebugKotlin` OK; no `app/` changes.
-- Not verified: a real adb call through the new hook (no phone allowed in this run). External review not run: this run's prompt ends at self-review and merge.
-
+The 2026-11-05 private-device-details run: `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

@@ -405,6 +405,79 @@ HOOK=$real_hook
 b deny "GUARD_DEVICES_FILE=/tmp/x adb -s $P9 shell pm clear $DBG"
 b deny "export GUARD_DEVICES_FILE=/tmp/x; adb -s $P9 shell pm clear $DBG"
 
+echo "== legacy test device (S8)"
+LS=FAKE0LEGACY0SERIAL
+LF=$TMP/legacy-set
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=%s\n' "$P8" "$P9" "$LS" > "$LF"
+# Free like the Pixel 8.
+for c in "adb -s $LS install -r $APK" "adb -s $LS uninstall $DBG" "adb -s $LS push x /sdcard/" \
+         "adb -s $LS shell pm clear $DBG" "adb -s $LS shell am force-stop $DBG" \
+         "adb -s $LS shell am start -n $DBG/com.techtrest.privamatic.MainActivity" \
+         "adb -s $LS shell input tap 1 1" "adb -s $LS shell uiautomator dump /sdcard/ui.xml" \
+         "adb -s $LS shell settings put global x 1" "adb -s $LS shell dumpsys alarm" \
+         "adb -s $LS logcat -c -b crash" "adb -s $LS exec-out screencap -p > shot.png" \
+         "ANDROID_SERIAL=$LS ./gradlew :app:installDebug" "ANDROID_SERIAL=$LS ./gradlew connectedDebugAndroidTest" \
+         "export ANDROID_SERIAL=$LS && ./gradlew installDebug" \
+         "adb -s $LS shell am force-stop $DBG && adb -s $P8 shell am force-stop $DBG"; do
+  dev none "$c" "$LF"
+done
+# Setting it changes nothing for the others.
+dev none "adb -s $P8 install -r $APK" "$LF"
+dev none "adb -s $P8 shell pm clear $DBG" "$LF"
+dev none "ANDROID_SERIAL=$P8 ./gradlew installDebug" "$LF"
+dev deny "adb -s $P9 shell pm clear $DBG" "$LF"
+dev deny "adb -s $P9 uninstall com.techtrest.privamatic" "$LF"
+dev deny "adb -s $P9 install -r $APK" "$LF"
+dev ask  "adb -s $P9 install -r -t --user 0 $APK" "$LF"
+dev ask  "adb -s $P9 shell ls /sdcard" "$LF"
+dev allow "adb -s $P9 shell getprop" "$LF"
+dev allow "adb -s $P9 exec-out screencap -p > p9.png" "$LF"
+dev deny "adb -s $LS shell ls && adb -s $P9 shell pm clear $DBG" "$LF"
+dev deny "adb -s OTHER0SERIAL shell pm clear $DBG" "$LF"
+dev ask  "adb -s OTHER0SERIAL shell ls" "$LF"
+dev deny "ANDROID_SERIAL=$P9 ./gradlew installDebug" "$LF"
+dev deny "ANDROID_SERIAL=OTHER0SERIAL ./gradlew installDebug" "$LF"
+dev deny './gradlew installDebug' "$LF"
+dev deny "adb shell pm list packages" "$LF"
+# Missing, empty or invalid: only the S8 turns into an unknown device.
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P9" > "$TMP/legacy-missing"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=\n' "$P8" "$P9" > "$TMP/legacy-empty"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=not a serial\n' "$P8" "$P9" > "$TMP/legacy-invalid"
+for f in legacy-missing legacy-empty legacy-invalid; do
+  dev deny "adb -s $LS shell pm clear $DBG" "$TMP/$f"
+  dev deny "adb -s $LS shell input tap 1 1" "$TMP/$f"
+  dev deny "adb -s $LS install -r $APK" "$TMP/$f"
+  dev ask  "adb -s $LS shell ls" "$TMP/$f"
+  dev ask  "adb -s $LS shell getprop" "$TMP/$f"
+  dev ask  'adb -s "" shell ls' "$TMP/$f"
+  dev deny "ANDROID_SERIAL=$LS ./gradlew installDebug" "$TMP/$f"
+  dev deny 'ANDROID_SERIAL= ./gradlew installDebug' "$TMP/$f"
+  dev deny './gradlew installDebug' "$TMP/$f"
+  dev none "adb -s $P8 install -r $APK" "$TMP/$f"
+  dev none "adb -s $P8 shell pm clear $DBG" "$TMP/$f"
+  dev none "ANDROID_SERIAL=$P8 ./gradlew installDebug" "$TMP/$f"
+  dev deny "adb -s $P9 shell pm clear $DBG" "$TMP/$f"
+  dev ask  "adb -s $P9 shell ls /sdcard" "$TMP/$f"
+  dev allow "adb -s $P9 shell getprop" "$TMP/$f"
+  dev none 'adb devices -l' "$TMP/$f"
+done
+# The same as another serial: every device command denies.
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=%s\n' "$P8" "$P9" "$P9" > "$TMP/legacy-same-daily"
+printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=%s\n' "$P8" "$P9" "$P8" > "$TMP/legacy-same-test"
+for f in legacy-same-daily legacy-same-test; do
+  dev deny "adb -s $P8 shell ls" "$TMP/$f"
+  dev deny "adb -s $P8 install -r $APK" "$TMP/$f"
+  dev deny "adb -s $P9 shell getprop" "$TMP/$f"
+  dev deny "adb -s $P9 exec-out screencap -p > p9.png" "$TMP/$f"
+  dev deny "adb -s $LS shell ls" "$TMP/$f"
+  dev deny "adb -s OTHER0SERIAL shell ls" "$TMP/$f"
+  dev deny "ANDROID_SERIAL=$P8 ./gradlew installDebug" "$TMP/$f"
+  dev deny 'adb shell ls' "$TMP/$f"
+  dev none 'adb devices -l' "$TMP/$f"
+done
+why=$(printf '%s' "$(bash_json "adb -s $P8 shell ls" "$ROOT")" | GUARD_DEVICES_FILE=$TMP/legacy-same-daily "$BASH" "$HOOK" | jq -r '.hookSpecificOutput.permissionDecisionReason')
+check yes "$([[ $why == *'LEGACY_TEST_SERIAL is the same as another serial'* ]] && echo yes || echo no)" "deny reason names the legacy serial"
+
 echo "== devices file: writes need confirmation, reads don't"
 b ask  "echo 'TEST_DEVICE_SERIAL=x' > .claude/devices.local"
 b ask  "echo x >> .claude/devices.local"
