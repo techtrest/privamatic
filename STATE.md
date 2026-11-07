@@ -24,10 +24,8 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 - [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
   So far proven only by feeding JSON to the hook (2026-11-05 run below).
-- [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
-- [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
-  re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
-  three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
+- [ ] [S] Android 15+: after a force-stop, each early cold start on the Pixel 8 ran `BootReceiver` too (2 alarm arms, 2 scans); a later one didn't. Why it repeats: not investigated.
+- [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
@@ -42,7 +40,8 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
-- Say continue (effort high) for the widget hardening verification on the Pixel 8 and S8.
+- External review of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` in Cursor, save the findings file.
+- Decide: should an update of a force-stopped app on Android 14 or lower re-arm the alarms? Today they stay off until the next open or reboot; spec, "Device results".
 - Push `master` (S8 registration, `7cef129`).
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
@@ -124,7 +123,12 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
 - [x] Before Fix B, on the unchanged build: from the shell uid, the custom action ran a scan on the Pixel 8 (`last_update_timestamp` moved). `APPWIDGET_UPDATE` was refused with a `SecurityException` on both phones; `ENABLED` and `DELETED` too. Full table: `docs/specs/widget-refresh-hardening.md`.
 - [x] Built on `fix/widget-refresh-hardening`: widget alarm re-armed on app start and package replaced if a widget is placed; provider `exported="false"`; debug extras moved to a `src/debug` receiver. Compile OK, unit tests 192/192 with `--rerun`, `WidgetManifestTest` goes red if the provider is exported again. `assembleRelease` OK: its merged manifest has no debug receiver.
-- Not verified on a device: both fixes. The new build is not installed anywhere yet; verification comes next. `exported="false"` is still a hypothesis on Samsung's launcher.
+- [x] Device verification, Pixel 8 and S8, full table in the spec: `exported="false"` works on both launchers (placement, update from an exported build, resize, font scale, reboot, tap, app start). Fix A: 0 / 0 after a force-stop, 1 / 1 after open, still 1 / 1 after 5 more cold starts. Fix B: the old action from the shell runs no scan; the S8 logs `Permission Denial`.
+- [x] Release APK: 0 dex and manifest hits for `WidgetDebugReceiver`, `applyExtras` and the `debug_*` strings.
+- [x] Opacity, S8: 76 and 100 draw identically (0 of 258,077 widget pixels differ, card `(0,66,37)`). Confirms the Android 8–11 item. No code.
+- [x] Both phones restored. S8: debug app and widget gone, release 1.3.1 unchanged with its snapshot alarm. Pixel 8: one widget, same cell and opacity, new widget id, 1 / 1 alarms.
+- Update of a force-stopped app, not opened: `MY_PACKAGE_REPLACED` does not arrive on either phone. Pixel 8 ends at 1 / 1 through `BootReceiver`, S8 at 0 / 0. Not patched: Oliver decides.
+- Not verified: a real second app (the shell uid stood in); a device without the widget feature; the comment-only commit before review was not reinstalled. S8 crash buffer covers only after the reboot.
 - [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
 
 ### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)
@@ -132,11 +136,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] CLAUDE.md, Session: rules for `STATE:` lines and `ADD Open decisions: …[blocked]` lines. Rules only: no block with a `STATE:` line has been applied yet.
 - Tracker contract support is a separate ROADMAP item, in `~/Documents/project-tracker`.
 
-### 2026-11-05 — second layer and branch cleanup (`chore/state-second-layer`, merged into local `master`)
-
-- [x] `settings.local.json`: the 9 Pixel 9 adb deny rules added, identical to those removed from `settings.json`; allow list unchanged. `git check-ignore` confirms it is ignored; `git grep` for the serials on `master` empty; `test-hook.sh` 441/441.
-- [x] Local branches deleted, `master` only left. The other 15 were merged. `design/widget-centre-change` was unmerged, not on the remote, approved by Oliver: tip `86cb2db`, restorable until git prunes it. Remote untouched. Its design docs still name the branch and tip (`docs/decisions/widget-centre-change.md:5`, `docs/screens/widget-centre-change/measurements.md:3`).
-- Not verified: Claude Code enforcing these deny rules live; trying one means attempting a write on the Pixel 9. Same rule text as before the move.
-
-The 2026-11-05 private-device-details run: `docs/state-archive/2026-11.md`.
+The 2026-11-05 second-layer and private-device-details run: `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

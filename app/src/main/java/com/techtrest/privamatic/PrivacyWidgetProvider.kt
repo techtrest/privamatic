@@ -306,7 +306,8 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * Brings the alarm back after a force-stop cleared it. Only a reboot restored it before.
+         * Brings the alarm back after a force-stop cleared it. Android 15+ also delivers
+         * BOOT_COMPLETED when the app leaves the stopped state; older versions wait for a reboot.
          * Does nothing when no widget is placed. The manager is null on devices without widgets.
          */
         fun rearmPeriodicUpdatesIfPlaced(context: Context) {

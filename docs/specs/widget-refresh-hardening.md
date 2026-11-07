@@ -81,6 +81,59 @@ If a device gate fails on a launcher, option 2 is the fallback.
 | 6 | S8 observation | Card style at 76 % and 100 %: one screenshot each, say whether they differ. No code. |
 | 7 | Restore | Both phones as found, both alarms where they were, crash buffers empty. |
 
+## Device results (2026-11-07)
+
+Pixel 8: Android 17, Pixel Launcher. S8: Android 9, Samsung launcher. Screenshots: `docs/screens/2026-11-07-widget-hardening/`.
+Witnesses: the provider's debug log lines, `last_update_timestamp` (TS), `dumpsys alarm`. Alarm counts read widget / snapshot.
+
+| Check | Pixel 8 | S8 |
+|---|---|---|
+| Update over the exported build, widget placed | Stays placed, draws 53 Fair, `Package replaced`, 1 / 1 | Stays placed, draws 17 Critical, `Package replaced`, 1 / 1 |
+| No widget, then app start | 0 / 1 | 0 / 1 |
+| Place while unexported | `ENABLED`, `UPDATE`, scan, real score, 1 widget alarm | Same |
+| Resize, both ways | `APPWIDGET_UPDATE_OPTIONS` each way, redraws, no scan | Same |
+| Font scale 2.0, then back | `UPDATE` x2, `UPDATE_OPTIONS` x3, scan at each change | 2.0: `UPDATE_OPTIONS` only. Back: nothing received. Redraws both times, no scan |
+| Reboot | Process started for a broadcast to the provider, TS moved, 1 / 1, draws. Its `Received` lines rotated out of the log | `ENABLED`, `UPDATE`, scan 7 s after boot. Widget alarm at once; snapshot alarm only when the app's `BootReceiver` ran, 1 min 53 s after boot |
+| Fix A: force-stop, then open | 0 / 0, then 1 / 1 | 0 / 0, then 1 / 1 |
+| Fix A: 5 more cold starts | 1 / 1 after every one | 1 / 1 after every one |
+| Update, not force-stopped | `Package replaced`, 1 / 1 | `Package replaced`, 1 / 1 |
+| Fix B: old action from the shell, process dead | No `Received`, TS unchanged, no process. Three forms sent | Same, with three `Permission Denial … not exported` log lines |
+| Fix B: process alive | No `Received`, TS unchanged | Same, one `Permission Denial` line |
+| Control: `WidgetDebugReceiver` | `Received`, scan, TS moved | Same |
+| Widget tap, app start | Scan, TS moved | Scan, TS moved, once past the first-run screen (see below) |
+| Restore | One widget in the original cell, opacity 88.33 restored under the new id, 1 / 1, font 1.0 | Debug app and widget gone. Release 1.3.1 and its `lastUpdateTime` unchanged, snapshot alarm present |
+
+Release build, no device: `WidgetDebugReceiver`, `applyExtras` and the `debug_*` strings have 0 hits in the dex and manifest (control string `PrivacyWidgetProvider`: hit). Provider `exported=false`.
+
+**The hypothesis held:** on both launchers, the unexported provider is listed, places, receives the system's broadcasts, and survives an update from the exported build.
+
+**Update of a force-stopped app, app not opened** (observation; not patched, Oliver decides):
+
+| | Pixel 8 | S8 |
+|---|---|---|
+| Before | 0 / 0, `stopped=true` | 0 / 0, `stopped=true` |
+| `Package replaced` | **Did not arrive** | **Did not arrive** |
+| Provider | `APPWIDGET_UPDATE`, scan | `APPWIDGET_UPDATE`, scan |
+| `BootReceiver` | Ran | Did not run |
+| After 30 s | **1 / 1**, `stopped=false` | **0 / 0**, `stopped=false` |
+
+So `MY_PACKAGE_REPLACED` doesn't reach a force-stopped app, on either version. The re-arm added to `PackageReplacedReceiver` only helps an app that wasn't force-stopped, and there the alarms had survived anyway (STATE, three `install -r`).
+On Android 9, the alarms stay at 0 until the next app open or reboot. The widget still got that one update.
+
+**Android 15+** (developer.android.com, "Changes to package stopped state"): a force-stop cancels all `PendingIntent`s, and `ACTION_BOOT_COMPLETED` is delivered when the app leaves the stopped state, so the app can re-register them.
+That explains the Pixel 8's `BootReceiver` lines with no reboot, and it means the existing `BootReceiver` could already re-arm the alarm there. Fix A's app-start path is what the S8 needs: 6 schedule lines in 6 opens, and no `BootReceiver`.
+
+**Other results:**
+- Pixel 8, cold starts right after a force-stop: `BootReceiver` ran on all 6, so each armed the alarms twice (12 schedule lines) and ran two scans. Still exactly 1 alarm. Later cold start (9e): no `BootReceiver`, one scan. Why it repeats: not investigated. `am kill` is not a normal user path.
+- S8 font-scale control on the old exported build: redraws at both changes, TS doesn't move. So the missing scan doesn't come from unexporting. Whether the old provider received `UPDATE_OPTIONS` couldn't be shown: it has no log line for it.
+- S8, first-run screen: a tap or app start opens onboarding, and neither scans. Past the first-run screen, both do. This path isn't changed here.
+- S8 reboot: the app's `BootReceiver` ran twice, in two processes; only the second armed the widget alarm. Cause not investigated.
+
+**Opacity, S8, read-only** (`11-opacity-76.png`, `11-opacity-100.png`): 76 and 100 are stored and draw identically: 0 of 258,077 pixels differ inside the widget (rechecked in the main session). Card `(0,66,37)` in both, over a non-plain wallpaper around `(154,117,125)`, so the wallpaper isn't hiding a difference. Confirms the Android 8–11 item.
+
+**Not verified:** a real second app sending the broadcast (the shell uid stood in for it); invariant 4 (no device without the widget feature); the last commit before review, a comment-only change, was not reinstalled.
+**Crash coverage:** Pixel 8: exit reasons for the whole run show no crash, dropbox empty. S8: crash buffer empty from the Phase 5 reboot onwards; phases 0–4 aren't covered, because the buffer didn't survive the reboot.
+
 ## Device checks after this change
 
 The old `am broadcast -n …/PrivacyWidgetProvider` form no longer reaches the provider. Debug extras now go to:
