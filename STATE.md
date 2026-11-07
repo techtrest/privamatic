@@ -24,14 +24,15 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 - [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
   So far proven only by feeding JSON to the hook (2026-11-05 run below).
-- [ ] [S] Android 15+: after a force-stop, each early cold start on the Pixel 8 ran `BootReceiver` too (2 alarm arms, 2 scans); a later one didn't. Why it repeats: not investigated.
+- [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
+- [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
-  the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable; fix needs an API 30 emulator.
+  the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
 - [ ] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook (commands matched, Pixel 8
   only). Consider adding "run commands inline, never from a script file" to the agent file.
@@ -40,8 +41,7 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
-- External review of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` in Cursor, save the findings file.
-- Decide: should an update of a force-stopped app on Android 14 or lower re-arm the alarms? Today they stay off until the next open or reboot; spec, "Device results".
+- External review of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` in Cursor, save `docs/reviews/fix-widget-refresh-hardening-findings-1.md`.
 - Push `master` (S8 registration, `7cef129`).
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
@@ -127,7 +127,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Release APK: 0 dex and manifest hits for `WidgetDebugReceiver`, `applyExtras` and the `debug_*` strings.
 - [x] Opacity, S8: 76 and 100 draw identically (0 of 258,077 widget pixels differ, card `(0,66,37)`). Confirms the Android 8–11 item. No code.
 - [x] Both phones restored. S8: debug app and widget gone, release 1.3.1 unchanged with its snapshot alarm. Pixel 8: one widget, same cell and opacity, new widget id, 1 / 1 alarms.
-- Update of a force-stopped app, not opened: `MY_PACKAGE_REPLACED` does not arrive on either phone. Pixel 8 ends at 1 / 1 through `BootReceiver`, S8 at 0 / 0. Not patched: Oliver decides.
+- Update of a force-stopped app, not opened: `MY_PACKAGE_REPLACED` does not arrive on either phone. Pixel 8 ends at 1 / 1 through `BootReceiver`, S8 at 0 / 0. Not patched: Oliver decided on 2026-11-07 to leave it (ROADMAP, Parked).
 - Not verified: a real second app (the shell uid stood in); a device without the widget feature; the comment-only commit before review was not reinstalled. S8 crash buffer covers only after the reboot.
 - [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
 
