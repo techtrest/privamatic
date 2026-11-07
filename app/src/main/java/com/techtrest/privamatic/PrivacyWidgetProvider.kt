@@ -64,6 +64,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
      * broadcast (sent by AlarmManager, BootReceiver, and the app after a scan).
      */
     override fun onReceive(context: Context, intent: Intent) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "Received ${intent.action}")
         super.onReceive(context, intent) // routes APPWIDGET_UPDATE → onUpdate()
         if (intent.action == ACTION_UPDATE_WIDGET) {
             val manager = AppWidgetManager.getInstance(context)
