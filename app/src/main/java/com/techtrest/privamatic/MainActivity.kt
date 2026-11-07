@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         SnapshotReceiver.scheduleMidnightSnapshot(this)
+        PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(this)
 
         setContent {
             PrivacyWidgetTheme {

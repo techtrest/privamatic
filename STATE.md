@@ -42,6 +42,8 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 
 ## Blocked on me
 
+- Say continue (effort high) for the widget hardening verification on the Pixel 8 and S8.
+- Push `master` (S8 registration, `7cef129`).
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
@@ -120,6 +122,9 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] v1.5.2 live on F-Droid (Oliver, 2026-11-07)
 - [x] Samsung Galaxy S8 (stock Android 9) is a free legacy test device, like the Pixel 8 (Oliver, 2026-11-07)
 - [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
+- [x] Before Fix B, on the unchanged build: from the shell uid, the custom action ran a scan on the Pixel 8 (`last_update_timestamp` moved). `APPWIDGET_UPDATE` was refused with a `SecurityException` on both phones; `ENABLED` and `DELETED` too. Full table: `docs/specs/widget-refresh-hardening.md`.
+- [x] Built on `fix/widget-refresh-hardening`: widget alarm re-armed on app start and package replaced if a widget is placed; provider `exported="false"`; debug extras moved to a `src/debug` receiver. Compile OK, unit tests 192/192 with `--rerun`, `WidgetManifestTest` goes red if the provider is exported again. `assembleRelease` OK: its merged manifest has no debug receiver.
+- Not verified on a device: both fixes. The new build is not installed anywhere yet; verification comes next. `exported="false"` is still a hypothesis on Samsung's launcher.
 - [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
 
 ### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)

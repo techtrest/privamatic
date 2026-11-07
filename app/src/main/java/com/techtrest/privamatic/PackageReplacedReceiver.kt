@@ -6,7 +6,8 @@ import android.content.Intent
 import android.util.Log
 
 /**
- * Receives ACTION_MY_PACKAGE_REPLACED and restores the midnight snapshot alarm.
+ * Receives ACTION_MY_PACKAGE_REPLACED and restores the midnight snapshot alarm,
+ * and the widget alarm if a widget is placed.
  *
  * AlarmManager schedules are cleared when the app is updated, so non-widget
  * users would otherwise lose daily score history recording until they next
@@ -17,9 +18,10 @@ class PackageReplacedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
 
-        if (BuildConfig.DEBUG) Log.d(TAG, "Package replaced – restoring midnight snapshot alarm")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Package replaced – restoring midnight snapshot and widget alarms")
 
         SnapshotReceiver.scheduleMidnightSnapshot(context)
+        PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(context)
     }
 
     companion object {

@@ -71,7 +71,6 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 ComponentName(context, PrivacyWidgetProvider::class.java)
             )
             if (ids.isNotEmpty()) {
-                WidgetDebugOverride.applyExtras(context, intent, ids)
                 onUpdate(context, manager, ids)
             }
         }
@@ -86,6 +85,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         // goAsync() returns null when onUpdate is called directly (not via broadcast),
         // e.g. from WidgetConfigurationActivity. Safe-call ensures no NPE.
         val pendingResult = goAsync()
+        if (BuildConfig.DEBUG) Log.d(TAG, "Widget update: running a scan")
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             try {
                 val scanner = PrivacyScanner(context)
@@ -302,6 +302,18 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 buildAlarmPendingIntent(context)
             )
             if (BuildConfig.DEBUG) Log.d(TAG, "Periodic widget updates scheduled (6-hour interval)")
+        }
+
+        /**
+         * Brings the alarm back after a force-stop cleared it. Only a reboot restored it before.
+         * Does nothing when no widget is placed. The manager is null on devices without widgets.
+         */
+        fun rearmPeriodicUpdatesIfPlaced(context: Context) {
+            val manager = AppWidgetManager.getInstance(context) ?: return
+            val ids = manager.getAppWidgetIds(
+                ComponentName(context, PrivacyWidgetProvider::class.java)
+            )
+            if (ids.isNotEmpty()) schedulePeriodicUpdates(context)
         }
 
         /** Cancels the repeating alarm set by [schedulePeriodicUpdates]. */
