@@ -72,3 +72,6 @@ docs/screens/*/raw/
 /docs/store/
 /docs/store-graphics/
 /docs/audits/
+
+# HQ status file; written at every STOP, never committed
+/status.json

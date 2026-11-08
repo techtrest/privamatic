@@ -145,3 +145,18 @@ End every run with three headings:
 At the end of every run, per `~/Documents/project-tracker/bootstrap/contract.md`:
 - Update `ROADMAP.md` (gitignored, local only): tick, add, move items, and set the "Last updated" date.
 - Keep STATE.md's `## Next` and `## Blocked on me` current.
+
+<!-- HQ managed section v1: start. Generated from HQ's workflow; change it there, not here. -->
+## HQ status contract
+
+At every STOP, before the report, do these two things. They add to STATE.md and ROADMAP.md and replace nothing.
+
+1. **Write `status.json`** in the repo root. It is gitignored and is never committed. Required fields: `schema_version` (1), `updated_at` (date and time with a time zone), `phase` (one of `building`, `waiting for you`, `in review`, `ready`, `shipped`), `blocked_on_you` and `red_flags` (lists of `{"text": "..."}`), `next_step` and `last_report_summary` (text or null), `workflow_version` ("1.0"). Optional: `pipeline_step` (one of `Build`, `Phone test`, `Your check`, `2nd review`, `Merge`, `Release`), the step this repo is on now. No other fields.
+2. **Overwrite `HANDOFF.md`** in the repo root and commit it with the run's work. Keep its header lines and its section headings exactly as they are; HQ and the project chat read them. A section with nothing in it says None.
+
+**This repo is public.** `HANDOFF.md` stays at STATE.md's level of detail: no unreleased plans, no security findings, no server or account details, nothing that isn't already fit for STATE.md. Anything more sensitive travels only in HQ's clipboard packet, never in a committed file.
+
+Take `updated_at` and HANDOFF.md's `Time:` line only from `date` (or git), never from memory.
+
+Never put secrets, tokens, keys or personal data in either file.
+<!-- HQ managed section v1: end -->
