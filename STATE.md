@@ -42,7 +42,7 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 ## Blocked on me
 
 - External review of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` in Cursor, save `docs/reviews/fix-widget-refresh-hardening-findings-1.md`.
-- Push `master` (S8 registration, `7cef129`).
+- [x] Push `master` (S8 registration, `7cef129`) (done 2026-11-07: `origin/master` at `7cef129`)
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
