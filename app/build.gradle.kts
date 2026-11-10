@@ -5,6 +5,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Mockito's jar as a -javaagent for unit tests (Mockito 5's documented setup for JDK 21+).
+// Without it Mockito attaches itself at runtime, which needs a writable /tmp and fails in the
+// Claude Code sandbox; JDK 21+ also warns about agents loaded that way.
+val mockitoAgent = configurations.create("mockitoAgent")
+
 android {
     namespace = "com.techtrest.privamatic"
     compileSdk = 35
@@ -47,6 +52,16 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.all {
+            it.jvmArgs("-javaagent:${mockitoAgent.asPath}")
+            // Mockito writes a helper jar to java.io.tmpdir; the sandbox keeps /tmp read-only
+            val unitTestTmp = layout.buildDirectory.dir("tmp/unitTests").get().asFile
+            it.doFirst { unitTestTmp.mkdirs() }
+            it.systemProperty("java.io.tmpdir", unitTestTmp.absolutePath)
+        }
     }
 }
 
@@ -97,6 +112,7 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
+    mockitoAgent(libs.mockito.core) { isTransitive = false }
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
