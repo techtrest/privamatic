@@ -75,3 +75,28 @@ docs/screens/*/raw/
 
 # HQ status file; written at every STOP, never committed
 /status.json
+
+# Claude Code sandbox: 0-byte placeholder files it leaves in the repo, its own state,
+# and local settings proposals (they hold device serials); never commit
+/.bashrc
+/.bash_profile
+/.profile
+/.zshrc
+/.zprofile
+/.gitconfig
+/.gitmodules
+/.mcp.json
+/.ripgreprc
+/.vscode
+/.claude/commands
+/.claude/launch.json
+/.claude/loop.md
+/.claude/output-styles
+/.claude/routines
+/.claude/scheduled_tasks.json
+/.claude/workflows
+/.claude/skills
+/.claude/.cc-writes
+/.claude/*.proposed
+# Kotlin compiler session files
+.kotlin/
