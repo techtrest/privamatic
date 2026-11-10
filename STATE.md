@@ -19,9 +19,14 @@ The guard hook is merged into local `master` and passed its live smoke test (see
 `.claude/settings.local.json` is untracked since `c837e59`, so a `git pull` on the Framework laptop, or a switch to any
 pre-`c837e59` branch, overwrites or deletes it. Back it up first. The guard hook now denies such switches.
 Device serials are only in the gitignored `.claude/devices.local`, one per machine; tracked files use role names. Old commits keep the numbers (accepted).
+Claude Code runs Bash in a sandbox since 2026-11-10 (2026-11-10 run). Builds are offline from the sandbox Gradle home: after a new dependency, Oliver builds once outside and re-seeds it.
+Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the settings files, `.git/hooks` and `.git/config` are read-only, so a checkout or merge that changes them is Oliver's.
 
 ## Next
 
+- [ ] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
+  screenshots via `screencap` to the fixed device file and the fixed pull. Bash can't write `.claude/agents`, so the edit goes through the Edit tool.
+- [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
   So far proven only by feeding JSON to the hook (2026-11-05 run below).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
@@ -45,6 +50,8 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
+  The sandbox comes to that machine later, once it has its own `devices.local`.
+- Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge.
 - [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
 
 ## Done (moved from Next, 2026-10-25)
@@ -115,6 +122,16 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-10 — Claude Code sandbox (`fix/mockito-agent` merged into local `master`; `chore/sandbox-rollout`)
+
+- [x] Sandbox designed from Cull's setup and installed in the gitignored `settings.local.json` (Oliver, 2026-11-10). Gradle runs offline from its own sandbox Gradle home, seeded by Oliver. adb runs outside the sandbox only for exact Pixel 8 and S8 commands, with one fixed screenshot pull per phone to a folder outside the repo. The Pixel 9 is Oliver's under the sandbox.
+- [x] Post-install checks pass: secrets unreadable from Bash and the Read tool; writes outside the repo and the sandbox Gradle home fail, `.git/hooks` and `.git/config` included; only Gradle, Google and Maven hosts reachable; `compileDebugKotlin`, `testDebugUnitTest --rerun` 189/0, `assembleDebug`, `assembleRelease`; `test-hook.sh` 541/541 and `hook.log` still written; non-excluded adb calls and chains stay sandboxed and can't reach a phone; Pixel 8 `install -r` kept its data, S8 fresh install, both cold-start with empty crash buffers. Screens checked by Oliver.
+- [x] Settings fixes found by the checks: a deny for the home debug keystore, `ANDROID_HOME` in the sandbox env, and no deny on `local.properties` (the Kotlin Gradle plugin reads it; it holds only `sdk.dir`).
+- [x] `fix/mockito-agent` (`c26f41e`, merged `58145bc`): unit tests load Mockito as a `-javaagent` and use a build-dir `java.io.tmpdir`. Before, 53 of 189 failed in the sandbox (read-only `/tmp`). Same mockito-core version, no new dependency.
+- [x] `.gitignore`: the sandbox's 0-byte placeholder files, `.claude/*.proposed` and `.kotlin/`.
+- [x] Guard hook unchanged; its follow-ups wait for HQ's shared guard engine (Oliver: don't patch it locally meanwhile).
+- Not verified: APK checksums against a normal build of the same commit (the recorded ones came from an older tree).
+
 ### 2026-11-07 — legacy test device and widget hardening
 
 - [x] v1.5.2 live on F-Droid (Oliver, 2026-11-07)
@@ -122,16 +139,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
 - [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
 
-### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)
-
-- [x] CLAUDE.md, Session: rules for `STATE:` lines and `ADD Open decisions: …[blocked]` lines. Rules only: no block with a `STATE:` line has been applied yet.
-- Tracker contract support is a separate ROADMAP item, in `~/Documents/project-tracker`.
-
-### 2026-11-05 — second layer and branch cleanup (`chore/state-second-layer`, merged into local `master`)
-
-- [x] `settings.local.json`: the 9 Pixel 9 adb deny rules added, identical to those removed from `settings.json`; allow list unchanged. `git check-ignore` confirms it is ignored; `git grep` for the serials on `master` empty; `test-hook.sh` 441/441.
-- [x] Local branches deleted, `master` only left. The other 15 were merged. `design/widget-centre-change` was unmerged, not on the remote, approved by Oliver: tip `86cb2db`, restorable until git prunes it. Remote untouched. Its design docs still name the branch and tip (`docs/decisions/widget-centre-change.md:5`, `docs/screens/widget-centre-change/measurements.md:3`).
-- Not verified: Claude Code enforcing these deny rules live; trying one means attempting a write on the Pixel 9. Same rule text as before the move.
-
-The 2026-11-05 private-device-details run: `docs/state-archive/2026-11.md`.
+The 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
