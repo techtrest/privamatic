@@ -51,7 +51,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
-- Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge.
+- [x] Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge. (done by 2026-11-11: `origin/master` at `2c23297`)
+- Merge `chore/sandbox-followup` with `--no-ff` and push.
 - [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
 
 ## Done (moved from Next, 2026-10-25)
@@ -131,6 +132,9 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] `.gitignore`: the sandbox's 0-byte placeholder files, `.claude/*.proposed` and `.kotlin/`.
 - [x] Guard hook unchanged; its follow-ups wait for HQ's shared guard engine (Oliver: don't patch it locally meanwhile).
 - Not verified: APK checksums against a normal build of the same commit (the recorded ones came from an older tree).
+- [x] 2026-11-11 follow-up (`chore/sandbox-followup`, installed by Oliver): cross-project secret blocks added (read and edit, both layers); two old file rules for another project replaced by one edit block on its folder; user-writable PATH program folders ahead of `/usr/bin` write-denied; the guard hook is called through `/usr/bin/bash` (`6816807`). adb rules and exclusions untouched.
+  Checks pass: installed file identical to the proposal; each new block is a stand-in or empty overlay and the Read tool is denied on it; older blocks hold; other Gradle homes and the PATH folders refuse a probe file; offline `assembleDebug` and `testDebugUnitTest --rerun` 189/0; `test-hook.sh` 541/0; live hook denies a literal keystore path after the restart.
+  Gaps for HQ's shared guard engine: `guard.sh` finds `jq` through PATH; the guard doesn't expand variables, so a keystore path behind `$TMPDIR` passed it (sandbox still blocks real keystores). The sandbox's `**/*.keystore` / `**/*.jks` globs reach only the repo, so keystores elsewhere must be named.
 
 ### 2026-11-07 — legacy test device and widget hardening
 

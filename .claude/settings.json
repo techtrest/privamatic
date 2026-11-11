@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\" || exit 2"
+            "command": "/usr/bin/bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\" || exit 2"
           }
         ]
       },
@@ -51,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\" || exit 2"
+            "command": "/usr/bin/bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.sh\" || exit 2"
           }
         ]
       }
