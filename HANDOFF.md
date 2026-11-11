@@ -2,18 +2,18 @@
 
 - Format: 1
 - Project: Privamatic
-- Run: 3
-- Branch: chore/sandbox-followup
-- Commit: 2c23297 (base; this run's commits are on chore/sandbox-followup, not merged)
-- Time: 2026-11-11T09:26:27+01:00
+- Run: 4
+- Branch: chore/sandbox-tinypass
+- Commit: 626bc76 (base; this run's commits are on chore/sandbox-tinypass, not merged)
+- Time: 2026-11-11T10:38:20+01:00
 
 ## Where we are
 
-v1.5.2 is live on F-Droid. The Claude Code sandbox follow-up is installed and verified (11 Nov): cross-project secret blocks added, PATH program folders write-protected, the guard hook called through /usr/bin/bash. Offline build, 189 unit tests and 541 hook tests pass inside it. A widget fix is verified on two test phones and waits for external review.
+v1.5.2 is live on F-Droid. The sandbox follow-up is merged and pushed. A sandbox tiny pass is installed and verified (11 Nov): further sandbox blocks added, every probe denied. The offline build and unit test run inside it follow this commit. A widget fix is verified on two test phones and waits for external review.
 
 ## Blocked on you
 
-- Merge chore/sandbox-followup with --no-ff, then push master.
+- Merge chore/sandbox-tinypass with --no-ff, then push master.
 - External review of the widget fix (round 1 prompt ready).
 - Framework laptop setup, sandbox included (see local notes).
 
