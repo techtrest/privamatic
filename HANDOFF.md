@@ -2,18 +2,18 @@
 
 - Format: 1
 - Project: Privamatic
-- Run: 2
-- Branch: chore/sandbox-rollout
-- Commit: 58145bc (base; this run's commit is on chore/sandbox-rollout, not merged)
-- Time: 2026-11-10T18:02:04+01:00
+- Run: 3
+- Branch: chore/sandbox-followup
+- Commit: 2c23297 (base; this run's commits are on chore/sandbox-followup, not merged)
+- Time: 2026-11-11T09:26:27+01:00
 
 ## Where we are
 
-v1.5.2 is live on F-Droid. Claude Code sandbox installed and verified (10 Nov). Unit tests now run inside it (Mockito loaded as a test agent, merged into local master, not pushed). A widget fix is verified on two test phones and waits for external review.
+v1.5.2 is live on F-Droid. The Claude Code sandbox follow-up is installed and verified (11 Nov): cross-project secret blocks added, PATH program folders write-protected, the guard hook called through /usr/bin/bash. Offline build, 189 unit tests and 541 hook tests pass inside it. A widget fix is verified on two test phones and waits for external review.
 
 ## Blocked on you
 
-- Merge chore/sandbox-rollout, then push master.
+- Merge chore/sandbox-followup with --no-ff, then push master.
 - External review of the widget fix (round 1 prompt ready).
 - Framework laptop setup, sandbox included (see local notes).
 
@@ -27,7 +27,7 @@ None
 
 ## Next step for chat
 
-Three sandbox follow-ups: the device-verify agent (one adb command per call, no redirects); a third test phone waits for HQ's shared guard engine; the Framework laptop setup. Then the widget review findings.
+Guard gaps for HQ's shared guard engine: jq is found through PATH, and the guard doesn't expand variables. Then the device-verify agent under the sandbox, and the widget review findings.
 
 ## Unapplied ROADMAP UPDATE blocks
 
