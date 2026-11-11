@@ -52,7 +52,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
 - [x] Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge. (done by 2026-11-11: `origin/master` at `2c23297`)
-- Merge `chore/sandbox-followup` with `--no-ff` and push.
+- [x] Merge `chore/sandbox-followup` with `--no-ff` and push. (done by 2026-11-11: `origin/master` at `626bc76`)
+- Merge `chore/sandbox-tinypass` with `--no-ff` and push.
 - [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
 
 ## Done (moved from Next, 2026-10-25)
@@ -135,6 +136,8 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] 2026-11-11 follow-up (`chore/sandbox-followup`, installed by Oliver): cross-project secret blocks added (read and edit, both layers); two old file rules for another project replaced by one edit block on its folder; user-writable PATH program folders ahead of `/usr/bin` write-denied; the guard hook is called through `/usr/bin/bash` (`6816807`). adb rules and exclusions untouched.
   Checks pass: installed file identical to the proposal; each new block is a stand-in or empty overlay and the Read tool is denied on it; older blocks hold; other Gradle homes and the PATH folders refuse a probe file; offline `assembleDebug` and `testDebugUnitTest --rerun` 189/0; `test-hook.sh` 541/0; live hook denies a literal keystore path after the restart.
   Gaps for HQ's shared guard engine: `guard.sh` finds `jq` through PATH; the guard doesn't expand variables, so a keystore path behind `$TMPDIR` passed it (sandbox still blocks real keystores). The sandbox's `**/*.keystore` / `**/*.jks` globs reach only the repo, so keystores elsewhere must be named.
+- [x] 2026-11-11 tiny pass (`chore/sandbox-tinypass`, installed by Oliver): further sandbox blocks added (one read and edit block, write blocks on shared tool, startup and shell config paths, edit block on settings backups); missing paths get Edit() rules only. adb rules and exclusions untouched.
+  Checks pass: installed file identical to the proposal; the new read block is an empty overlay and the Read tool is denied in it; every new write block refuses Bash probes and the Write tool.
 
 ### 2026-11-07 — legacy test device and widget hardening
 
