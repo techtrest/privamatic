@@ -2,17 +2,17 @@
 
 - Format: 2
 - Project: Privamatic
-- Run: 7
-- Branch: chore/device-verify-sandbox
-- Commit: 0b58424
-- Time: 2026-11-17T20:20:28+01:00
-- Deviations: 2 (the words are in status.json, not in this public file)
+- Run: 8
+- Branch: chore/wrap-up-2026-11-17
+- Commit: 2ca7d39
+- Time: 2026-11-17T20:25:09+01:00
+- Deviations: none
 
 ## Where we are
-Branch chore/device-verify-sandbox: the device-verify gate passed on the Pixel 8 under the sandbox (build, install -r, cold start, screenshot via the fixed pull, empty crash buffer; 8 adb calls, none prompted or refused). Diff reviewed against master, nothing blocking. Not merged: the merge rewrites .claude/agents, which is read-only in the sandbox.
+master has the device-verify sandbox work (merged and pushed by Oliver at 2ca7d39) and, locally, the 2026-11-17 wrap-up merge: STATE's Next and Blocked on me are current. Next up is the external review of fix/widget-refresh-hardening.
 
 ## Blocked on you
-Merge chore/device-verify-sandbox into master with --no-ff, delete the branch with git branch -d, then push.
+Push master. Then run the round-1 external review of fix/widget-refresh-hardening in Cursor (prompt and diff are on that branch in docs/reviews/) and save the findings file.
 
 ## Red flags
 None
