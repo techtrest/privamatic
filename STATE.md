@@ -24,15 +24,17 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [x] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
-  screenshots via `screencap` to the fixed device file and the fixed pull (`c59bbd3`; Pixel 8 gate passed 2026-11-17, see Runs). Merge is Oliver's (Blocked on me).
+- [ ] [S] External review round 1 of `fix/widget-refresh-hardening` (Oliver, in Cursor; prompt and diff are on that branch in `docs/reviews/`).
+  Then a Claude Code run works through `fix-widget-refresh-hardening-findings-1.md`: prove or reject each finding, fix, re-run the gate, merge.
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
+  Fixed on `fix/widget-refresh-hardening` (not merged; verified on the Pixel 8 and S8), waits for the external review above.
 - [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
   three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
+  Fixed on `fix/widget-refresh-hardening` (not merged; verified on the Pixel 8 and S8), waits for the external review above.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
@@ -40,23 +42,19 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable; fix needs an API 30 emulator.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
-- [x] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook. The agent file's Sandbox
-  section now says "never run device commands from a script file" (`c59bbd3`); the 2026-11-17 gate ran every adb call inline.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
 ## Blocked on me
 
-- Merge `chore/device-verify-sandbox` into `master` with `--no-ff`, delete the branch with `git branch -d`, push (Claude can't: the merge rewrites `.claude/agents`).
-
-- [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
+- External review round 1 of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` (on that branch) in Cursor
+  with a non-Claude model, save `docs/reviews/fix-widget-refresh-hardening-findings-1.md`.
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
-- [x] Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge. (done by 2026-11-11: `origin/master` at `2c23297`)
-- [x] Merge `chore/sandbox-followup` with `--no-ff` and push. (done by 2026-11-11: `origin/master` at `626bc76`)
-- [x] Merge `chore/sandbox-tinypass` with `--no-ff` and push. (done 2026-11-11: merged `191cf71`, `origin/master` at `191cf71`)
-- [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
+- Push `master` with the 2026-11-17 wrap-up merge.
+
+Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-17).
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -136,7 +134,9 @@ It is the real guard. The allow and deny lists are a convenience.
   `install -r` Success; force-stop; `shell logcat -c -b crash`; `am start -W` ok, COLD, 707 ms; screencap, fixed pull and `cp` gave `docs/screens/device-verify-sandbox/launch.png`
   (Dashboard, score 53, no dialog); crash buffer empty; `pidof` alive. The agent listed 8 adb commands, each one call, none prompted or refused;
   `hook.log` stayed at 55 lines (no new deny or ask).
-- [ ] Merge: `.claude/agents` is read-only in the sandbox and `git checkout master` would rewrite `device-verify.md`, so the `--no-ff` merge is Oliver's.
+- [x] Merge: `.claude/agents` is read-only in the sandbox, so the `--no-ff` merge was Oliver's.
+- [x] STATE: Oliver merged `chore/device-verify-sandbox` with `--no-ff` and pushed (`origin/master` at `2ca7d39`) (2026-11-17).
+- [x] Wrap-up (`chore/wrap-up-2026-11-17`): Next and Blocked on me made current; next up is the widget fix external review.
   Own diff review against `master`: no blocking problems (agent file, STATE, archive move only).
 - Found: the guard hook logs only deny and ask decisions to `hook.log`, so allowed adb calls never appear there. Proof that commands ran one by one comes from the agent's transcript, not from `hook.log`.
 
