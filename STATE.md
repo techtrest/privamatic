@@ -24,11 +24,11 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
-  screenshots via `screencap` to the fixed device file and the fixed pull. Bash can't write `.claude/agents`, so the edit goes through the Edit tool.
+- [x] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
+  screenshots via `screencap` to the fixed device file and the fixed pull (`c59bbd3`; Pixel 8 gate passed 2026-11-17, see Runs). Merge is Oliver's (Blocked on me).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
-- [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
-  So far proven only by feeding JSON to the hook (2026-11-05 run below).
+- [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
+  - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
 - [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
@@ -40,12 +40,14 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable; fix needs an API 30 emulator.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
-- [ ] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook (commands matched, Pixel 8
-  only). Consider adding "run commands inline, never from a script file" to the agent file.
+- [x] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook. The agent file's Sandbox
+  section now says "never run device commands from a script file" (`c59bbd3`); the 2026-11-17 gate ran every adb call inline.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
 ## Blocked on me
+
+- Merge `chore/device-verify-sandbox` into `master` with `--no-ff`, delete the branch with `git branch -d`, push (Claude can't: the merge rewrites `.claude/agents`).
 
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
@@ -124,6 +126,20 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-17 — device-verify under the sandbox (`chore/device-verify-sandbox`)
+
+- [x] STATE: Oliver approved the HQ section v1.2 merge; merged and pushed (`c232c12`) (2026-11-17). It had no line in Blocked on me.
+- [x] STATE: Local settings with HQ's stop-now allow rule installed by Oliver; live file identical to the proposal (2026-11-17).
+- [x] Merged branch `chore/hq-status-contract` deleted with `git branch -d` (no commits outside `master`). Git warned it couldn't lock `.git/config` (read-only in the sandbox); no config section for the branch is left.
+- [x] `.claude/agents/device-verify.md`: new Sandbox section listing the excluded adb forms from `settings.local.json`; one literal adb command per call, no pipes, redirects, chains or `$(...)`, no script files; `install -r` without `-t`; crash buffer cleared via `shell logcat -c -b crash`; screenshots via `shell screencap` to `/sdcard/Download/PV_shot.png`, the fixed pull, then `cp` into `docs/screens/<run>/`; stop and report on a refusal or prompt. Edited with the Edit tool.
+- [x] Gate after a restart (2026-11-17, Pixel 8): device-verify registered with tools Bash and Read only (session agent list). assembleDebug fresh (APK 20:19:06 > start 20:18:55);
+  `install -r` Success; force-stop; `shell logcat -c -b crash`; `am start -W` ok, COLD, 707 ms; screencap, fixed pull and `cp` gave `docs/screens/device-verify-sandbox/launch.png`
+  (Dashboard, score 53, no dialog); crash buffer empty; `pidof` alive. The agent listed 8 adb commands, each one call, none prompted or refused;
+  `hook.log` stayed at 55 lines (no new deny or ask).
+- [ ] Merge: `.claude/agents` is read-only in the sandbox and `git checkout master` would rewrite `device-verify.md`, so the `--no-ff` merge is Oliver's.
+  Own diff review against `master`: no blocking problems (agent file, STATE, archive move only).
+- Found: the guard hook logs only deny and ask decisions to `hook.log`, so allowed adb calls never appear there. Proof that commands ran one by one comes from the agent's transcript, not from `hook.log`.
+
 ### 2026-11-17 — HQ managed section v1.2
 
 - [x] CLAUDE.md: HQ managed section v1 replaced by v1.2 word for word (`86c30b9`); nothing else in the file changed.
@@ -131,20 +147,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Stale hand-off items checked against git: the tiny-pass merge is done (`191cf71` on `origin/master`); the widget fix review and the Framework laptop setup are still open.
 - [x] The stop-now allow rule goes into the local settings as a proposal file for Oliver to install; no settings file edited.
 
-### 2026-11-10 — Claude Code sandbox (`fix/mockito-agent` merged into local `master`; `chore/sandbox-rollout`)
-
-- [x] Sandbox designed from Cull's setup and installed in the gitignored `settings.local.json` (Oliver, 2026-11-10). Gradle runs offline from its own sandbox Gradle home, seeded by Oliver. adb runs outside the sandbox only for exact Pixel 8 and S8 commands, with one fixed screenshot pull per phone to a folder outside the repo. The Pixel 9 is Oliver's under the sandbox.
-- [x] Post-install checks pass: secrets unreadable from Bash and the Read tool; writes outside the repo and the sandbox Gradle home fail, `.git/hooks` and `.git/config` included; only Gradle, Google and Maven hosts reachable; `compileDebugKotlin`, `testDebugUnitTest --rerun` 189/0, `assembleDebug`, `assembleRelease`; `test-hook.sh` 541/541 and `hook.log` still written; non-excluded adb calls and chains stay sandboxed and can't reach a phone; Pixel 8 `install -r` kept its data, S8 fresh install, both cold-start with empty crash buffers. Screens checked by Oliver.
-- [x] Settings fixes found by the checks: a deny for the home debug keystore, `ANDROID_HOME` in the sandbox env, and no deny on `local.properties` (the Kotlin Gradle plugin reads it; it holds only `sdk.dir`).
-- [x] `fix/mockito-agent` (`c26f41e`, merged `58145bc`): unit tests load Mockito as a `-javaagent` and use a build-dir `java.io.tmpdir`. Before, 53 of 189 failed in the sandbox (read-only `/tmp`). Same mockito-core version, no new dependency.
-- [x] `.gitignore`: the sandbox's 0-byte placeholder files, `.claude/*.proposed` and `.kotlin/`.
-- [x] Guard hook unchanged; its follow-ups wait for HQ's shared guard engine (Oliver: don't patch it locally meanwhile).
-- Not verified: APK checksums against a normal build of the same commit (the recorded ones came from an older tree).
-- [x] 2026-11-11 follow-up (`chore/sandbox-followup`, installed by Oliver): cross-project secret blocks added (read and edit, both layers); two old file rules for another project replaced by one edit block on its folder; user-writable PATH program folders ahead of `/usr/bin` write-denied; the guard hook is called through `/usr/bin/bash` (`6816807`). adb rules and exclusions untouched.
-  Checks pass: installed file identical to the proposal; each new block is a stand-in or empty overlay and the Read tool is denied on it; older blocks hold; other Gradle homes and the PATH folders refuse a probe file; offline `assembleDebug` and `testDebugUnitTest --rerun` 189/0; `test-hook.sh` 541/0; live hook denies a literal keystore path after the restart.
-  Gaps for HQ's shared guard engine: `guard.sh` finds `jq` through PATH; the guard doesn't expand variables, so a keystore path behind `$TMPDIR` passed it (sandbox still blocks real keystores). The sandbox's `**/*.keystore` / `**/*.jks` globs reach only the repo, so keystores elsewhere must be named.
-- [x] 2026-11-11 tiny pass (`chore/sandbox-tinypass`, installed by Oliver): further sandbox blocks added (one read and edit block, write blocks on shared tool, startup and shell config paths, edit block on settings backups); missing paths get Edit() rules only. adb rules and exclusions untouched.
-  Checks pass: installed file identical to the proposal; the new read block is an empty overlay and the Read tool is denied in it; every new write block refuses Bash probes and the Write tool.
-
-The 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
