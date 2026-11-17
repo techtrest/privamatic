@@ -24,11 +24,11 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
-  screenshots via `screencap` to the fixed device file and the fixed pull. Bash can't write `.claude/agents`, so the edit goes through the Edit tool.
+- [x] [S] device-verify under the sandbox: one literal adb command per call, no pipes, redirects or `$(...)` outside quotes; `install -r` without `-t`;
+  screenshots via `screencap` to the fixed device file and the fixed pull (`c59bbd3`; Pixel 8 gate passed 2026-11-17, see Runs). Merge is Oliver's (Blocked on me).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
-- [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
-  So far proven only by feeding JSON to the hook (2026-11-05 run below).
+- [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
+  - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
 - [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
@@ -40,12 +40,14 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable; fix needs an API 30 emulator.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
-- [ ] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook (commands matched, Pixel 8
-  only). Consider adding "run commands inline, never from a script file" to the agent file.
+- [x] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook. The agent file's Sandbox
+  section now says "never run device commands from a script file" (`c59bbd3`); the 2026-11-17 gate ran every adb call inline.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
 ## Blocked on me
+
+- Merge `chore/device-verify-sandbox` into `master` with `--no-ff`, delete the branch with `git branch -d`, push (Claude can't: the merge rewrites `.claude/agents`).
 
 - [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
@@ -130,7 +132,12 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] STATE: Local settings with HQ's stop-now allow rule installed by Oliver; live file identical to the proposal (2026-11-17).
 - [x] Merged branch `chore/hq-status-contract` deleted with `git branch -d` (no commits outside `master`). Git warned it couldn't lock `.git/config` (read-only in the sandbox); no config section for the branch is left.
 - [x] `.claude/agents/device-verify.md`: new Sandbox section listing the excluded adb forms from `settings.local.json`; one literal adb command per call, no pipes, redirects, chains or `$(...)`, no script files; `install -r` without `-t`; crash buffer cleared via `shell logcat -c -b crash`; screenshots via `shell screencap` to `/sdcard/Download/PV_shot.png`, the fixed pull, then `cp` into `docs/screens/<run>/`; stop and report on a refusal or prompt. Edited with the Edit tool.
-- [ ] Gate after a restart: device-verify loaded with Bash and Read only; assembleDebug, install, force-stop, cold start, one screenshot, empty crash buffer on the Pixel 8, no prompts.
+- [x] Gate after a restart (2026-11-17, Pixel 8): device-verify registered with tools Bash and Read only (session agent list). assembleDebug fresh (APK 20:19:06 > start 20:18:55);
+  `install -r` Success; force-stop; `shell logcat -c -b crash`; `am start -W` ok, COLD, 707 ms; screencap, fixed pull and `cp` gave `docs/screens/device-verify-sandbox/launch.png`
+  (Dashboard, score 53, no dialog); crash buffer empty; `pidof` alive. The agent listed 8 adb commands, each one call, none prompted or refused;
+  `hook.log` stayed at 55 lines (no new deny or ask).
+- [ ] Merge: `.claude/agents` is read-only in the sandbox and `git checkout master` would rewrite `device-verify.md`, so the `--no-ff` merge is Oliver's.
+  Own diff review against `master`: no blocking problems (agent file, STATE, archive move only).
 - Found: the guard hook logs only deny and ask decisions to `hook.log`, so allowed adb calls never appear there. Proof that commands ran one by one comes from the agent's transcript, not from `hook.log`.
 
 ### 2026-11-17 — HQ managed section v1.2
