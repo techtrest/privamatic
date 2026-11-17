@@ -15,7 +15,7 @@ The main session checks your evidence before it accepts any verdict, so report r
   In your report, write `<test serial>` or `<legacy serial>` instead of the value, because evidence can end up in tracked files.
   Never use the Pixel 9 (`DAILY_PHONE_SERIAL`) or any other serial, not even read-only. `adb devices -l` is fine.
 - Never edit, create or delete source files, Gradle files or docs. The only files you write are screenshots and
-  check output under `docs/screens/<run>/` (the prompt gives `<run>`).
+  check output under `docs/screens/<run>/` (the prompt gives `<run>`), plus the fixed screenshot pull below.
 - Never run git (not even `git status`) and never run `gh`.
 - Never fix anything. If something fails, report it and move on to the next check.
 - If the guard hook denies or asks about a command, report the command and the hook's reason. Do not rephrase,
@@ -26,6 +26,30 @@ The main session checks your evidence before it accepts any verdict, so report r
   `*PASSWORD*` / `*KEY*` / `*SECRET*` / `*TOKEN*`.
 - Quote paths: the repo is `"/home/techtresthome/Local App Projects/Privamatic"` (spaces).
 
+## Sandbox
+
+Bash runs in a sandbox that can't reach a phone. Only the exact adb forms excluded in `.claude/settings.local.json`
+run outside it, and the guard hook checks each one. For each device (`<serial>` = the Pixel 8's or the S8's) they are:
+
+```
+adb devices
+adb devices -l
+adb -s <serial> get-state
+adb -s <serial> install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s <serial> shell <command>
+adb -s <serial> logcat -d <args>
+adb -s <serial> pull /sdcard/Download/PV_shot.png /home/techtresthome/claude-screens/privamatic/
+```
+
+- One literal adb command per Bash call, in exactly one of these forms, with `-s <serial>` typed out.
+  No pipes, redirects, `&&` / `||` / `;` chains, loops or `$(...)` / backticks outside quotes. Filter output by reading it, not with `grep`.
+- Never run device commands from a script file (no scratchpad scripts, no `bash file.sh`): the guard hook sees only the script's name.
+- `install -r` without `-t`, run from the repo root with the relative APK path above.
+- Anything else on the phone goes through `shell <command>`, e.g. `adb -s <serial> shell logcat -c -b crash`, never bare `logcat -c`.
+- Screenshots only via `shell screencap -p /sdcard/Download/PV_shot.png` plus the fixed pull (Pipeline step 4); never `exec-out` or `>`.
+- If a command is refused, fails with a sandbox error or prompts, stop that check and report the command and the message.
+  Do not reword, split, wrap or chain it to get around the refusal.
+
 ## Pipeline
 
 Run from the repo root. Skip a step only if the prompt says so (for example "use the APK already built").
@@ -35,14 +59,17 @@ Run from the repo root. Skip a step only if the prompt says so (for example "use
    `JAVA_HOME=/home/techtresthome/.local/share/jdk/temurin-21 ./gradlew :app:assembleDebug`
    Then confirm the APK is fresh: `ls -l --time-style=full-iso app/build/outputs/apk/debug/app-debug.apk` and `date`.
    The APK's mtime must be after the build started. If it isn't, the verdict for the whole run is FAIL (stale APK).
-2. **Install.** `adb -s <test serial> install -r -t app/build/outputs/apk/debug/app-debug.apk`
+2. **Install.** `adb -s <test serial> install -r app/build/outputs/apk/debug/app-debug.apk`
 3. **Cold start.**
    `adb -s <test serial> shell am force-stop com.techtrest.privamatic.debug`
-   `adb -s <test serial> logcat -c -b crash`
+   `adb -s <test serial> shell logcat -c -b crash`
    `adb -s <test serial> shell am start -W -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`
 4. **Screenshots** (the ones the prompt asks for; at least one after launch):
-   `mkdir -p docs/screens/<run>` then
-   `adb -s <test serial> exec-out screencap -p > docs/screens/<run>/<name>.png`
+   `mkdir -p docs/screens/<run>`, then for each screenshot, one call each:
+   `adb -s <test serial> shell screencap -p /sdcard/Download/PV_shot.png`
+   `adb -s <test serial> pull /sdcard/Download/PV_shot.png /home/techtresthome/claude-screens/privamatic/`
+   `cp /home/techtresthome/claude-screens/privamatic/PV_shot.png docs/screens/<run>/<name>.png`
+   Each pull overwrites `PV_shot.png`, so copy it before the next screenshot.
    Open every screenshot with **Read** and describe what is actually visible: screen title, key rows and values,
    dialogs, error text. Do not describe what you expected to see. If the image is blank or shows another app, say so.
    To reach a screen, `adb -s <test serial> shell uiautomator dump /sdcard/ui.xml` plus
