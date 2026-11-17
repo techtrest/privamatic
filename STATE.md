@@ -53,7 +53,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   The sandbox comes to that machine later, once it has its own `devices.local`.
 - [x] Push `master` (`58145bc`, Mockito agent merge) and, once merged, the `chore/sandbox-rollout` merge. (done by 2026-11-11: `origin/master` at `2c23297`)
 - [x] Merge `chore/sandbox-followup` with `--no-ff` and push. (done by 2026-11-11: `origin/master` at `626bc76`)
-- Merge `chore/sandbox-tinypass` with `--no-ff` and push.
+- [x] Merge `chore/sandbox-tinypass` with `--no-ff` and push. (done 2026-11-11: merged `191cf71`, `origin/master` at `191cf71`)
 - [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
 
 ## Done (moved from Next, 2026-10-25)
@@ -124,6 +124,13 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-17 — HQ managed section v1.2
+
+- [x] CLAUDE.md: HQ managed section v1 replaced by v1.2 word for word (`86c30b9`); nothing else in the file changed.
+  Status and handoff are now written by HQ's command, never by hand.
+- [x] Stale hand-off items checked against git: the tiny-pass merge is done (`191cf71` on `origin/master`); the widget fix review and the Framework laptop setup are still open.
+- [x] The stop-now allow rule goes into the local settings as a proposal file for Oliver to install; no settings file edited.
+
 ### 2026-11-10 — Claude Code sandbox (`fix/mockito-agent` merged into local `master`; `chore/sandbox-rollout`)
 
 - [x] Sandbox designed from Cull's setup and installed in the gitignored `settings.local.json` (Oliver, 2026-11-10). Gradle runs offline from its own sandbox Gradle home, seeded by Oliver. adb runs outside the sandbox only for exact Pixel 8 and S8 commands, with one fixed screenshot pull per phone to a folder outside the repo. The Pixel 9 is Oliver's under the sandbox.
@@ -139,12 +146,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] 2026-11-11 tiny pass (`chore/sandbox-tinypass`, installed by Oliver): further sandbox blocks added (one read and edit block, write blocks on shared tool, startup and shell config paths, edit block on settings backups); missing paths get Edit() rules only. adb rules and exclusions untouched.
   Checks pass: installed file identical to the proposal; the new read block is an empty overlay and the Read tool is denied in it; every new write block refuses Bash probes and the Write tool.
 
-### 2026-11-07 — legacy test device and widget hardening
-
-- [x] v1.5.2 live on F-Droid (Oliver, 2026-11-07)
-- [x] Samsung Galaxy S8 (stock Android 9) is a free legacy test device, like the Pixel 8 (Oliver, 2026-11-07)
-- [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
-- [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
-
-The 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
