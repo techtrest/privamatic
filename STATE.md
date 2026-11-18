@@ -19,12 +19,23 @@ The guard hook is merged into local `master` and passed its live smoke test (see
 `.claude/settings.local.json` is untracked since `c837e59`, so a `git pull` on the Framework laptop, or a switch to any
 pre-`c837e59` branch, overwrites or deletes it. Back it up first. The guard hook now denies such switches.
 Device serials are only in the gitignored `.claude/devices.local`, one per machine; tracked files use role names. Old commits keep the numbers (accepted).
+Claude Code runs Bash in a sandbox since 2026-11-10 (2026-11-10 run). Builds are offline from the sandbox Gradle home: after a new dependency, Oliver builds once outside and re-seeds it.
+Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the settings files, `.git/hooks` and `.git/config` are read-only, so a checkout or merge that changes them is Oliver's.
 
 ## Next
 
-- [ ] [S] Live check of the serials-from-file hook, on the next run with a phone: a Pixel 8 command runs without a prompt, a Pixel 9 `pm clear` is denied.
-  So far proven only by feeding JSON to the hook (2026-11-05 run below).
+- [x] [S] External review round 1 of `fix/widget-refresh-hardening` (Grok 4.7 High): no High or Medium, L1 fixed, L2 rejected; last round (2026-11-18 run).
+- [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
+- [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
+  - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
+- [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
+  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8, review done); waits for Oliver's merge (Blocked on me).
+- [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
+  re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
+  three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
+  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8; since L1 only when the alarm is missing); waits for Oliver's merge.
 - [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
+  2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
@@ -34,19 +45,19 @@ Device serials are only in the gitignored `.claude/devices.local`, one per machi
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
-- [ ] [S] device-verify ran its sweep from a scratchpad script, which hides each adb call from the guard hook (commands matched, Pixel 8
-  only). Consider adding "run commands inline, never from a script file" to the agent file.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
 ## Blocked on me
 
-- External review of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` in Cursor, save `docs/reviews/fix-widget-refresh-hardening-findings-1.md`.
-- [x] Push `master` (S8 registration, `7cef129`) (done 2026-11-07: `origin/master` at `7cef129`)
-- [x] Push `master` (STATE updates and the inbox `STATE:` rule in CLAUDE.md) (done by 2026-11-07: `origin/master` at `dcf6f0b`)
+- [x] External review round 1 of `fix/widget-refresh-hardening` in Cursor (done 2026-11-17: findings saved, no High).
+- Merge `fix/widget-refresh-hardening` into `master` with `--no-ff` (commands in the 2026-11-18 report): the checkout changes `.claude/agents` and `.claude/settings.json`, read-only in the sandbox.
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
-- [x] After the F-Droid build is live: check whether to nudge #7 / #11 (fixed in 1.4.1, waiting for confirmation) (done 2026-11-07: no reply since 16 Sep, Oliver closes both with a reopen note)
+  The sandbox comes to that machine later, once it has its own `devices.local`.
+- [x] Push `master` with the 2026-11-17 wrap-up merge (done 2026-11-17: Oliver pushed, `origin/master` at `bba3cee`)
+
+Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-17).
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -116,25 +127,20 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-07 — legacy test device and widget hardening
+### 2026-11-18 — widget hardening, review round 1 (`fix/widget-refresh-hardening`)
 
-- [x] v1.5.2 live on F-Droid (Oliver, 2026-11-07)
-- [x] Samsung Galaxy S8 (stock Android 9) is a free legacy test device, like the Pixel 8 (Oliver, 2026-11-07)
-- [x] S8 registered (`chore/legacy-test-device`): `LEGACY_TEST_SERIAL` in `devices.local`, `guard.sh`, CLAUDE.md, `device-verify`. `test-hook.sh` 541/541 (was 441). 8 mutations each turn it red.
-- [x] Before Fix B, on the unchanged build: from the shell uid, the custom action ran a scan on the Pixel 8 (`last_update_timestamp` moved). `APPWIDGET_UPDATE` was refused with a `SecurityException` on both phones; `ENABLED` and `DELETED` too. Full table: `docs/specs/widget-refresh-hardening.md`.
-- [x] Built on `fix/widget-refresh-hardening`: widget alarm re-armed on app start and package replaced if a widget is placed; provider `exported="false"`; debug extras moved to a `src/debug` receiver. Compile OK, unit tests 192/192 with `--rerun`, `WidgetManifestTest` goes red if the provider is exported again. `assembleRelease` OK: its merged manifest has no debug receiver.
-- [x] Device verification, Pixel 8 and S8, full table in the spec: `exported="false"` works on both launchers (placement, update from an exported build, resize, font scale, reboot, tap, app start). Fix A: 0 / 0 after a force-stop, 1 / 1 after open, still 1 / 1 after 5 more cold starts. Fix B: the old action from the shell runs no scan; the S8 logs `Permission Denial`.
-- [x] Release APK: 0 dex and manifest hits for `WidgetDebugReceiver`, `applyExtras` and the `debug_*` strings.
-- [x] Opacity, S8: 76 and 100 draw identically (0 of 258,077 widget pixels differ, card `(0,66,37)`). Confirms the Android 8–11 item. No code.
-- [x] Both phones restored. S8: debug app and widget gone, release 1.3.1 unchanged with its snapshot alarm. Pixel 8: one widget, same cell and opacity, new widget id, 1 / 1 alarms.
-- Update of a force-stopped app, not opened: `MY_PACKAGE_REPLACED` does not arrive on either phone. Pixel 8 ends at 1 / 1 through `BootReceiver`, S8 at 0 / 0. Not patched: Oliver decided on 2026-11-07 to leave it (ROADMAP, Parked).
-- Not verified: a real second app (the shell uid stood in); a device without the widget feature; the comment-only commit before review was not reinstalled. S8 crash buffer covers only after the reboot.
-- [x] Hand-made JSON with the real serials: Pixel 8 and S8 no decision for install, force-stop, input, uiautomator and Gradle install. Pixel 9 unchanged: `pm clear`, uninstall, input, force-stop, plain install and Gradle install deny; `--user 0` install asks; getprop and screencap allow. Unknown serial: `pm clear` deny, `ls` ask.
+- [x] STATE: Oliver pushed master (origin/master at bba3cee). Remove "Push master" from Blocked on me → ticked in Blocked on me (2026-11-18).
+- [x] STATE: Oliver switched the working tree to fix/widget-refresh-hardening for the Cursor review (2026-11-17) (2026-11-18).
+- [x] Findings file was saved as `…-findings-1 .md` (trailing space); renamed to `fix-widget-refresh-hardening-findings-1.md`.
+- [x] L1 proven on the unfixed build (Pixel 8): two cold starts moved the widget alarm's fire time +61.9 s and +54.6 s, the time between starts.
+- [x] L1 fixed: re-arm only when a widget is placed and the alarm's PendingIntent is missing (`FLAG_NO_CREATE`, request code 1001);
+  `cancelPeriodicUpdates` also cancels the PendingIntent. Covers app start and `MY_PACKAGE_REPLACED`. `WidgetAlarmRearmTest` (3 tests).
+- [x] Gate, Pixel 8: install and two cold starts keep the fire time (1 alarm, no arm logged); force-stop → 0 alarms and no widget PendingIntent,
+  next start → 1; rotation → unchanged, same pid. Crash buffer empty. Screens: `docs/screens/l1-gate/`, `docs/screens/l1-proof/`.
+- [x] L2 rejected (debug-only receiver; AOSP returns a manager with a null service, not null; not provable on a device). Reasons in the findings file.
+- [x] Unit tests failed 53/195 in the sandbox (Mockito `MockMaker`): the branch predates `c26f41e`. Cherry-picked it (`-x`); then 195/0 with `--rerun`.
+- [x] STATE.md and the November archive rebased on `master`'s versions plus this branch's items, so the merge takes the branch side.
+- Not verified on the S8 this round (Pixel 8 only, as asked).
 
-### 2026-11-05 — inbox `STATE:` lines (`chore/inbox-state-lines`, merged into local `master`)
-
-- [x] CLAUDE.md, Session: rules for `STATE:` lines and `ADD Open decisions: …[blocked]` lines. Rules only: no block with a `STATE:` line has been applied yet.
-- Tracker contract support is a separate ROADMAP item, in `~/Documents/project-tracker`.
-
-The 2026-11-05 second-layer and private-device-details run: `docs/state-archive/2026-11.md`.
+The 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
