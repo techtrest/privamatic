@@ -75,6 +75,9 @@
   - `docs/reviews/<branch>-prompt-<round>.md`: `docs/reviews/REVIEW_PROMPT.md` filled in with a one-line summary,
     context from earlier rounds and 2–4 run-specific invariants.
 - Then STOP at "external review". Oliver runs it in Cursor with a non-Claude model and saves `docs/reviews/<branch>-findings-<round>.md`.
+- When a run stops at "external review", the branch under review stays checked out, so Cursor opens on the review files.
+- While a review is open, a later run that switches away switches back before it stops. If the sandbox blocks the switch
+  (read-only files differ between the branches), put the exact `git switch <branch>` command first in Blocked on me and in the handoff's "Blocked on you".
 - Every finding is a claim. Before fixing it, prove it with a failing test or a reproducible device check.
   Or reject it, with reasons recorded in the findings file. A rejected High goes into the next round's prompt for judgement.
 - Stop review rounds when a round has no High findings; then merge.

@@ -28,12 +28,11 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
-- [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
-  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8, review done); waits for Oliver's merge (Blocked on me).
-- [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
+- [x] [S] Widget update action was open to other apps: `PrivacyWidgetProvider` is no longer exported (verified on the Pixel 8 and S8, review done; merged and pushed by Oliver, `origin/master` at `3990262`, 2026-11-18).
+- [x] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
   three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
-  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8; since L1 only when the alarm is missing); waits for Oliver's merge.
+  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8; since L1 only when the alarm is missing); merged and pushed by Oliver, `origin/master` at `3990262` (2026-11-18).
 - [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
@@ -51,7 +50,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 ## Blocked on me
 
 - [x] External review round 1 of `fix/widget-refresh-hardening` in Cursor (done 2026-11-17: findings saved, no High).
-- Merge `fix/widget-refresh-hardening` into `master` with `--no-ff` (commands in the 2026-11-18 report): the checkout changes `.claude/agents` and `.claude/settings.json`, read-only in the sandbox.
+- [x] Merge `fix/widget-refresh-hardening` into `master` with `--no-ff` (done 2026-11-18: Oliver merged and pushed, `origin/master` at `3990262`; conflicts in HANDOFF.md, STATE.md and the November archive taken from the branch side)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
@@ -127,22 +126,11 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-18 — widget hardening, review round 1 (`fix/widget-refresh-hardening`)
+### 2026-11-18 — external review branch stays checked out (`chore/review-branch-checkout`)
 
-- [x] STATE: Oliver pushed master (origin/master at bba3cee). Remove "Push master" from Blocked on me → ticked in Blocked on me (2026-11-18).
-- [x] STATE: Oliver switched the working tree to fix/widget-refresh-hardening for the Cursor review (2026-11-17) (2026-11-18).
-- [x] Findings file was saved as `…-findings-1 .md` (trailing space); renamed to `fix-widget-refresh-hardening-findings-1.md`.
-- [x] L1 proven on the unfixed build (Pixel 8): two cold starts moved the widget alarm's fire time +61.9 s and +54.6 s, the time between starts.
-- [x] L1 fixed: re-arm only when a widget is placed and the alarm's PendingIntent is missing (`FLAG_NO_CREATE`, request code 1001);
-  `cancelPeriodicUpdates` also cancels the PendingIntent. Covers app start and `MY_PACKAGE_REPLACED`. `WidgetAlarmRearmTest` (3 tests).
-- [x] Gate, Pixel 8: install and two cold starts keep the fire time (1 alarm, no arm logged); force-stop → 0 alarms and no widget PendingIntent,
-  next start → 1; rotation → unchanged, same pid. Crash buffer empty. Screens: `docs/screens/l1-gate/`, `docs/screens/l1-proof/`.
-- [x] L2 rejected (debug-only receiver; AOSP returns a manager with a null service, not null; not provable on a device). Reasons in the findings file.
-- [x] Unit tests failed 53/195 in the sandbox (Mockito `MockMaker`): the branch predates `c26f41e`. Cherry-picked it (`-x`); then 195/0 with `--rerun`.
-- [x] STATE.md and the November archive rebased on `master`'s versions plus this branch's items, so the merge takes the branch side.
-- [x] Cancel path, Pixel 8 (`cancel-gate`; Oliver removed and re-added the widget): removal → 0 widget alarms, no widget PendingIntent, snapshot
-  alarm unchanged; re-add with Save → 1 new alarm 6 h out and a new PendingIntent (widget id 26). Crash buffer empty. Same APK as `l1-gate`.
-- Not verified on the S8 this round (Pixel 8 only, as asked).
+- [x] STATE: Oliver merged `fix/widget-refresh-hardening` with `--no-ff` and pushed (`origin/master` at `3990262`); removed from Blocked on me (2026-11-18).
+- [x] STATE: Oliver checked the cancel-gate screenshots before the push: nothing private (2026-11-18).
+- [x] CLAUDE.md, External review: two bullets added (branch under review stays checked out when a run stops at "external review"; a later run switches back, or puts the exact `git switch` command first in Blocked on me and the handoff if the sandbox blocks it). Nothing else changed, HQ section untouched. Docs only: no build, no external review.
 
-The 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-18 widget hardening review run, the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
