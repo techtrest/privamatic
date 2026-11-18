@@ -5,11 +5,11 @@ import android.content.Intent
 
 /**
  * Debug builds only; release builds compile the no-op in src/release. Lets a device check force the
- * widget's change state through the update broadcast. The forced value is kept for every update
+ * widget's change state through [WidgetDebugReceiver]. The forced value is kept for every update
  * until cleared, so the system's own updates don't replace it.
  *
- * `adb shell am broadcast -n com.techtrest.privamatic.debug/com.techtrest.privamatic.PrivacyWidgetProvider
- *  -a com.techtrest.privamatic.ACTION_UPDATE_WIDGET` plus one of:
+ * `adb shell am broadcast -n com.techtrest.privamatic.debug/com.techtrest.privamatic.WidgetDebugReceiver`
+ * plus one of:
  * - `--ei debug_delta -6`: show "↓6" (0 shows the shield);
  * - `--ez debug_clear true`: back to the real change;
  * - `--ef debug_opacity 0`: store that opacity for every placed widget;

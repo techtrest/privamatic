@@ -64,6 +64,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
      * broadcast (sent by AlarmManager, BootReceiver, and the app after a scan).
      */
     override fun onReceive(context: Context, intent: Intent) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "Received ${intent.action}")
         super.onReceive(context, intent) // routes APPWIDGET_UPDATE → onUpdate()
         if (intent.action == ACTION_UPDATE_WIDGET) {
             val manager = AppWidgetManager.getInstance(context)
@@ -71,7 +72,6 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 ComponentName(context, PrivacyWidgetProvider::class.java)
             )
             if (ids.isNotEmpty()) {
-                WidgetDebugOverride.applyExtras(context, intent, ids)
                 onUpdate(context, manager, ids)
             }
         }
@@ -86,6 +86,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         // goAsync() returns null when onUpdate is called directly (not via broadcast),
         // e.g. from WidgetConfigurationActivity. Safe-call ensures no NPE.
         val pendingResult = goAsync()
+        if (BuildConfig.DEBUG) Log.d(TAG, "Widget update: running a scan")
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             try {
                 val scanner = PrivacyScanner(context)
@@ -304,10 +305,43 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
             if (BuildConfig.DEBUG) Log.d(TAG, "Periodic widget updates scheduled (6-hour interval)")
         }
 
-        /** Cancels the repeating alarm set by [schedulePeriodicUpdates]. */
+        /**
+         * Brings the alarm back after a force-stop cleared it. Android 15+ also delivers
+         * BOOT_COMPLETED when the app leaves the stopped state; older versions wait for a reboot.
+         * Does nothing when no widget is placed or the alarm is still set: re-arming a live alarm
+         * would push its next fire 6 hours out from every app start (review round 1, L1).
+         * The manager is null on devices without widgets.
+         */
+        fun rearmPeriodicUpdatesIfPlaced(context: Context) {
+            val manager = AppWidgetManager.getInstance(context) ?: return
+            val ids = manager.getAppWidgetIds(
+                ComponentName(context, PrivacyWidgetProvider::class.java)
+            )
+            if (needsRearm(ids.size, isAlarmPending(context))) schedulePeriodicUpdates(context)
+        }
+
+        /** Re-arm only when a widget is placed and the alarm is gone. */
+        internal fun needsRearm(placedWidgets: Int, alarmPending: Boolean): Boolean =
+            placedWidgets > 0 && !alarmPending
+
+        /**
+         * True while the alarm's PendingIntent exists. A force-stop or reboot removes it, and
+         * [cancelPeriodicUpdates] cancels it, so it exists only while the alarm is set.
+         */
+        private fun isAlarmPending(context: Context): Boolean =
+            PendingIntent.getBroadcast(
+                context,
+                ALARM_REQUEST_CODE,
+                buildAlarmIntent(context),
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            ) != null
+
+        /** Cancels the repeating alarm set by [schedulePeriodicUpdates], and its PendingIntent. */
         fun cancelPeriodicUpdates(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.cancel(buildAlarmPendingIntent(context))
+            val pendingIntent = buildAlarmPendingIntent(context)
+            alarmManager.cancel(pendingIntent)
+            pendingIntent.cancel()
             if (BuildConfig.DEBUG) Log.d(TAG, "Periodic widget updates cancelled")
         }
 
@@ -322,17 +356,18 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
             context.sendBroadcast(intent)
         }
 
-        private fun buildAlarmPendingIntent(context: Context): PendingIntent {
-            val intent = Intent(context, PrivacyWidgetProvider::class.java).apply {
+        private fun buildAlarmIntent(context: Context): Intent =
+            Intent(context, PrivacyWidgetProvider::class.java).apply {
                 action = ACTION_UPDATE_WIDGET
             }
-            return PendingIntent.getBroadcast(
+
+        private fun buildAlarmPendingIntent(context: Context): PendingIntent =
+            PendingIntent.getBroadcast(
                 context,
                 ALARM_REQUEST_CODE,
-                intent,
+                buildAlarmIntent(context),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-        }
 
         // -----------------------------------------------------------------
         // OS detection – mirrors DeviceInfoCard logic

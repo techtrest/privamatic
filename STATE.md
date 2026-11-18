@@ -24,35 +24,38 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [S] External review round 1 of `fix/widget-refresh-hardening` (Oliver, in Cursor; prompt and diff are on that branch in `docs/reviews/`).
-  Then a Claude Code run works through `fix-widget-refresh-hardening-findings-1.md`: prove or reject each finding, fix, re-run the gate, merge.
+- [x] [S] External review round 1 of `fix/widget-refresh-hardening` (Grok 4.7 High): no High or Medium, L1 fixed, L2 rejected; last round (2026-11-18 run).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
 - [ ] [S] Widget update action is open to other apps: `PrivacyWidgetProvider` is exported with `ACTION_UPDATE_WIDGET` (full scan, battery only).
-  Fixed on `fix/widget-refresh-hardening` (not merged; verified on the Pixel 8 and S8), waits for the external review above.
+  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8, review done); waits for Oliver's merge (Blocked on me).
 - [ ] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
   re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
   three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
-  Fixed on `fix/widget-refresh-hardening` (not merged; verified on the Pixel 8 and S8), waits for the external review above.
+  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8; since L1 only when the alarm is missing); waits for Oliver's merge.
+- [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
+  2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
+- [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
+- [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
-  the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable; fix needs an API 30 emulator.
+  the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
 ## Blocked on me
 
-- External review round 1 of `fix/widget-refresh-hardening`: run `docs/reviews/fix-widget-refresh-hardening-prompt-1.md` (on that branch) in Cursor
-  with a non-Claude model, save `docs/reviews/fix-widget-refresh-hardening-findings-1.md`.
+- [x] External review round 1 of `fix/widget-refresh-hardening` in Cursor (done 2026-11-17: findings saved, no High).
+- Merge `fix/widget-refresh-hardening` into `master` with `--no-ff` (commands in the 2026-11-18 report): the checkout changes `.claude/agents` and `.claude/settings.json`, read-only in the sandbox.
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
-- Push `master` with the 2026-11-17 wrap-up merge.
+- [x] Push `master` with the 2026-11-17 wrap-up merge (done 2026-11-17: Oliver pushed, `origin/master` at `bba3cee`)
 
 Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-17).
 
@@ -124,28 +127,22 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-17 — device-verify under the sandbox (`chore/device-verify-sandbox`)
+### 2026-11-18 — widget hardening, review round 1 (`fix/widget-refresh-hardening`)
 
-- [x] STATE: Oliver approved the HQ section v1.2 merge; merged and pushed (`c232c12`) (2026-11-17). It had no line in Blocked on me.
-- [x] STATE: Local settings with HQ's stop-now allow rule installed by Oliver; live file identical to the proposal (2026-11-17).
-- [x] Merged branch `chore/hq-status-contract` deleted with `git branch -d` (no commits outside `master`). Git warned it couldn't lock `.git/config` (read-only in the sandbox); no config section for the branch is left.
-- [x] `.claude/agents/device-verify.md`: new Sandbox section listing the excluded adb forms from `settings.local.json`; one literal adb command per call, no pipes, redirects, chains or `$(...)`, no script files; `install -r` without `-t`; crash buffer cleared via `shell logcat -c -b crash`; screenshots via `shell screencap` to `/sdcard/Download/PV_shot.png`, the fixed pull, then `cp` into `docs/screens/<run>/`; stop and report on a refusal or prompt. Edited with the Edit tool.
-- [x] Gate after a restart (2026-11-17, Pixel 8): device-verify registered with tools Bash and Read only (session agent list). assembleDebug fresh (APK 20:19:06 > start 20:18:55);
-  `install -r` Success; force-stop; `shell logcat -c -b crash`; `am start -W` ok, COLD, 707 ms; screencap, fixed pull and `cp` gave `docs/screens/device-verify-sandbox/launch.png`
-  (Dashboard, score 53, no dialog); crash buffer empty; `pidof` alive. The agent listed 8 adb commands, each one call, none prompted or refused;
-  `hook.log` stayed at 55 lines (no new deny or ask).
-- [x] Merge: `.claude/agents` is read-only in the sandbox, so the `--no-ff` merge was Oliver's.
-- [x] STATE: Oliver merged `chore/device-verify-sandbox` with `--no-ff` and pushed (`origin/master` at `2ca7d39`) (2026-11-17).
-- [x] Wrap-up (`chore/wrap-up-2026-11-17`): Next and Blocked on me made current; next up is the widget fix external review.
-  Own diff review against `master`: no blocking problems (agent file, STATE, archive move only).
-- Found: the guard hook logs only deny and ask decisions to `hook.log`, so allowed adb calls never appear there. Proof that commands ran one by one comes from the agent's transcript, not from `hook.log`.
+- [x] STATE: Oliver pushed master (origin/master at bba3cee). Remove "Push master" from Blocked on me → ticked in Blocked on me (2026-11-18).
+- [x] STATE: Oliver switched the working tree to fix/widget-refresh-hardening for the Cursor review (2026-11-17) (2026-11-18).
+- [x] Findings file was saved as `…-findings-1 .md` (trailing space); renamed to `fix-widget-refresh-hardening-findings-1.md`.
+- [x] L1 proven on the unfixed build (Pixel 8): two cold starts moved the widget alarm's fire time +61.9 s and +54.6 s, the time between starts.
+- [x] L1 fixed: re-arm only when a widget is placed and the alarm's PendingIntent is missing (`FLAG_NO_CREATE`, request code 1001);
+  `cancelPeriodicUpdates` also cancels the PendingIntent. Covers app start and `MY_PACKAGE_REPLACED`. `WidgetAlarmRearmTest` (3 tests).
+- [x] Gate, Pixel 8: install and two cold starts keep the fire time (1 alarm, no arm logged); force-stop → 0 alarms and no widget PendingIntent,
+  next start → 1; rotation → unchanged, same pid. Crash buffer empty. Screens: `docs/screens/l1-gate/`, `docs/screens/l1-proof/`.
+- [x] L2 rejected (debug-only receiver; AOSP returns a manager with a null service, not null; not provable on a device). Reasons in the findings file.
+- [x] Unit tests failed 53/195 in the sandbox (Mockito `MockMaker`): the branch predates `c26f41e`. Cherry-picked it (`-x`); then 195/0 with `--rerun`.
+- [x] STATE.md and the November archive rebased on `master`'s versions plus this branch's items, so the merge takes the branch side.
+- [x] Cancel path, Pixel 8 (`cancel-gate`; Oliver removed and re-added the widget): removal → 0 widget alarms, no widget PendingIntent, snapshot
+  alarm unchanged; re-add with Save → 1 new alarm 6 h out and a new PendingIntent (widget id 26). Crash buffer empty. Same APK as `l1-gate`.
+- Not verified on the S8 this round (Pixel 8 only, as asked).
 
-### 2026-11-17 — HQ managed section v1.2
-
-- [x] CLAUDE.md: HQ managed section v1 replaced by v1.2 word for word (`86c30b9`); nothing else in the file changed.
-  Status and handoff are now written by HQ's command, never by hand.
-- [x] Stale hand-off items checked against git: the tiny-pass merge is done (`191cf71` on `origin/master`); the widget fix review and the Framework laptop setup are still open.
-- [x] The stop-now allow rule goes into the local settings as a proposal file for Oliver to install; no settings file edited.
-
-The 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

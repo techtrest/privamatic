@@ -61,9 +61,11 @@
             </intent-filter>
         </receiver>
 
+        <!-- Not exported: other apps must not be able to trigger a full scan. The system sends
+             widget broadcasts as the system uid, and every update of ours is an explicit intent. -->
         <receiver
             android:name=".PrivacyWidgetProvider"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.techtrest.privamatic.ACTION_UPDATE_WIDGET" />
