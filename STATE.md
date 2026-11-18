@@ -24,15 +24,9 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [x] [S] External review round 1 of `fix/widget-refresh-hardening` (Grok 4.7 High): no High or Medium, L1 fixed, L2 rejected; last round (2026-11-18 run).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
-- [x] [S] Widget update action was open to other apps: `PrivacyWidgetProvider` is no longer exported (verified on the Pixel 8 and S8, review done; merged and pushed by Oliver, `origin/master` at `3990262`, 2026-11-18).
-- [x] [S] Re-arm the 6-hour widget alarm on app start and `MY_PACKAGE_REPLACED`. A force-stop clears both alarms; only the snapshot is
-  re-armed (`PackageReplacedReceiver.kt:22`, `MainActivity.kt:26`). Pixel 8: 0 alarms after two force-stops, both back after a reboot;
-  three `install -r` in a row kept both, so an update alone doesn't clear them. Whether an F-Droid update force-stops: not checked.
-  Fixed on `fix/widget-refresh-hardening` (verified on the Pixel 8 and S8; since L1 only when the alarm is missing); merged and pushed by Oliver, `origin/master` at `3990262` (2026-11-18).
 - [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
@@ -49,14 +43,12 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Blocked on me
 
-- [x] External review round 1 of `fix/widget-refresh-hardening` in Cursor (done 2026-11-17: findings saved, no High).
-- [x] Merge `fix/widget-refresh-hardening` into `master` with `--no-ff` (done 2026-11-18: Oliver merged and pushed, `origin/master` at `3990262`; conflicts in HANDOFF.md, STATE.md and the November archive taken from the branch side)
 - Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
   Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
   The sandbox comes to that machine later, once it has its own `devices.local`.
-- [x] Push `master` with the 2026-11-17 wrap-up merge (done 2026-11-17: Oliver pushed, `origin/master` at `bba3cee`)
+- Push `master` with the 2026-11-18 wrap-up merge.
 
-Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-17).
+Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-18).
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -125,6 +117,11 @@ It is the real guard. The allow and deny lists are a convenience.
 - None open. (Device name at large text: Oliver accepted the ellipsis; added to the spec 2026-10-24.)
 
 ## Runs
+
+### 2026-11-18 — wrap-up (`chore/wrap-up-2026-11-18`)
+
+- [x] STATE: Oliver pushed `master` (`c90c608`) and deleted the five merged local branches (`chore/legacy-test-device`, `chore/sandbox-followup`, `chore/sandbox-rollout`, `chore/sandbox-tinypass`, `fix/mockito-agent`). It had no line in Blocked on me (2026-11-18).
+- [x] Next and Blocked on me made current: ticked items moved to the November archive. No review is open; the widget hardening fixes are on `master` and unreleased by choice (ROADMAP, Later).
 
 ### 2026-11-18 — external review branch stays checked out (`chore/review-branch-checkout`)
 
