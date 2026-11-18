@@ -140,6 +140,8 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] L2 rejected (debug-only receiver; AOSP returns a manager with a null service, not null; not provable on a device). Reasons in the findings file.
 - [x] Unit tests failed 53/195 in the sandbox (Mockito `MockMaker`): the branch predates `c26f41e`. Cherry-picked it (`-x`); then 195/0 with `--rerun`.
 - [x] STATE.md and the November archive rebased on `master`'s versions plus this branch's items, so the merge takes the branch side.
+- [x] Cancel path, Pixel 8 (`cancel-gate`; Oliver removed and re-added the widget): removal → 0 widget alarms, no widget PendingIntent, snapshot
+  alarm unchanged; re-add with Save → 1 new alarm 6 h out and a new PendingIntent (widget id 26). Crash buffer empty. Same APK as `l1-gate`.
 - Not verified on the S8 this round (Pixel 8 only, as asked).
 
 The 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.

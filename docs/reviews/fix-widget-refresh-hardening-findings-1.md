@@ -67,5 +67,9 @@ returns an empty array (the finding says so too). No device we have, or can get,
 - Gate (Pixel 8, run `l1-gate`): install and two cold starts leave the fire time at 191059891, 1 alarm, no arm logged; force-stop → 0 widget
   alarms and no widget PendingIntent record, next start → 1 alarm (armed by the start, then again by `BootReceiver` 335 ms later); rotation
   to landscape and back → fire time unchanged, same pid. Crash buffer empty.
+- Cancel path (Pixel 8, run `cancel-gate`, widget removed and re-added by Oliver): before, 1 widget alarm and its PendingIntent (request code 1001);
+  after removal, 0 alarms and no request code 1001 record (log: `APPWIDGET_DISABLED`, "Periodic widget updates cancelled"), snapshot alarm
+  unchanged; after re-adding with Save, 1 new alarm about 6 h out (fire time = arm time + 6 h), a new request code 1001 record, widget id 26.
+  Crash buffer empty.
 
 No High or Medium findings: last round.
