@@ -43,12 +43,11 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Blocked on me
 
-- Create `.claude/devices.local` on the Framework laptop before the next session there, or the hook denies every device command (format: CLAUDE.md, Devices).
-  Also copy the 9 Pixel 9 deny rules into that machine's `.claude/settings.local.json`; the file is gitignored, so a pull won't bring them.
-  The sandbox comes to that machine later, once it has its own `devices.local`.
-- Push `master` with the 2026-11-18 wrap-up merge.
+  See HANDOFF.md: HQ's command keeps this list there.
 
-Done items from this list moved to `docs/state-archive/2026-11.md` (2026-11-18).
+## Red flags
+
+  See HANDOFF.md: HQ's command keeps this list there.
 
 ## Done (moved from Next, 2026-10-25)
 
@@ -117,6 +116,12 @@ It is the real guard. The allow and deny lists are a convenience.
 - None open. (Device name at large text: Oliver accepted the ellipsis; added to the spec 2026-10-24.)
 
 ## Runs
+
+### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
+
+- [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
+- [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
+- [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
 
 ### 2026-11-18 — wrap-up (`chore/wrap-up-2026-11-18`)
 
