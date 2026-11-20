@@ -1,27 +1,37 @@
 # Privamatic handoff
 
-- Format: 2
+- Format: 3
 - Project: Privamatic
-- Run: 4
-- Branch: chore/wrap-up-2026-11-18
-- Commit: c90c608
-- Time: 2026-11-18T19:56:17+01:00
-- Deviations: none
+- Run: 5
+- Branch: chore/hq-section-v1.3
+- Commit: 4335545
+- Time: 2026-11-20T19:38:48+01:00
+- Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-master has everything pushed up to c90c608: the widget hardening fixes (provider unexported, widget alarm re-armed only when missing) and the CLAUDE.md rule that the review branch stays checked out. Those fixes are unreleased by choice. STATE's Next and Blocked on me are current; no review is open. The five merged local branches are gone. The wrap-up merge is local only.
+
+`chore/hq-section-v1.3` is committed (approved by Oliver) and is ahead of master; it waits for Oliver to merge it and push master.
+CLAUDE.md now carries HQ's managed section v1.3, word for word; the rest of the file is unchanged.
+STATE.md's Blocked on me and Red flags hold only the pointer line; the open item moved into this list.
+The 18 Nov roadmap inbox block is applied: master was already pushed (origin/master at a55b5fc), and the v1.3 swap item is ticked.
+The guard's own test passes (541 of 541) and it lets HQ's commands through. Docs only: compile passes, no phone test.
 
 ## Blocked on you
-Push master (the 2026-11-18 wrap-up merge). The Framework laptop setup (devices.local and the Pixel 9 deny rules) is still open.
+
+- Set up the Framework laptop before the next session there: create `.claude/devices.local` and copy the 9 Pixel 9 deny rules into its local settings, or every device command is refused there.
 
 ## Red flags
+
 None
 
 ## Pending decisions
+
 None
 
 ## Next step for chat
-None
+
+Oliver runs the gate on the branch, merges it into master with `--no-ff`, runs the gate on master and pushes master. Then add HANDOFF.md to the chat's synced files.
 
 ## Unapplied ROADMAP UPDATE blocks
+
 None

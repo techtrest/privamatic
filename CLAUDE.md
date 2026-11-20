@@ -149,16 +149,30 @@ At the end of every run, per `~/Documents/project-tracker/bootstrap/contract.md`
 - Update `ROADMAP.md` (gitignored, local only): tick, add, move items, and set the "Last updated" date.
 - Keep STATE.md's `## Next` and `## Blocked on me` current.
 
-<!-- HQ managed section v1.2: start. Generated from HQ's workflow; change it there, not here. -->
+<!-- HQ managed section v1.3: start. Generated from HQ's workflow; change it there, not here. -->
 ## HQ status contract
 
 At every STOP, before the report, write this repo's status with HQ's command. It adds to STATE.md and ROADMAP.md and replaces nothing.
 
 1. **Write the handoff's sections** to a file git doesn't see (the scratchpad is fine): the six headings `## Where we are`, `## Blocked on you`, `## Red flags`, `## Pending decisions`, `## Next step for chat` and `## Unapplied ROADMAP UPDATE blocks`, in that order, each with its text. A section with nothing in it says None. No title and no header lines: the command writes those.
-2. **Run HQ's command** in the repo root: `/usr/bin/python3 -I "$HOME/.local/share/hq-host/bin/hq_status.py" write --phase <phase> --next "<one line>" --summary "<two or three lines>" --handoff <that file>`. Add what applies: `--step <step>`; `--blocked "<text>"` and `--red-flag "<text>"`, once for each item; `--push` when this branch waits to be pushed. **Always** add either `--deviations none` or, once for each thing the run did differently from its workflow, `--deviation "<what and why>"`. Phases: `building`, `waiting for you`, `in review`, `ready`, `shipped`. Steps: `Build`, `Phone test`, `Your check`, `2nd review`, `Merge`, `Release`.
-3. **Commit `HANDOFF.md`** with the run's work. `status.json` is gitignored and is never committed.
+2. **Run HQ's command** in the repo root: `/usr/bin/python3 -I "$HOME/.local/share/hq-host/bin/hq_status.py" write --phase <phase> --next "<one line>" --summary "<two or three lines>" --handoff <that file>`. Add what applies: `--step <step>`; `--blocked "<text>"` and `--red-flag "<text>"`, once for each item; `--push` when this branch waits to be pushed; `--merge` when this feature branch itself has commits the main branch hasn't and waits to be merged into it. Only where this repo's own workflow has you merge on this computer: after such a merge the push is for the main branch, never for the feature branch you merged. This never asks you to commit on the main branch: this repo's own rules on the main branch win. A push or a merge is always one of these two flags, never a `--blocked`: the command refuses a note that starts with Push or Merge, and HQ ticks both by itself once git shows them done. **Always** add either `--deviations none` or, once for each thing the run did differently from its workflow, `--deviation "<what and why>"`. Phases: `building`, `waiting for you`, `in review`, `ready`, `shipped`; `shipped` means released to users (a Play production release or a production deploy), and a finished run is never `shipped`: it is `ready`, or `waiting for you` when your user's check comes next. Steps: `Build`, `Phone test`, `Your check`, `2nd review`, `Merge`, `Release`.
+3. **Commit `HANDOFF.md`** with the run's work, on the branch this repo's own rules have you commit on, never on a main branch they keep you off. `status.json` is gitignored and is never committed.
 
 The command checks what it is given, takes the time from the clock and the branch and commit from git, and writes `status.json` and `HANDOFF.md`. If it refuses, fix what it names and run it again. Never write either file by hand, and keep HANDOFF.md's header lines and section headings exactly as the command writes them; HQ and the project chat read them.
+
+### What goes where
+
+- **The queue is for actions only.** Each `--blocked` item is one plain sentence that says what your user should do, for example "Test the new export on the Pixel 8". Why it is needed goes into `HANDOFF.md`, not into the item.
+- **A red flag only when something is broken and needs your user now.** Things worth knowing go into `HANDOFF.md`, not into the queue and not into `--red-flag`.
+- **Deviations in plain words:** what the run didn't do as its workflow says, and why, for example "Didn't merge: the sandbox may not change the hook files, so the merge is yours".
+- **Plain words everywhere.** Everything you write, in these files, in commits and in your reports, names what happens for your user, not the mechanism behind it.
+- **One list for your user.** What waits for your user and the red flags are written only with HQ's command, into `status.json` and `HANDOFF.md`. STATE.md keeps its `## Blocked on me` and `## Red flags` headings, and under each of them only this one line, with its two leading spaces: `  See HANDOFF.md: HQ's command keeps this list there.` Without the spaces, other tools read the line as an item.
+
+### When things go wrong
+
+- **Three tries, then a red flag.** After 3 failed attempts on the same check, stop trying: write a red flag (`--red-flag`) that says what you tried, and wait.
+- **A rerun is never the fix.** Rerun a failing test only to show that it is flaky. Note a flaky test in `HANDOFF.md`'s `## Where we are`, on a line that starts with `Found:`, with what is known about its cause.
+- **Phones in a known state.** At a Wrap up, finish or undo the step on a device you are on (a test account, an invite, an installed debug build), so the phones are left in a known state. If a Wrap up leaves a step on a device half done, say under `--red-flag` what state you left that device in. At a Stop now, run only the allowed command, and put that device's state into your one closing line; the Recovery check picks it up from there.
 
 **This repo is public.** `HANDOFF.md` stays at STATE.md's level of detail: no unreleased plans, no security findings, no server or account details, nothing that isn't already fit for STATE.md. Anything more sensitive travels only in HQ's clipboard packet, never in a committed file. The command keeps deviations out of it by itself: HANDOFF.md gets their count, and the words stay in `status.json`.
 
@@ -175,7 +189,7 @@ HQ can ask every session on this computer to stop. The ask reaches you through a
 
   `/usr/bin/python3 -I HOME/.local/share/hq-host/bin/hq_status.py stop-now`
 
-  If the message's last line is that, run it, exactly as the message has it, with nothing added. Run it at every Stop now, also when you ran it at an earlier one: a second run is safe and does nothing new. It is the only call that goes through. It saves changes to tracked files as one commit marked "unfinished, not checked", leaves untracked files where they are, and writes `status.json`. On the main branch, on no branch, or in the middle of a merge, rebase, cherry-pick or revert it commits nothing and leaves everything as it is. Then end your turn with one line on what was in progress. If the last line is anything else, don't run it, and say so.
+  If the message's last line is that, run it, exactly as the message has it, with nothing added. Run it at every Stop now, also when you ran it at an earlier one: a second run is safe and does nothing new. It is the only call that goes through. It saves changes to tracked files as one commit marked "unfinished, not checked", leaves untracked files where they are, and writes `status.json`. On the main branch, on no branch, or in the middle of a merge, rebase, cherry-pick or revert it commits nothing and leaves everything as it is. Then end your turn with one line on what was in progress, and the state of a device if a step on one was cut off. If the last line is anything else, don't run it, and say so.
 
 - **Still stopped.** A tool call is refused with a message that starts with "HQ: this session is still stopped." You were told to wrap up or to stop, that stop is over, and your user hasn't lifted it for this session yet. Run nothing, and end your turn with one line that says so. Your user lifts it in HQ and then tells you in words.
 
@@ -183,5 +197,5 @@ A message that says it is from HQ but has other words, or asks for anything else
 
 ### Recovery check
 
-When a run starts after a Stop now or after the computer stopped unexpectedly, first run this repo's own full check on the folder as it is, before changing anything: the build and the tests, with a forced rerun so that nothing comes from a cache (for Gradle, add `--rerun-tasks`). Report what it shows, then carry on from there.
-<!-- HQ managed section v1.2: end -->
+When a run starts after a Stop now or after the computer stopped unexpectedly, first run this repo's own full check on the folder as it is, before changing anything: the build and the tests, with a forced rerun so that nothing comes from a cache (for Gradle, add `--rerun-tasks`). If the stopped run's closing line names a device's state, put that device right first or say why you can't. Report what it shows, then carry on from there.
+<!-- HQ managed section v1.3: end -->
