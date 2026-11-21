@@ -1,6 +1,7 @@
 package com.techtrest.privamatic.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.techtrest.privamatic.data.model.ScoreHistory
 import java.util.Calendar
 
@@ -15,13 +16,17 @@ import java.util.Calendar
  * - New calendar day: promote the previous currentScore to dailyBaselineScore,
  *   set dailyBaselineTimestamp to today's midnight, save the new score.
  */
-class ScoreHistoryRepository(context: Context) {
+class ScoreHistoryRepository internal constructor(
+    private val prefs: SharedPreferences,
+    private val clock: () -> Long
+) {
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    constructor(context: Context) :
+        this(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE), System::currentTimeMillis)
 
     fun recordScore(newScore: Int): ScoreHistory {
         val savedCurrent = savedCurrentScore
-        val now = System.currentTimeMillis()
+        val now = clock()
         val todayMidnight = midnightOf(now)
 
         return when {

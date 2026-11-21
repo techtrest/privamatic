@@ -118,6 +118,11 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
+
+- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
+- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
+
 ### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
 
 - [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
