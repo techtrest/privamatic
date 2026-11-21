@@ -68,9 +68,11 @@ class ScoreHistoryRepository internal constructor(
                 )
             }
             else -> {
-                // New calendar day — yesterday's closing score becomes today's baseline
+                // New calendar day — yesterday's closing score becomes today's baseline.
+                // A non-zero delta against it is a change since the last scan, so its window
+                // starts now; an older change's timestamp must not carry over.
                 val delta = newScore - savedCurrent
-                val deltaFirstAppeared = computeDeltaFirstAppeared(delta, now)
+                val deltaFirstAppeared = if (delta == 0) 0L else now
                 prefs.edit()
                     .putInt(KEY_DAILY_BASELINE_SCORE, savedCurrent)
                     .putInt(KEY_CURRENT_SCORE, newScore)
