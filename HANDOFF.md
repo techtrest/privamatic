@@ -3,25 +3,24 @@
 - Format: 3
 - Project: Privamatic
 - Run: 6
-- Branch: fix/score-history-cap-edge
-- Commit: 2338f09
-- Time: 2026-11-21T12:25:20+01:00
-- Deviations: 4 (the words are in status.json, not in this public file)
+- Branch: chore/handoff-2026-11-21
+- Commit: a092445
+- Time: 2026-11-21T12:53:20+01:00
+- Deviations: 2 (the words are in status.json, not in this public file)
 
 ## Where we are
 
-Unattended run, two parts.
-Part 1 (design, no code): `docs/decisions/snapshot-alarm-time.md` is merged into local `master` (`f4cf3f7`); its branch is deleted. The daily History point is set for 23:00 (the 23:50 comments are out of date) and may arrive until 17:00 the next day. On the Pixel 8 it lands the next morning, so each point is dated a day late, one day in the last week has no point, and the chart's even spacing hides the gap. Three fix options; the paper recommends B after a one-night phone check.
-Part 2 (fix): `fix/score-history-cap-edge` is checked out and stopped at external review round 1. A score change on the first scan after midnight now starts its own 48-hour widget indicator instead of inheriting an older change's start. Unit test written failing first, then fixed; 200/200 unit tests pass; Pixel 8 check passed with the existing history unchanged. The midnight case itself is shown by the unit test, not on the phone.
-`master` is 2 commits ahead of `origin/master` (the Part 1 merge).
-Phones: Pixel 8 has this branch's debug build, on the home screen, history intact. S8 and Pixel 9 not touched.
+External review round 1 of the score history fix found nothing (no High, Medium or Low); no round 2. The fix is merged into local `master` with `--no-ff` (`a092445`) and its branch is deleted.
+`master` is 6 commits ahead of `origin/master` (decision paper merge, fix merge and their commits); nothing is pushed.
+This handoff sits on `chore/handoff-2026-11-21` because HANDOFF.md can't be committed on `master`; that branch holds only this file.
+Pixel 8: this branch's debug build, home screen, history intact (unchanged since the gate). S8 and Pixel 9 not touched.
+The findings file was saved as `ix-score-history-...` (missing "f"); renamed before committing.
 
 ## Blocked on you
 
-1. Run external review round 1 in Cursor on `docs/reviews/fix-score-history-cap-edge-prompt-1.md` and save `docs/reviews/fix-score-history-cap-edge-findings-1.md`.
-2. Pick the snapshot option (A, B or C) in `docs/decisions/snapshot-alarm-time.md`, and say whether "Your first data point will appear tonight" stays.
-3. Push `master` when convenient (2 commits, Part 1).
-4. The start-of-session question was skipped because you were away: any decisions from chats since 2026-11-20? Paste a ROADMAP UPDATE block into the inbox.
+1. Push `master`.
+2. Merge `chore/handoff-2026-11-21` into `master` (handoff only), or drop it.
+3. Choose snapshot option A, B or C in `docs/decisions/snapshot-alarm-time.md`.
 
 ## Red flags
 
@@ -33,7 +32,7 @@ None
 
 ## Next step for chat
 
-Review findings for `fix/score-history-cap-edge` round 1; if no High, merge with `--no-ff`. Then the snapshot option once chosen.
+Decide the snapshot option; then a build run for it (B starts with a one-night Doze check on the Pixel 8).
 
 ## Unapplied ROADMAP UPDATE blocks
 
