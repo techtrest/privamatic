@@ -35,6 +35,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
+  - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
@@ -117,22 +118,19 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
+
+- [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
+- [x] Why 23:00, not 23:50: `0603e0a` (2026-06-28) changed only the minute, one day after `0405dea` set 23:50; no reason recorded; three comments left at 23:50.
+- [x] Paper `docs/decisions/snapshot-alarm-time.md`: a history "day" is the calendar day the alarm fired on; a late point moves to the next day and leaves a gap; an app start after 23:00 and before delivery cancels that night's snapshot. Options A/B/C; recommends B (one-shot `setWindow` 23:00 + 55 min, re-armed nightly, never cancelling a pending one). Oliver's call; nothing built.
+- [x] Pixel 8, read-only `device-verify` (2026-11-21 12:15): snapshot alarm `origWhen` 23:00, `window=+18h`; 1W history points 17/18/20 Nov at 10:02–10:03 and 21 Nov at 03:52, so each is the previous night's alarm, filed one day late; no point for the 18 Nov alarm; the chart spaces points by index, so the gap is invisible. Crash buffer empty after, app on the home screen. Screenshots `docs/screens/snapshot-alarm-time/`.
+- [x] Seen: one cold start after a force-stop logged "snapshot alarm scheduled" twice, 350 ms apart (fits the `BootReceiver` item in Next; not checked).
+
 ### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
 
 - [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
 - [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
 - [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
 
-### 2026-11-18 — wrap-up (`chore/wrap-up-2026-11-18`)
-
-- [x] STATE: Oliver pushed `master` (`c90c608`) and deleted the five merged local branches (`chore/legacy-test-device`, `chore/sandbox-followup`, `chore/sandbox-rollout`, `chore/sandbox-tinypass`, `fix/mockito-agent`). It had no line in Blocked on me (2026-11-18).
-- [x] Next and Blocked on me made current: ticked items moved to the November archive. No review is open; the widget hardening fixes are on `master` and unreleased by choice (ROADMAP, Later).
-
-### 2026-11-18 — external review branch stays checked out (`chore/review-branch-checkout`)
-
-- [x] STATE: Oliver merged `fix/widget-refresh-hardening` with `--no-ff` and pushed (`origin/master` at `3990262`); removed from Blocked on me (2026-11-18).
-- [x] STATE: Oliver checked the cancel-gate screenshots before the push: nothing private (2026-11-18).
-- [x] CLAUDE.md, External review: two bullets added (branch under review stays checked out when a run stops at "external review"; a later run switches back, or puts the exact `git switch` command first in Blocked on me and the handoff if the sandbox blocks it). Nothing else changed, HQ section untouched. Docs only: no build, no external review.
-
-The 2026-11-18 widget hardening review run, the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
