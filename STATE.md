@@ -40,6 +40,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   - [x] Pixel 8 evening check passed (2026-11-21, run below; snapshot alarm flag is 0x20, accepted by Oliver). Waits on tomorrow morning's readout, then merge.
 - [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Fix the comment.
   - [x] Settled 2026-11-21 (Pixel 8): after `install -r` both alarms were still there, unchanged. The comment is wrong.
+- [ ] [S] Each app start pushes the widget's 6 h alarm back 6 h (Pixel 8, 2026-11-21: new alarm object at +5h59m after each `am kill` cold start, log "Periodic widget updates scheduled" each time), although `rearmPeriodicUpdatesIfPlaced` should leave a live alarm alone. Read-only finding, not this branch's scope.
 - [ ] [S] Trusting or untrusting an app recomputes the score without a scan, so today's history point keeps the old score until the next scan (the widget's follow-up scan records it when a widget is placed).
   - [x] Oliver decided (21 Nov): keep it so, today's point stays until the next scan.
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
@@ -116,6 +117,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] 4. History: after the starts, 34 points, rows 1–33 identical, row 34 (21 Nov) now 19:38:51, score 53. Pull to refresh at 19:40:20: still 34, row 34 now 19:40:21.893 (the widget follow-up scan, under 1 s after). History "All" screenshot: 4 Oct – 21 Nov, one point per day, last on 21 Nov.
 - [x] 5. Crash buffer empty (19:31 and 19:40). Phone left at 19:41 on the home screen, widget shows 53 Fair, debug build installed.
 - [x] Final alarms (19:41): snapshot 22:00 tonight (as above); widget alarm next at about 01:38, window +4h30m (so 01:38–06:08, all after midnight). Phone is on USB power (status "not charging", 80 %), deep idle ACTIVE: unless unplugged, tonight doesn't test Doze.
+- [x] The database copies used for the check are deleted from the Pixel 8 (device-verify, 20:01); the snapshot alarm unchanged at 20:01:32.
 - [x] Found: a force-stop clears the app's `Alarm Stats` and `App Alarm history` entries in `dumpsys alarm`; at 19:41 the package has none, so tomorrow's entries are all from tonight.
 
 **Tomorrow morning — what to read, in this order, before opening the app** (no force-stop, no reboot before step 2):
