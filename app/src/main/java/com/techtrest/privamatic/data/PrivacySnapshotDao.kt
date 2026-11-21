@@ -32,11 +32,17 @@ interface PrivacySnapshotDao {
      * Sets the day's point: inserts [point] if the day [dayStart, dayEnd) has none, otherwise
      * overwrites the day's newest row with it (same row id). One transaction, so two scans that
      * finish together (app scan, then the widget scan it triggers) can't both insert.
+     * A point stamped earlier than the day's newest is dropped: when two scans overlap, the one
+     * that saves last may have started first, and it must not replace the newer result.
      */
     @Transaction
     suspend fun setPointForDay(dayStart: Long, dayEnd: Long, point: PrivacySnapshot) {
         val existing = latestSnapshotForDay(dayStart, dayEnd)
-        if (existing == null) insert(point) else update(point.copy(id = existing.id))
+        when {
+            existing == null -> insert(point)
+            point.timestamp < existing.timestamp -> Unit
+            else -> update(point.copy(id = existing.id))
+        }
     }
 
     @Query("DELETE FROM privacy_snapshots")

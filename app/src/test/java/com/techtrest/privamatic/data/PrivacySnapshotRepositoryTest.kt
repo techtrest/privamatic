@@ -62,6 +62,30 @@ class PrivacySnapshotRepositoryTest {
     }
 
     @Test
+    fun `a scan that started earlier but saves last never replaces a newer point`() {
+        // Widget scan stamped 19:30:05 saves first; a refresh stamped 19:30:02 saves after it.
+        scanAt(nov(23, 19, 30) + 5_000, 61)
+        scanAt(nov(23, 19, 30) + 2_000, 58)
+
+        val rows = dao.rows()
+        assertEquals(1, rows.size)
+        assertEquals(61, rows[0].score)
+        assertEquals(nov(23, 19, 30) + 5_000, rows[0].timestamp)
+    }
+
+    @Test
+    fun `a day has a point only once a scan recorded one`() {
+        clock = nov(23, 22, 15)
+        assertEquals(false, runBlocking { repo.hasPointToday() })
+        scanAt(nov(22, 21), 53)
+        clock = nov(23, 22, 15)
+        assertEquals("yesterday's point doesn't count", false, runBlocking { repo.hasPointToday() })
+        scanAt(nov(23, 9), 55)
+        clock = nov(23, 22, 15)
+        assertEquals(true, runBlocking { repo.hasPointToday() })
+    }
+
+    @Test
     fun `the first scan after midnight starts a new day and leaves yesterday alone`() {
         scanAt(nov(23, 23, 59), 53)
         scanAt(nov(24, 0, 1), 57)

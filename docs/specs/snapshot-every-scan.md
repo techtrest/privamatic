@@ -18,6 +18,9 @@ other scan.
   change, no extra alarms. Its scan records through the same call.
 - App start, boot and update never cancel or postpone a pending safety-net alarm (FLAG_NO_CREATE test, as for the
   widget alarm).
+- Review round 1 (Medium): when app start, boot or update arms a missing alarm after 22:00 and today has no point, it
+  fires now instead of tomorrow 22:00 (still inexact, still one a night).
+- Review round 1 (Low 2): a scan stamped earlier than today's point never replaces it.
 
 **Out:**
 - Room schema change, migration, new table or column (hard condition: stop and report if needed).
@@ -38,6 +41,7 @@ other scan.
 2. At most one row per local calendar day is written; rows of earlier days are never touched.
 3. At most one snapshot alarm exists; app start, boot and update leave a pending one alone.
 4. A failed history write never stops the widget or the app showing the score.
+5. Today's point always holds the latest-stamped scan of the day.
 
 ## Milestones
 

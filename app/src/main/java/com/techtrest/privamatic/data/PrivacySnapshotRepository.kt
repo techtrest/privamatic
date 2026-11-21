@@ -37,12 +37,7 @@ class PrivacySnapshotRepository internal constructor(
     /** Sets today's point (local calendar day); a later scan the same day replaces it. */
     internal suspend fun recordSnapshot(score: Int, deductions: List<CheckDeduction>) {
         val now = clock()
-        val dayStart = midnightOf(now)
-        // The next local midnight, not dayStart + 24 h: DST days have 23 or 25 hours.
-        val dayEnd = Calendar.getInstance().apply {
-            timeInMillis = dayStart
-            add(Calendar.DAY_OF_MONTH, 1)
-        }.timeInMillis
+        val (dayStart, dayEnd) = dayBoundsOf(now)
         dao.setPointForDay(
             dayStart,
             dayEnd,
@@ -52,6 +47,12 @@ class PrivacySnapshotRepository internal constructor(
                 deductionsJson = CheckDeduction.encode(deductions)
             )
         )
+    }
+
+    /** True once a scan has set today's point (local calendar day). */
+    suspend fun hasPointToday(): Boolean {
+        val (dayStart, dayEnd) = dayBoundsOf(clock())
+        return dao.latestSnapshotForDay(dayStart, dayEnd) != null
     }
 
     suspend fun getSnapshots(filter: HistoryFilter): List<PrivacySnapshot> {
@@ -84,6 +85,16 @@ class PrivacySnapshotRepository internal constructor(
             adjustedScore.issues
                 .filter { it.pointDeduction > 0 }
                 .map { CheckDeduction(it.check.name, it.pointDeduction) }
+
+        /** [local midnight, next local midnight); not start + 24 h: DST days have 23 or 25 hours. */
+        private fun dayBoundsOf(ms: Long): Pair<Long, Long> {
+            val dayStart = midnightOf(ms)
+            val dayEnd = Calendar.getInstance().apply {
+                timeInMillis = dayStart
+                add(Calendar.DAY_OF_MONTH, 1)
+            }.timeInMillis
+            return dayStart to dayEnd
+        }
 
         private fun midnightOf(ms: Long): Long = Calendar.getInstance().apply {
             timeInMillis = ms

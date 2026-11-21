@@ -20,7 +20,7 @@ class PackageReplacedReceiver : BroadcastReceiver() {
 
         if (BuildConfig.DEBUG) Log.d(TAG, "Package replaced – restoring midnight snapshot and widget alarms")
 
-        SnapshotReceiver.ensureSnapshotAlarm(context)
+        SnapshotReceiver.ensureSnapshotAlarm(context, this)
         PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(context)
     }
 

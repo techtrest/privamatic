@@ -68,6 +68,30 @@ class SnapshotAlarmTest {
     }
 
     @Test
+    fun `armed after 22_00 on a day with no point it fires now`() {
+        // Reboot at 22:15 before tonight's alarm fired, no scan today: tonight's scan still runs.
+        val now = at(2026, Calendar.NOVEMBER, 21, 22, 15)
+        assertEquals(now, SnapshotReceiver.armTriggerAt(now, todayHasPoint = false))
+    }
+
+    @Test
+    fun `armed after 22_00 on a day with a point it waits for tomorrow night`() {
+        val now = at(2026, Calendar.NOVEMBER, 21, 22, 15)
+        assertEquals(
+            at(2026, Calendar.NOVEMBER, 22, 22),
+            SnapshotReceiver.armTriggerAt(now, todayHasPoint = true)
+        )
+    }
+
+    @Test
+    fun `armed before 22_00 it waits for tonight, point or not`() {
+        val now = at(2026, Calendar.NOVEMBER, 21, 14, 54)
+        val tonight = at(2026, Calendar.NOVEMBER, 21, 22)
+        assertEquals(tonight, SnapshotReceiver.armTriggerAt(now, todayHasPoint = false))
+        assertEquals(tonight, SnapshotReceiver.armTriggerAt(now, todayHasPoint = true))
+    }
+
+    @Test
     fun `a pending alarm is left alone, a missing one is armed`() {
         assertFalse(SnapshotReceiver.needsArm(alarmPending = true))
         assertTrue(SnapshotReceiver.needsArm(alarmPending = false))
