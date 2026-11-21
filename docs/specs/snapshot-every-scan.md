@@ -29,7 +29,7 @@ other scan.
 
 | Question | Default |
 |---|---|
-| Empty-history text "Your first data point will appear tonight." | Left as is; the first scan now records a point at once. |
+| Empty-history text | Oliver decided (21 Nov): "Your history starts with your first scan." (`label_history_no_data`, the only locale). |
 | Today's point on the update day (may hold last night's late alarm) | Replaced by today's later scans like any of today's points. |
 
 ## Invariants
