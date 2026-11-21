@@ -18,6 +18,7 @@ import android.view.View
 import com.techtrest.privamatic.BuildConfig
 import android.widget.RemoteViews
 import android.widget.TextView
+import com.techtrest.privamatic.data.PrivacySnapshotRepository
 import com.techtrest.privamatic.data.ScoreHistoryRepository
 import com.techtrest.privamatic.data.TrustedAppsAdjuster
 import com.techtrest.privamatic.data.TrustedAppsRepository
@@ -93,6 +94,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
                 val rawScore = scanner.performCompleteScan()
                 val trusted = TrustedAppsRepository(context).trustedPackages.first()
                 val privacyScore = TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted)
+                PrivacySnapshotRepository(context).recordScan(privacyScore)
                 val score = privacyScore.score
                 val rating = PrivacyScoreCalculator.getScoreRating(score)
                 val deviceName = DeviceNameUtil.getMarketingName()
@@ -273,7 +275,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
         /** Broadcast action used by AlarmManager, BootReceiver, and the app. */
         const val ACTION_UPDATE_WIDGET = "com.techtrest.privamatic.ACTION_UPDATE_WIDGET"
 
-        /** Broadcast action sent by AlarmManager at 23:50 to record a daily snapshot. */
+        /** Action of the nightly safety-net snapshot alarm (SnapshotReceiver); kept so the alarm stays the same alarm. */
         const val ACTION_MIDNIGHT_SNAPSHOT = "com.techtrest.privamatic.ACTION_MIDNIGHT_SNAPSHOT"
 
         private const val ALARM_REQUEST_CODE = 1001

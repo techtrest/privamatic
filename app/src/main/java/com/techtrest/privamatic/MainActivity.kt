@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         // Enable edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        SnapshotReceiver.scheduleMidnightSnapshot(this)
+        SnapshotReceiver.ensureSnapshotAlarm(this)
         PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(this)
 
         setContent {
