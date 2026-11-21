@@ -33,7 +33,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
-  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. Open: external review round 1, then merge.
+  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. External review round 1 (2026-11-21): no High, Medium or Low; no round 2. Merged into `master` with `--no-ff`, not pushed.
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
@@ -127,6 +127,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
 - [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
 - [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
+- [x] External review round 1 findings: `docs/reviews/fix-score-history-cap-edge-findings-1.md`, none (saved with a stray missing "f" in the name; renamed). Merged `fix/score-history-cap-edge` into `master` with `--no-ff` (2026-11-21), branch deleted, not pushed.
 
 ### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
 
