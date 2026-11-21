@@ -2,18 +2,21 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 9
+- Run: 10
 - Branch: fix/snapshot-every-scan
-- Commit: 78c2981
-- Time: 2026-11-21T18:27:32+01:00
-- Deviations: 1 (the words are in status.json, not in this public file)
+- Commit: 88c311f
+- Time: 2026-11-21T19:44:53+01:00
+- Deviations: 4 (the words are in status.json, not in this public file)
 
 ## Where we are
-On fix/snapshot-every-scan: external review round 1 is worked through (no High findings, so no round 2). Two fixes, each proved by a failing test first: a reboot or force-stop after 22:00 on a day with no history point no longer skips that night's safety-net scan (the alarm now fires at once instead of the next evening), and when two scans overlap, today's point keeps the newer result. Low 1 moved to the Pixel 8 check; Low 3 rejected as a wrong check expectation, now corrected in STATE.md. Build passes, 216 unit tests pass. Nothing is verified on a phone: the Pixel 8 is busy with another project, no adb command was sent. The branch stays checked out.
-Found: a safety-net scan that fails leaves no point, so a reboot later that night lets the alarm try once more; a clock set back during the day keeps today's point until the clock passes it again.
+The snapshot fix (`fix/snapshot-every-scan`) passed this evening's Pixel 8 check. The update kept history intact. One snapshot alarm is set for 22:00 tonight, with a one-hour window and no repeat, and further app starts leave it alone. A scan replaces today's history point, and the crash buffer is empty. The phone is on its home screen with the widget placed and this debug build installed. What's left is tomorrow morning's readout, then the merge. STATE.md (run 2026-11-21, evening) lists exactly what to read.
+Found: on this phone an app update keeps the app's alarms, so the comment in `PackageReplacedReceiver` is wrong. It is not changed in this run.
+Found: the alarm's flag reads 0x20, not the 0x4 in the written check. That is how the system stores an inexact allow-while-idle alarm. Oliver accepted it.
 
 ## Blocked on you
-- Run the Pixel 8 check tonight and tomorrow morning (steps in STATE.md, run 2026-11-21), including two cold starts that leave the snapshot alarm's time unchanged.
+Tomorrow morning, before opening the app, run the readout in STATE.md (run 2026-11-21, evening). That can be a Claude Code run.
+Optionally, unplug the Pixel 8 before 22:00 so tonight also tests deep sleep. It is on USB power now.
+Check that the Pixel 8's Download folder no longer holds PV_shot.png, a copy of the app's history database left by the check.
 
 ## Red flags
 None
@@ -22,7 +25,7 @@ None
 None
 
 ## Next step for chat
-After the Pixel 8 check, merge fix/snapshot-every-scan into master if it passes.
+Tomorrow morning: read the alarm and the history point as STATE.md describes, then merge if it passes.
 
 ## Unapplied ROADMAP UPDATE blocks
 None

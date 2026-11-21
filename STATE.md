@@ -37,7 +37,9 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   - [x] Oliver chose B plus C for the snapshot fix (21 Nov), after the design paper docs/decisions/snapshot-alarm-time.md (2026-11-21).
   - [x] Built on `fix/snapshot-every-scan` (2026-11-21, `8b778cf`), unit tests pass; waits on the Pixel 8 check (run below), then external review.
   - [x] External review round 1: no High; Medium and Low 2 fixed, Low 1 moved to the device check, Low 3 rejected (2026-11-21, review fixes run). Waits on the Pixel 8 check, then merge.
-- [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Tonight's `dumpsys alarm` right after `install -r` shows which; fix the comment then.
+  - [x] Pixel 8 evening check passed (2026-11-21, run below; snapshot alarm flag is 0x20, accepted by Oliver). Waits on tomorrow morning's readout, then merge.
+- [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Fix the comment.
+  - [x] Settled 2026-11-21 (Pixel 8): after `install -r` both alarms were still there, unchanged. The comment is wrong.
 - [ ] [S] Trusting or untrusting an app recomputes the score without a scan, so today's history point keeps the old score until the next scan (the widget's follow-up scan records it when a widget is placed).
   - [x] Oliver decided (21 Nov): keep it so, today's point stays until the next scan.
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
@@ -102,35 +104,34 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ### 2026-11-21 — snapshot fix, B plus C (`fix/snapshot-every-scan`)
 
-- [x] Roadmap block applied (pasted by Oliver; inbox empty). No phone this run: the Pixel 8 is in use by another project, no adb command sent.
-- [x] How history is stored: Room `privacy_history.db`, table `privacy_snapshots` (`id` autoincrement, `timestamp`, `score`, `deductionsJson`), version 1, no migrations. Only the History screen reads it. "One point per local day, replaced by a later scan" fits as is: find the day's row and update it by `id`. No schema change, migration, table or column; one `@Update` and one select added to the DAO.
-- [x] Where a scan finishes: the app scan (`PrivacyViewModel.onScanSuccess`: start, pull to refresh, return from settings, widget tap via app start); the widget scan (`PrivacyWidgetProvider.onUpdate`: 6 h alarm, boot, config Save and the app's follow-up via `requestImmediateUpdate`); the snapshot alarm (`SnapshotReceiver`). No single existing point: the scanner returns the raw score, and the trust adjuster also runs on trust changes without a scan. So one shared call, `PrivacySnapshotRepository.recordScan(adjustedScore)`, is called at those three places. No new scans.
-- [x] Old bug found by test: the day ended at midnight + 24 h, so on the 25 h day (25 Oct) a scan after 23:00 counted as a new day.
-- [x] Failing tests first (`PrivacySnapshotRepositoryTest`, fake DAO, Europe/Berlin): 4 of 6 failed on the old logic (first scan of the day won, e.g. expected 61 but was 53). With replace but the old 24 h day: the 25 h day test failed (3 points, not 2). With local-midnight day ends: all pass.
-- [x] Alarm: one `setAndAllowWhileIdle(RTC_WAKEUP, next 22:00 local)`, re-armed first thing on delivery; app start, boot and update call `ensureSnapshotAlarm`, which arms only when the PendingIntent is missing (`FLAG_NO_CREATE`). The old 23:00 repeating alarm, same PendingIntent, is replaced at its first delivery after the update. Unused `cancelMidnightSnapshot` removed. `SnapshotAlarmTest`: 22:00 tonight / tomorrow, both DST nights, the pending rule.
-- [x] Room wraps the new `setPointForDay` in `withTransaction` (generated `PrivacySnapshotDao_Impl`), so the app scan and the widget scan it triggers can't both insert.
-- [x] `compileDebugKotlin`, `testDebugUnitTest --rerun` 211/211, `assembleDebug` pass (APK 15:03, sha256 `26539635afcd…`). Manifest, entity and database unchanged against `master`.
-- [x] Own diff review against `master`: nothing to block the merge.
-- [x] STATE: Oliver decided (21 Nov): History empty text is now "Your history starts with your first scan." (`label_history_no_data`, `values/strings.xml`, the only locale: no translation to flag); trust/untrust keeps today's point until the next scan. Spec line 32 updated. Pasted block had no other lines.
-- [x] After the text change: `compileDebugKotlin`, `testDebugUnitTest --rerun` 211/211 (0 failures).
-- [x] External review round 1 files written (`docs/reviews/fix-snapshot-every-scan*`); stopped at "external review", branch stays checked out. No adb command this run.
-- [x] Review round 1 fixes (Grok 4.7 High, `docs/reviews/fix-snapshot-every-scan-findings-1.md`; no High, so no round 2). Roadmap block applied first (LG G2 line). No adb command.
-  - Medium (reboot after 22:00 skips the night's scan): failing test first (re-arm at 22:15 landed 23 h 45 m later), then fixed: armed after 22:00 with no point today, the alarm fires now; tomorrow's is armed first and replaced off the main thread.
-  - Low 2 (overlap saves the earlier scan): failing test first (expected 61, was 58), then fixed in `setPointForDay`: an older stamp never replaces the day's point.
-  - Low 1 moved to the device check (step 3); Low 3 rejected as a check expectation (step 4 updated).
-  - `compileDebugKotlin`, `testDebugUnitTest --rerun` 216/216 (0 failures), `assembleDebug` (APK 18:25, sha256 `dab43615b997…`).
-- [ ] Not verified on a device: all of it. Pixel 8 check for tonight and tomorrow morning below.
+- [x] Build, unit tests, review round 1 and its fixes: `docs/state-archive/2026-11.md` (run moved there 2026-11-21).
+- [ ] Overnight result pending (read tomorrow morning, below). Not verified yet: the 22:00 alarm firing in Doze and its scan recording.
 
-**Pixel 8 check, tonight, best before 21:30** (`<test serial>` from `.claude/devices.local`; read the crash buffer before any `logcat -c`):
-1. Before: `adb -s <test serial> shell dumpsys alarm`, note the `ACTION_MIDNIGHT_SNAPSHOT` alarm (expected: old one, `origWhen` 23:00, `window=+18h`, `repeatInterval=86400000`). History "All": note the point count, oldest (71, 4 Oct 09:27) and today's point (53, 21 Nov 03:52).
-2. `adb -s <test serial> install -r app/build/outputs/apk/debug/app-debug.apk`, then `dumpsys alarm` again before any start: does the old snapshot alarm survive the update? (settles the Next item on `PackageReplacedReceiver`.)
-3. `adb -s <test serial> shell am force-stop com.techtrest.privamatic.debug`, then cold start (`am start -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`). `dumpsys alarm`: exactly one snapshot alarm, `origWhen=2026-11-21 22:00:00`, `window=+1h0m0s0ms`, no `repeatInterval` (0), `flags` with the allow-while-idle bit (0x4). Then two more cold starts without force-stop: after each, the snapshot alarm's `origWhen` and `whenElapsed` are unchanged (left alone; review Low 1). If this step runs after 22:00, a force-stop then cold start arms tomorrow 22:00 when today already has a point, and fires within minutes when it has none.
-4. History "All": same count, every point before 21 Nov unchanged; the 21 Nov point now shows the cold start's scan time and score (it replaced 03:52). Pull to refresh on the Dashboard a minute later, reopen History: still one 21 Nov point, now at the refresh time. With a widget placed, the point lands a few seconds after the cold start or refresh: the widget update each app scan triggers scans and records too (review Low 3).
-5. `adb -s <test serial> logcat -b crash -d`: empty. Leave the phone idle, screen off, unplugged if possible, with this debug build.
+### 2026-11-21 — Pixel 8 check, evening (`fix/snapshot-every-scan`, device-verify)
 
-**Tomorrow morning:** `dumpsys alarm`: one snapshot alarm, `origWhen=2026-11-22 22:00:00`, `window=+1h` (so tonight's fired and re-armed); the app's alarm history in the same dump: snapshot delivery time last night, expected 22:00–23:00. History 1W: the 21 Nov point is the day's last scan (the alarm, or a later widget update before midnight); a 22 Nov point exists only from a scan after midnight (the 6 h widget update). Crash buffer empty.
+- [x] Inbox empty, no roadmap block. APK: the 18:25 APK (`dab43615…`) is not byte-identical to a forced fresh build of HEAD (`284d01c1…`): every zip entry has the same bytes, only the zip/signing bytes differ. Installed the fresh build. Evidence files in the session scratchpad (not tracked).
+- [x] 1. Before (19:34): old snapshot alarm `origWhen=2026-11-21 23:00`, `window=+18h`, `repeatInterval=86400000`, `flags=0x0`. History DB: 34 points, oldest 71 (4 Oct 09:27:09), today 53 (21 Nov 03:52:07, id 34). Widget placed (id 26).
+- [x] 2. `install -r` (19:35:05): the old snapshot alarm **survived the update** unchanged (same alarm object), as did the widget alarm. The update started the app: `PackageReplacedReceiver` logged "restoring…", then "Snapshot alarm already pending, left alone"; the widget also scanned on `APPWIDGET_UPDATE`. Answer for the Next item: an update does not clear the alarms on the Pixel 8; comment not changed in this run.
+- [x] 3. Force-stop, cold start (19:35:34): exactly one snapshot alarm, `origWhen=2026-11-21 22:00:00`, `window=+1h0m0s0ms`, `repeatInterval=0`, `flags=0x20`, `whenElapsed 181387761`, with the allow-while-idle `idle-options` bundle. Expected 0x4 was wrong: the system stores an inexact `setAndAllowWhileIdle` as 0x20 (allow-while-idle, inexact form; Android source, not device-proven). Oliver accepted 0x20 (21 Nov). Two more cold starts (`am kill` from HOME, pid gone, LaunchState COLD, 19:38:19 and 19:38:51): same alarm object, `origWhen` and `whenElapsed` unchanged, still one; log "already pending, left alone" (review Low 1: pass).
+- [x] 4. History: after the starts, 34 points, rows 1–33 identical, row 34 (21 Nov) now 19:38:51, score 53. Pull to refresh at 19:40:20: still 34, row 34 now 19:40:21.893 (the widget follow-up scan, under 1 s after). History "All" screenshot: 4 Oct – 21 Nov, one point per day, last on 21 Nov.
+- [x] 5. Crash buffer empty (19:31 and 19:40). Phone left at 19:41 on the home screen, widget shows 53 Fair, debug build installed.
+- [x] Final alarms (19:41): snapshot 22:00 tonight (as above); widget alarm next at about 01:38, window +4h30m (so 01:38–06:08, all after midnight). Phone is on USB power (status "not charging", 80 %), deep idle ACTIVE: unless unplugged, tonight doesn't test Doze.
+- [x] Found: a force-stop clears the app's `Alarm Stats` and `App Alarm history` entries in `dumpsys alarm`; at 19:41 the package has none, so tomorrow's entries are all from tonight.
+
+**Tomorrow morning — what to read, in this order, before opening the app** (no force-stop, no reboot before step 2):
+1. `adb -s <test serial> shell date`, then `adb -s <test serial> shell dumpsys alarm`, saved whole:
+   - pending snapshot alarm: `origWhen=2026-11-22 22:00:00`, `window=+1h0m0s0ms` means tonight's fired and re-armed (the re-arm happens only on delivery; an unfired one still shows 21 Nov 22:00).
+   - `Alarm Stats`, entry `u0a338:com.techtrest.privamatic.debug`: the line above `*walarm*:…ACTION_MIDNIGHT_SNAPSHOT` gives "N alarms, last -T". Delivery time = the `date` minus T. Expected 1 alarm, 22:00–23:00. Same for `…ACTION_UPDATE_WIDGET`: its deliveries should all be after midnight.
+2. History DB (copy as device-verify did on 21 Nov; or tap the 21 Nov point): the 21 Nov row's (id 34) timestamp and score; count 34 or 35.
+3. Crash buffer: `logcat -d -b crash`, empty.
+
+**How to tell the alarm's scan from a widget refresh:** only the DB and `dumpsys alarm` survive the night; the Pixel 8's main log rotates within minutes, so logcat isn't evidence. The widget alarm can't fire before about 01:38, so it can't touch the 21 Nov point. So:
+- row 34 timestamp within a few seconds after the snapshot delivery time → the alarm's scan recorded it (pass);
+- row 34 still 19:40:21 → the alarm's scan recorded nothing (fail, if step 1 shows it fired);
+- any other 21 Nov time → a scan the alarm doesn't explain (launcher `APPWIDGET_UPDATE`, which `Alarm Stats` doesn't list). Then whether the alarm's own scan recorded can't be shown: report that, don't guess.
+- A 22 Nov point (id 35) comes from a widget alarm scan after midnight; it must not change row 34.
 
 **Optional, review Medium:** on a later evening after 22:00, before any scan that day (no app start; with a widget placed its boot scan records first, so this needs no widget), reboot: `dumpsys alarm` shows the snapshot alarm due within minutes, not tomorrow 22:00; after it fires, History has a point for that day and the alarm is at tomorrow 22:00.
 
-The 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-21 snapshot fix build and review runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
