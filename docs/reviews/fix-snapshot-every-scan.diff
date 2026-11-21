@@ -1,0 +1,872 @@
+diff --git a/HANDOFF.md b/HANDOFF.md
+index a5e6708..6ea03e0 100644
+--- a/HANDOFF.md
++++ b/HANDOFF.md
+@@ -2,25 +2,21 @@
+ 
+ - Format: 3
+ - Project: Privamatic
+-- Run: 6
+-- Branch: chore/handoff-2026-11-21
+-- Commit: a092445
+-- Time: 2026-11-21T12:53:20+01:00
++- Run: 7
++- Branch: fix/snapshot-every-scan
++- Commit: 8b778cf
++- Time: 2026-11-21T15:06:38+01:00
+ - Deviations: 2 (the words are in status.json, not in this public file)
+ 
+ ## Where we are
+ 
+-External review round 1 of the score history fix found nothing (no High, Medium or Low); no round 2. The fix is merged into local `master` with `--no-ff` (`a092445`) and its branch is deleted.
+-`master` is 6 commits ahead of `origin/master` (decision paper merge, fix merge and their commits); nothing is pushed.
+-This handoff sits on `chore/handoff-2026-11-21` because HANDOFF.md can't be committed on `master`; that branch holds only this file.
+-Pixel 8: this branch's debug build, home screen, history intact (unchanged since the gate). S8 and Pixel 9 not touched.
+-The findings file was saved as `ix-score-history-...` (missing "f"); renamed before committing.
++The snapshot fix (B plus C) is built on `fix/snapshot-every-scan` (`8b778cf`) and passes its unit tests (211/211), the build and the debug APK. Every finished scan now sets today's history point, and a later scan the same day replaces it. That covers the app scan, the widget update and the nightly alarm. The one nightly alarm is now a safety net at 22:00, allowed while the phone is idle, with no new permission. Opening or updating the app no longer cancels a pending snapshot. The database layout is unchanged.
++Nothing has run on a phone yet: the Pixel 8 was in use by another project, so no device command was sent.
++Found: the old code ended a day 24 h after midnight, so on the day the clocks go back a late-evening scan counted as the next day. A unit test showed it, and the fix uses the real local midnight.
+ 
+ ## Blocked on you
+ 
+-1. Push `master`.
+-2. Merge `chore/handoff-2026-11-21` into `master` (handoff only), or drop it.
+-3. Choose snapshot option A, B or C in `docs/decisions/snapshot-alarm-time.md`.
++Run the Pixel 8 check tonight, ideally before 21:30, and read the alarm tomorrow morning. The exact steps are in STATE.md under the run "2026-11-21 — snapshot fix, B plus C". The branch stays checked out for it. External review comes after the phone check (score history is risky code).
+ 
+ ## Red flags
+ 
+@@ -28,11 +24,13 @@ None
+ 
+ ## Pending decisions
+ 
+-- Daily snapshot fix: Option A, B (recommended) or C — see the paper.
++- The empty History text still says "Your first data point will appear tonight". The first scan now records a point straight away. Keep the text or change it?
++- On the day the update lands, today's existing point is replaced by today's later scans, like any of today's points. On the Pixel 8 that point is last night's late alarm. Earlier days are never touched.
++- Trusting or untrusting an app changes the score without a scan, so today's point keeps the old score until the next scan. Leave as is, or record on trust changes too?
+ 
+ ## Next step for chat
+ 
+-Decide the snapshot option; then a build run for it (B starts with a one-night Doze check on the Pixel 8).
++After the Pixel 8 check passes, review the diff externally (round 1), then merge. The chart spacing by date is its own roadmap item.
+ 
+ ## Unapplied ROADMAP UPDATE blocks
+ 
+diff --git a/STATE.md b/STATE.md
+index 6276c96..98eadcc 100644
+--- a/STATE.md
++++ b/STATE.md
+@@ -31,12 +31,14 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
+   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
+ - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
+ - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
+-- [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
+-  change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
+-  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. External review round 1 (2026-11-21): no High, Medium or Low; no round 2. Merged into `master` with `--no-ff`, not pushed.
+ - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
+   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
+   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
++  - [x] Oliver chose B plus C for the snapshot fix (21 Nov), after the design paper docs/decisions/snapshot-alarm-time.md (2026-11-21).
++  - [x] Built on `fix/snapshot-every-scan` (2026-11-21, `8b778cf`), unit tests pass; waits on the Pixel 8 check (run below), then external review.
++- [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Tonight's `dumpsys alarm` right after `install -r` shows which; fix the comment then.
++- [ ] [S] Trusting or untrusting an app recomputes the score without a scan, so today's history point keeps the old score until the next scan (the widget's follow-up scan records it when a widget is placed).
++  - [x] Oliver decided (21 Nov): keep it so, today's point stays until the next scan.
+ - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
+   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
+ - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
+@@ -119,29 +121,30 @@ It is the real guard. The allow and deny lists are a convenience.
+ 
+ ## Runs
+ 
+-### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
+-
+-- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
+-- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
+-- [x] Fix (`c80d8bb`): a new-day recording with a non-zero delta stores `now`, not the older timestamp; same-day path unchanged. `testDebugUnitTest --rerun` 200/200, `compileDebugKotlin` and `assembleDebug` pass.
+-- [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
+-- [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
+-- [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
+-- [x] External review round 1 findings: `docs/reviews/fix-score-history-cap-edge-findings-1.md`, none (saved with a stray missing "f" in the name; renamed). Merged `fix/score-history-cap-edge` into `master` with `--no-ff` (2026-11-21), branch deleted, not pushed.
+-
+-### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
+-
+-- [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
+-- [x] Why 23:00, not 23:50: `0603e0a` (2026-06-28) changed only the minute, one day after `0405dea` set 23:50; no reason recorded; three comments left at 23:50.
+-- [x] Paper `docs/decisions/snapshot-alarm-time.md`: a history "day" is the calendar day the alarm fired on; a late point moves to the next day and leaves a gap; an app start after 23:00 and before delivery cancels that night's snapshot. Options A/B/C; recommends B (one-shot `setWindow` 23:00 + 55 min, re-armed nightly, never cancelling a pending one). Oliver's call; nothing built.
+-- [x] Pixel 8, read-only `device-verify` (2026-11-21 12:15): snapshot alarm `origWhen` 23:00, `window=+18h`; 1W history points 17/18/20 Nov at 10:02–10:03 and 21 Nov at 03:52, so each is the previous night's alarm, filed one day late; no point for the 18 Nov alarm; the chart spaces points by index, so the gap is invisible. Crash buffer empty after, app on the home screen. Screenshots `docs/screens/snapshot-alarm-time/`.
+-- [x] Seen: one cold start after a force-stop logged "snapshot alarm scheduled" twice, 350 ms apart (fits the `BootReceiver` item in Next; not checked).
+-
+-### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
+-
+-- [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
+-- [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
+-- [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
+-
+-The 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
++### 2026-11-21 — snapshot fix, B plus C (`fix/snapshot-every-scan`)
++
++- [x] Roadmap block applied (pasted by Oliver; inbox empty). No phone this run: the Pixel 8 is in use by another project, no adb command sent.
++- [x] How history is stored: Room `privacy_history.db`, table `privacy_snapshots` (`id` autoincrement, `timestamp`, `score`, `deductionsJson`), version 1, no migrations. Only the History screen reads it. "One point per local day, replaced by a later scan" fits as is: find the day's row and update it by `id`. No schema change, migration, table or column; one `@Update` and one select added to the DAO.
++- [x] Where a scan finishes: the app scan (`PrivacyViewModel.onScanSuccess`: start, pull to refresh, return from settings, widget tap via app start); the widget scan (`PrivacyWidgetProvider.onUpdate`: 6 h alarm, boot, config Save and the app's follow-up via `requestImmediateUpdate`); the snapshot alarm (`SnapshotReceiver`). No single existing point: the scanner returns the raw score, and the trust adjuster also runs on trust changes without a scan. So one shared call, `PrivacySnapshotRepository.recordScan(adjustedScore)`, is called at those three places. No new scans.
++- [x] Old bug found by test: the day ended at midnight + 24 h, so on the 25 h day (25 Oct) a scan after 23:00 counted as a new day.
++- [x] Failing tests first (`PrivacySnapshotRepositoryTest`, fake DAO, Europe/Berlin): 4 of 6 failed on the old logic (first scan of the day won, e.g. expected 61 but was 53). With replace but the old 24 h day: the 25 h day test failed (3 points, not 2). With local-midnight day ends: all pass.
++- [x] Alarm: one `setAndAllowWhileIdle(RTC_WAKEUP, next 22:00 local)`, re-armed first thing on delivery; app start, boot and update call `ensureSnapshotAlarm`, which arms only when the PendingIntent is missing (`FLAG_NO_CREATE`). The old 23:00 repeating alarm, same PendingIntent, is replaced at its first delivery after the update. Unused `cancelMidnightSnapshot` removed. `SnapshotAlarmTest`: 22:00 tonight / tomorrow, both DST nights, the pending rule.
++- [x] Room wraps the new `setPointForDay` in `withTransaction` (generated `PrivacySnapshotDao_Impl`), so the app scan and the widget scan it triggers can't both insert.
++- [x] `compileDebugKotlin`, `testDebugUnitTest --rerun` 211/211, `assembleDebug` pass (APK 15:03, sha256 `26539635afcd…`). Manifest, entity and database unchanged against `master`.
++- [x] Own diff review against `master`: nothing to block the merge.
++- [x] STATE: Oliver decided (21 Nov): History empty text is now "Your history starts with your first scan." (`label_history_no_data`, `values/strings.xml`, the only locale: no translation to flag); trust/untrust keeps today's point until the next scan. Spec line 32 updated. Pasted block had no other lines.
++- [x] After the text change: `compileDebugKotlin`, `testDebugUnitTest --rerun` 211/211 (0 failures).
++- [x] External review round 1 files written (`docs/reviews/fix-snapshot-every-scan*`); stopped at "external review", branch stays checked out. No adb command this run.
++- [ ] Not verified on a device: all of it. Pixel 8 check for tonight and tomorrow morning below.
++
++**Pixel 8 check, tonight, best before 21:30** (`<test serial>` from `.claude/devices.local`; read the crash buffer before any `logcat -c`):
++1. Before: `adb -s <test serial> shell dumpsys alarm`, note the `ACTION_MIDNIGHT_SNAPSHOT` alarm (expected: old one, `origWhen` 23:00, `window=+18h`, `repeatInterval=86400000`). History "All": note the point count, oldest (71, 4 Oct 09:27) and today's point (53, 21 Nov 03:52).
++2. `adb -s <test serial> install -r app/build/outputs/apk/debug/app-debug.apk`, then `dumpsys alarm` again before any start: does the old snapshot alarm survive the update? (settles the Next item on `PackageReplacedReceiver`.)
++3. `adb -s <test serial> shell am force-stop com.techtrest.privamatic.debug`, then cold start (`am start -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`). `dumpsys alarm`: exactly one snapshot alarm, `origWhen=2026-11-21 22:00:00`, `window=+1h0m0s0ms`, no `repeatInterval` (0), `flags` with the allow-while-idle bit (0x4). A second cold start without force-stop: same `origWhen` and `whenElapsed` (left alone).
++4. History "All": same count, every point before 21 Nov unchanged; the 21 Nov point now shows the cold start's scan time and score (it replaced 03:52). Pull to refresh on the Dashboard a minute later, reopen History: still one 21 Nov point, now at the refresh time.
++5. `adb -s <test serial> logcat -b crash -d`: empty. Leave the phone idle, screen off, unplugged if possible, with this debug build.
++
++**Tomorrow morning:** `dumpsys alarm`: one snapshot alarm, `origWhen=2026-11-22 22:00:00`, `window=+1h` (so tonight's fired and re-armed); the app's alarm history in the same dump: snapshot delivery time last night, expected 22:00–23:00. History 1W: the 21 Nov point is the day's last scan (the alarm, or a later widget update before midnight); a 22 Nov point exists only from a scan after midnight (the 6 h widget update). Crash buffer empty.
++
++The 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+ Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
+diff --git a/app/src/main/java/com/techtrest/privamatic/BootReceiver.kt b/app/src/main/java/com/techtrest/privamatic/BootReceiver.kt
+index 2208c9f..7def202 100644
+--- a/app/src/main/java/com/techtrest/privamatic/BootReceiver.kt
++++ b/app/src/main/java/com/techtrest/privamatic/BootReceiver.kt
+@@ -23,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
+         if (BuildConfig.DEBUG) Log.d(TAG, "Boot completed – restoring widget alarm and requesting immediate update")
+ 
+         // Snapshot recording must resume regardless of whether a widget is placed
+-        SnapshotReceiver.scheduleMidnightSnapshot(context)
++        SnapshotReceiver.ensureSnapshotAlarm(context)
+ 
+         // Only bother with widget updates if at least one widget is actually placed on the home screen
+         val manager = AppWidgetManager.getInstance(context)
+diff --git a/app/src/main/java/com/techtrest/privamatic/MainActivity.kt b/app/src/main/java/com/techtrest/privamatic/MainActivity.kt
+index 0a8c237..16b710c 100644
+--- a/app/src/main/java/com/techtrest/privamatic/MainActivity.kt
++++ b/app/src/main/java/com/techtrest/privamatic/MainActivity.kt
+@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
+         // Enable edge-to-edge display
+         WindowCompat.setDecorFitsSystemWindows(window, false)
+ 
+-        SnapshotReceiver.scheduleMidnightSnapshot(this)
++        SnapshotReceiver.ensureSnapshotAlarm(this)
+         PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(this)
+ 
+         setContent {
+diff --git a/app/src/main/java/com/techtrest/privamatic/PackageReplacedReceiver.kt b/app/src/main/java/com/techtrest/privamatic/PackageReplacedReceiver.kt
+index 9928468..a4c6ffe 100644
+--- a/app/src/main/java/com/techtrest/privamatic/PackageReplacedReceiver.kt
++++ b/app/src/main/java/com/techtrest/privamatic/PackageReplacedReceiver.kt
+@@ -20,7 +20,7 @@ class PackageReplacedReceiver : BroadcastReceiver() {
+ 
+         if (BuildConfig.DEBUG) Log.d(TAG, "Package replaced – restoring midnight snapshot and widget alarms")
+ 
+-        SnapshotReceiver.scheduleMidnightSnapshot(context)
++        SnapshotReceiver.ensureSnapshotAlarm(context)
+         PrivacyWidgetProvider.rearmPeriodicUpdatesIfPlaced(context)
+     }
+ 
+diff --git a/app/src/main/java/com/techtrest/privamatic/PrivacyWidgetProvider.kt b/app/src/main/java/com/techtrest/privamatic/PrivacyWidgetProvider.kt
+index 11bc79d..c4b2c0b 100644
+--- a/app/src/main/java/com/techtrest/privamatic/PrivacyWidgetProvider.kt
++++ b/app/src/main/java/com/techtrest/privamatic/PrivacyWidgetProvider.kt
+@@ -18,6 +18,7 @@ import android.view.View
+ import com.techtrest.privamatic.BuildConfig
+ import android.widget.RemoteViews
+ import android.widget.TextView
++import com.techtrest.privamatic.data.PrivacySnapshotRepository
+ import com.techtrest.privamatic.data.ScoreHistoryRepository
+ import com.techtrest.privamatic.data.TrustedAppsAdjuster
+ import com.techtrest.privamatic.data.TrustedAppsRepository
+@@ -93,6 +94,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
+                 val rawScore = scanner.performCompleteScan()
+                 val trusted = TrustedAppsRepository(context).trustedPackages.first()
+                 val privacyScore = TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted)
++                PrivacySnapshotRepository(context).recordScan(privacyScore)
+                 val score = privacyScore.score
+                 val rating = PrivacyScoreCalculator.getScoreRating(score)
+                 val deviceName = DeviceNameUtil.getMarketingName()
+@@ -273,7 +275,7 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
+         /** Broadcast action used by AlarmManager, BootReceiver, and the app. */
+         const val ACTION_UPDATE_WIDGET = "com.techtrest.privamatic.ACTION_UPDATE_WIDGET"
+ 
+-        /** Broadcast action sent by AlarmManager at 23:50 to record a daily snapshot. */
++        /** Action of the nightly safety-net snapshot alarm (SnapshotReceiver); kept so the alarm stays the same alarm. */
+         const val ACTION_MIDNIGHT_SNAPSHOT = "com.techtrest.privamatic.ACTION_MIDNIGHT_SNAPSHOT"
+ 
+         private const val ALARM_REQUEST_CODE = 1001
+diff --git a/app/src/main/java/com/techtrest/privamatic/SnapshotReceiver.kt b/app/src/main/java/com/techtrest/privamatic/SnapshotReceiver.kt
+index b6fcfd5..331cacf 100644
+--- a/app/src/main/java/com/techtrest/privamatic/SnapshotReceiver.kt
++++ b/app/src/main/java/com/techtrest/privamatic/SnapshotReceiver.kt
+@@ -9,7 +9,6 @@ import android.util.Log
+ import com.techtrest.privamatic.data.PrivacySnapshotRepository
+ import com.techtrest.privamatic.data.TrustedAppsAdjuster
+ import com.techtrest.privamatic.data.TrustedAppsRepository
+-import com.techtrest.privamatic.data.model.CheckDeduction
+ import com.techtrest.privamatic.data.scanner.PrivacyScanner
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.Dispatchers
+@@ -17,10 +16,15 @@ import kotlinx.coroutines.SupervisorJob
+ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.launch
+ import java.util.Calendar
++import java.util.Date
+ 
+ /**
+- * Receives ACTION_MIDNIGHT_SNAPSHOT at 23:50 each day and records a privacy
+- * score snapshot to the local Room database.
++ * The daily safety-net snapshot: every finished scan already sets today's history point
++ * (PrivacySnapshotRepository.recordScan); this alarm adds a scan on days with no other one.
++ *
++ * One one-shot alarm, armed for the next 22:00 local time with setAndAllowWhileIdle: inexact,
++ * needs no exact-alarm permission, and may fire in Doze. Android 12+ caps its window at one hour,
++ * so it lands between 22:00 and 23:00. Each delivery arms the next night's alarm.
+  *
+  * Runs a full scan independently — does not depend on ViewModel or any UI state.
+  * Uses the same scan → TrustedAppsAdjuster pattern as PrivacyWidgetProvider.
+@@ -30,6 +34,10 @@ class SnapshotReceiver : BroadcastReceiver() {
+     override fun onReceive(context: Context, intent: Intent) {
+         if (intent.action != PrivacyWidgetProvider.ACTION_MIDNIGHT_SNAPSHOT) return
+ 
++        // The alarm that just fired is gone; arm tomorrow's first, so a failed scan can't lose it.
++        // This also replaces the old daily repeating alarm on the first night after an update.
++        scheduleNextSnapshot(context)
++
+         val pendingResult = goAsync()
+         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+             try {
+@@ -37,17 +45,9 @@ class SnapshotReceiver : BroadcastReceiver() {
+                 val rawScore = scanner.performCompleteScan()
+                 val trusted = TrustedAppsRepository(context).trustedPackages.first()
+                 val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted)
+-
+-                val deductions = adjustedScore.issues
+-                    .filter { it.pointDeduction > 0 }
+-                    .map { CheckDeduction(it.check.name, it.pointDeduction) }
+-
+-                PrivacySnapshotRepository(context).recordSnapshot(
+-                    score = adjustedScore.score,
+-                    deductions = deductions
+-                )
++                PrivacySnapshotRepository(context).recordScan(adjustedScore)
+             } catch (e: Exception) {
+-                if (BuildConfig.DEBUG) Log.e(TAG, "Midnight snapshot failed", e)
++                if (BuildConfig.DEBUG) Log.e(TAG, "Safety-net snapshot failed", e)
+             } finally {
+                 pendingResult.finish()
+             }
+@@ -58,48 +58,67 @@ class SnapshotReceiver : BroadcastReceiver() {
+         private const val TAG = "SnapshotReceiver"
+         private const val ALARM_REQUEST_CODE = 1002
+ 
++        /** Local hour the safety-net alarm is armed for; it may land up to an hour later. */
++        internal const val SAFETY_NET_HOUR = 22
++
+         /**
+-         * Schedules a daily RTC_WAKEUP alarm at 23:50.
+-         * Safe to call multiple times — subsequent calls update the existing alarm.
++         * App start, boot and app update: arms the safety-net alarm only when none is pending.
++         * Re-arming a pending one would cancel it, so an app start after 22:00 and before it
++         * fired would lose that night's scan. A force-stop or reboot removes the alarm and its
++         * PendingIntent; the alarm's own delivery re-arms before anything else.
+          */
+-        fun scheduleMidnightSnapshot(context: Context) {
+-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+-
+-            val calendar = Calendar.getInstance().apply {
+-                set(Calendar.HOUR_OF_DAY, 23)
+-                set(Calendar.MINUTE, 0)
+-                set(Calendar.SECOND, 0)
+-                set(Calendar.MILLISECOND, 0)
+-                if (timeInMillis <= System.currentTimeMillis()) {
+-                    add(Calendar.DAY_OF_YEAR, 1)
+-                }
++        fun ensureSnapshotAlarm(context: Context) {
++            if (needsArm(isAlarmPending(context))) {
++                scheduleNextSnapshot(context)
++            } else if (BuildConfig.DEBUG) {
++                Log.d(TAG, "Snapshot alarm already pending, left alone")
+             }
++        }
++
++        internal fun needsArm(alarmPending: Boolean): Boolean = !alarmPending
+ 
+-            alarmManager.setInexactRepeating(
++        /** The next [SAFETY_NET_HOUR]:00 local time strictly after [now]. */
++        internal fun nextTriggerAt(now: Long): Long = Calendar.getInstance().apply {
++            timeInMillis = now
++            set(Calendar.HOUR_OF_DAY, SAFETY_NET_HOUR)
++            set(Calendar.MINUTE, 0)
++            set(Calendar.SECOND, 0)
++            set(Calendar.MILLISECOND, 0)
++            if (timeInMillis <= now) add(Calendar.DAY_OF_MONTH, 1)
++        }.timeInMillis
++
++        /** Arms (or replaces) the one safety-net alarm for the next 22:00. */
++        private fun scheduleNextSnapshot(context: Context) {
++            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
++            val triggerAt = nextTriggerAt(System.currentTimeMillis())
++            alarmManager.setAndAllowWhileIdle(
+                 AlarmManager.RTC_WAKEUP,
+-                calendar.timeInMillis,
+-                AlarmManager.INTERVAL_DAY,
++                triggerAt,
+                 buildPendingIntent(context)
+             )
+-
+-            if (BuildConfig.DEBUG) Log.d(TAG, "Midnight snapshot alarm scheduled for ${calendar.time}")
++            if (BuildConfig.DEBUG) Log.d(TAG, "Snapshot alarm scheduled for ${Date(triggerAt)}")
+         }
+ 
+-        fun cancelMidnightSnapshot(context: Context) {
+-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+-            alarmManager.cancel(buildPendingIntent(context))
+-        }
++        /** True while the alarm's PendingIntent exists, the same test as the widget alarm. */
++        private fun isAlarmPending(context: Context): Boolean =
++            PendingIntent.getBroadcast(
++                context,
++                ALARM_REQUEST_CODE,
++                buildIntent(context),
++                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
++            ) != null
+ 
+-        private fun buildPendingIntent(context: Context): PendingIntent {
+-            val intent = Intent(context, SnapshotReceiver::class.java).apply {
++        private fun buildIntent(context: Context): Intent =
++            Intent(context, SnapshotReceiver::class.java).apply {
+                 action = PrivacyWidgetProvider.ACTION_MIDNIGHT_SNAPSHOT
+             }
+-            return PendingIntent.getBroadcast(
++
++        private fun buildPendingIntent(context: Context): PendingIntent =
++            PendingIntent.getBroadcast(
+                 context,
+                 ALARM_REQUEST_CODE,
+-                intent,
++                buildIntent(context),
+                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+             )
+-        }
+     }
+ }
+diff --git a/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotDao.kt b/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotDao.kt
+index 1b3eab6..61def22 100644
+--- a/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotDao.kt
++++ b/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotDao.kt
+@@ -3,6 +3,8 @@ package com.techtrest.privamatic.data
+ import androidx.room.Dao
+ import androidx.room.Insert
+ import androidx.room.Query
++import androidx.room.Transaction
++import androidx.room.Update
+ import com.techtrest.privamatic.data.model.PrivacySnapshot
+ 
+ @Dao
+@@ -16,8 +18,26 @@ interface PrivacySnapshotDao {
+     @Query("SELECT * FROM privacy_snapshots ORDER BY timestamp ASC")
+     suspend fun getAllSnapshots(): List<PrivacySnapshot>
+ 
+-    @Query("SELECT COUNT(*) FROM privacy_snapshots WHERE timestamp >= :dayStart AND timestamp < :dayEnd")
+-    suspend fun countSnapshotsForDay(dayStart: Long, dayEnd: Long): Int
++    @Update
++    suspend fun update(snapshot: PrivacySnapshot)
++
++    /** The day's newest point; days recorded before every scan set the point have at most one. */
++    @Query(
++        "SELECT * FROM privacy_snapshots WHERE timestamp >= :dayStart AND timestamp < :dayEnd " +
++            "ORDER BY timestamp DESC, id DESC LIMIT 1"
++    )
++    suspend fun latestSnapshotForDay(dayStart: Long, dayEnd: Long): PrivacySnapshot?
++
++    /**
++     * Sets the day's point: inserts [point] if the day [dayStart, dayEnd) has none, otherwise
++     * overwrites the day's newest row with it (same row id). One transaction, so two scans that
++     * finish together (app scan, then the widget scan it triggers) can't both insert.
++     */
++    @Transaction
++    suspend fun setPointForDay(dayStart: Long, dayEnd: Long, point: PrivacySnapshot) {
++        val existing = latestSnapshotForDay(dayStart, dayEnd)
++        if (existing == null) insert(point) else update(point.copy(id = existing.id))
++    }
+ 
+     @Query("DELETE FROM privacy_snapshots")
+     suspend fun deleteAll()
+diff --git a/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotRepository.kt b/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotRepository.kt
+index d5ac2f5..bdb11dd 100644
+--- a/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotRepository.kt
++++ b/app/src/main/java/com/techtrest/privamatic/data/PrivacySnapshotRepository.kt
+@@ -1,29 +1,57 @@
+ package com.techtrest.privamatic.data
+ 
+ import android.content.Context
++import android.util.Log
++import com.techtrest.privamatic.BuildConfig
+ import com.techtrest.privamatic.data.model.CheckDeduction
++import com.techtrest.privamatic.data.model.PrivacyScore
+ import com.techtrest.privamatic.data.model.PrivacySnapshot
++import kotlinx.coroutines.CancellationException
+ import java.util.Calendar
+ 
+ enum class HistoryFilter { WEEK, MONTH, THREE_MONTHS, SIX_MONTHS, YEAR, ALL }
+ 
+-class PrivacySnapshotRepository(context: Context) {
+-    private val dao = PrivacyDatabase.getInstance(context).snapshotDao()
++class PrivacySnapshotRepository internal constructor(
++    private val dao: PrivacySnapshotDao,
++    private val clock: () -> Long
++) {
++    constructor(context: Context) :
++        this(PrivacyDatabase.getInstance(context).snapshotDao(), System::currentTimeMillis)
+ 
+-    /** Records a snapshot — at most one per calendar day. Skips if one already exists today. */
+-    suspend fun recordSnapshot(score: Int, deductions: List<CheckDeduction>) {
+-        val now = System.currentTimeMillis()
++    /**
++     * The one place a finished scan records history: the app scan (PrivacyViewModel), the widget
++     * scan (PrivacyWidgetProvider) and the nightly safety-net scan (SnapshotReceiver) all call it
++     * with the trust-adjusted score. A failed write is logged and swallowed, so the caller's own
++     * work (the score on screen, the widget) goes on.
++     */
++    suspend fun recordScan(adjustedScore: PrivacyScore) {
++        try {
++            recordSnapshot(adjustedScore.score, deductionsOf(adjustedScore))
++        } catch (e: CancellationException) {
++            throw e
++        } catch (e: Exception) {
++            if (BuildConfig.DEBUG) Log.e(TAG, "Recording today's history point failed", e)
++        }
++    }
++
++    /** Sets today's point (local calendar day); a later scan the same day replaces it. */
++    internal suspend fun recordSnapshot(score: Int, deductions: List<CheckDeduction>) {
++        val now = clock()
+         val dayStart = midnightOf(now)
+-        val dayEnd = dayStart + DAY_MS
+-        if (dao.countSnapshotsForDay(dayStart, dayEnd) == 0) {
+-            dao.insert(
+-                PrivacySnapshot(
+-                    timestamp = now,
+-                    score = score,
+-                    deductionsJson = CheckDeduction.encode(deductions)
+-                )
++        // The next local midnight, not dayStart + 24 h: DST days have 23 or 25 hours.
++        val dayEnd = Calendar.getInstance().apply {
++            timeInMillis = dayStart
++            add(Calendar.DAY_OF_MONTH, 1)
++        }.timeInMillis
++        dao.setPointForDay(
++            dayStart,
++            dayEnd,
++            PrivacySnapshot(
++                timestamp = now,
++                score = score,
++                deductionsJson = CheckDeduction.encode(deductions)
+             )
+-        }
++        )
+     }
+ 
+     suspend fun getSnapshots(filter: HistoryFilter): List<PrivacySnapshot> {
+@@ -49,8 +77,14 @@ class PrivacySnapshotRepository(context: Context) {
+     }
+ 
+     companion object {
++        private const val TAG = "PrivacySnapshotRepo"
+         private const val DAY_MS = 24L * 60 * 60 * 1000
+ 
++        internal fun deductionsOf(adjustedScore: PrivacyScore): List<CheckDeduction> =
++            adjustedScore.issues
++                .filter { it.pointDeduction > 0 }
++                .map { CheckDeduction(it.check.name, it.pointDeduction) }
++
+         private fun midnightOf(ms: Long): Long = Calendar.getInstance().apply {
+             timeInMillis = ms
+             set(Calendar.HOUR_OF_DAY, 0)
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt b/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
+index 45ea6b0..9f5ba7b 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
+@@ -224,6 +224,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+         val trusted = trustedAppsRepository.trustedPackages.first()
+         val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
+         _scoreHistory.value = scoreHistoryRepository.recordScore(adjustedScore.score)
++        snapshotRepository.recordScan(adjustedScore)
+         reloadHistory()
+         _scanState.value = PrivacyScanState.Success(adjustedScore)
+     }
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index ffc6db0..aa96d91 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -1042,7 +1042,7 @@
+     <string name="label_history_filter_six_months">6M</string>
+     <string name="label_history_filter_year">1Y</string>
+     <string name="label_history_filter_all">All</string>
+-    <string name="label_history_no_data">Your first data point will appear tonight. Privamatic records your score once a day.</string>
++    <string name="label_history_no_data">Your history starts with your first scan.</string>
+     <string name="label_history_no_data_in_range">No scores recorded in this range. Choose a longer range to see older scores.</string>
+     <string name="label_history_tap_prompt">Tap a point to see details</string>
+     <string name="label_history_selected_score">Score: %1$d</string>
+diff --git a/app/src/test/java/com/techtrest/privamatic/SnapshotAlarmTest.kt b/app/src/test/java/com/techtrest/privamatic/SnapshotAlarmTest.kt
+new file mode 100644
+index 0000000..24c445e
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/SnapshotAlarmTest.kt
+@@ -0,0 +1,75 @@
++package com.techtrest.privamatic
++
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertTrue
++import org.junit.Before
++import org.junit.Test
++import java.util.Calendar
++import java.util.TimeZone
++
++/**
++ * The nightly safety-net alarm is armed for the next 22:00 local time, also across a DST change,
++ * and app start, boot and update arm it only when none is pending.
++ */
++class SnapshotAlarmTest {
++
++    private lateinit var savedZone: TimeZone
++
++    @Before
++    fun setZone() {
++        savedZone = TimeZone.getDefault()
++        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"))
++    }
++
++    @After
++    fun restoreZone() {
++        TimeZone.setDefault(savedZone)
++    }
++
++    private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0): Long =
++        Calendar.getInstance().apply {
++            clear()
++            set(year, month, day, hour, minute)
++        }.timeInMillis
++
++    @Test
++    fun `before 22_00 it is armed for tonight`() {
++        val now = at(2026, Calendar.NOVEMBER, 21, 14, 54)
++        assertEquals(at(2026, Calendar.NOVEMBER, 21, 22), SnapshotReceiver.nextTriggerAt(now))
++    }
++
++    @Test
++    fun `at or after 22_00 it is armed for tomorrow night`() {
++        assertEquals(
++            at(2026, Calendar.NOVEMBER, 22, 22),
++            SnapshotReceiver.nextTriggerAt(at(2026, Calendar.NOVEMBER, 21, 22))
++        )
++        assertEquals(
++            at(2026, Calendar.NOVEMBER, 22, 22),
++            SnapshotReceiver.nextTriggerAt(at(2026, Calendar.NOVEMBER, 21, 22, 37))
++        )
++    }
++
++    @Test
++    fun `across the clocks going back it stays at 22_00 local`() {
++        // Fired Sat 24 Oct 2026 22:10 CEST; the night of 24 to 25 Oct has 25 hours.
++        val next = SnapshotReceiver.nextTriggerAt(at(2026, Calendar.OCTOBER, 24, 22, 10))
++        assertEquals(at(2026, Calendar.OCTOBER, 25, 22), next)
++        assertEquals(25L * 60 * 60 * 1000, next - at(2026, Calendar.OCTOBER, 24, 22))
++    }
++
++    @Test
++    fun `across the clocks going forward it stays at 22_00 local`() {
++        val next = SnapshotReceiver.nextTriggerAt(at(2026, Calendar.MARCH, 28, 22, 5))
++        assertEquals(at(2026, Calendar.MARCH, 29, 22), next)
++        assertEquals(23L * 60 * 60 * 1000, next - at(2026, Calendar.MARCH, 28, 22))
++    }
++
++    @Test
++    fun `a pending alarm is left alone, a missing one is armed`() {
++        assertFalse(SnapshotReceiver.needsArm(alarmPending = true))
++        assertTrue(SnapshotReceiver.needsArm(alarmPending = false))
++    }
++}
+diff --git a/app/src/test/java/com/techtrest/privamatic/data/PrivacySnapshotRepositoryTest.kt b/app/src/test/java/com/techtrest/privamatic/data/PrivacySnapshotRepositoryTest.kt
+new file mode 100644
+index 0000000..2521348
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/data/PrivacySnapshotRepositoryTest.kt
+@@ -0,0 +1,165 @@
++package com.techtrest.privamatic.data
++
++import com.techtrest.privamatic.data.model.CheckDeduction
++import com.techtrest.privamatic.data.model.PrivacySnapshot
++import kotlinx.coroutines.runBlocking
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Before
++import org.junit.Test
++import java.util.Calendar
++import java.util.TimeZone
++
++/**
++ * One history point per local calendar day, set by every finished scan: a later scan the same
++ * day replaces the point, the first scan after local midnight starts a new one.
++ *
++ * Times are local times in Europe/Berlin, the zone the phones use.
++ */
++class PrivacySnapshotRepositoryTest {
++
++    private lateinit var savedZone: TimeZone
++    private var clock = 0L
++    private lateinit var dao: FakeSnapshotDao
++    private lateinit var repo: PrivacySnapshotRepository
++
++    @Before
++    fun setUp() {
++        savedZone = TimeZone.getDefault()
++        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"))
++        dao = FakeSnapshotDao()
++        repo = PrivacySnapshotRepository(dao) { clock }
++    }
++
++    @After
++    fun restoreZone() {
++        TimeZone.setDefault(savedZone)
++    }
++
++    private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0): Long =
++        Calendar.getInstance().apply {
++            clear()
++            set(year, month, day, hour, minute)
++        }.timeInMillis
++
++    private fun nov(day: Int, hour: Int, minute: Int = 0) = at(2026, Calendar.NOVEMBER, day, hour, minute)
++
++    private fun scanAt(time: Long, score: Int, deductions: List<CheckDeduction> = emptyList()) {
++        clock = time
++        runBlocking { repo.recordSnapshot(score, deductions) }
++    }
++
++    @Test
++    fun `a later scan the same day replaces the earlier point`() {
++        scanAt(nov(23, 8), 53, listOf(CheckDeduction("USB_DEBUGGING", 4)))
++        scanAt(nov(23, 19, 30), 61)
++
++        val rows = dao.rows()
++        assertEquals("one point for the day", 1, rows.size)
++        assertEquals(61, rows[0].score)
++        assertEquals(nov(23, 19, 30), rows[0].timestamp)
++        assertEquals("[]", rows[0].deductionsJson)
++    }
++
++    @Test
++    fun `the first scan after midnight starts a new day and leaves yesterday alone`() {
++        scanAt(nov(23, 23, 59), 53)
++        scanAt(nov(24, 0, 1), 57)
++
++        val rows = dao.rows()
++        assertEquals(2, rows.size)
++        assertEquals(nov(23, 23, 59), rows[0].timestamp)
++        assertEquals(53, rows[0].score)
++        assertEquals(nov(24, 0, 1), rows[1].timestamp)
++        assertEquals(57, rows[1].score)
++    }
++
++    @Test
++    fun `a day with only the alarm's scan keeps that point`() {
++        scanAt(nov(23, 12), 53)
++        // 24 Nov: no app or widget scan, only the safety-net alarm at 22:20.
++        scanAt(nov(24, 22, 20), 55)
++        scanAt(nov(25, 9), 55)
++
++        val rows = dao.rows()
++        assertEquals(3, rows.size)
++        assertEquals(nov(24, 22, 20), rows[1].timestamp)
++        assertEquals(55, rows[1].score)
++    }
++
++    @Test
++    fun `old points stay as they are`() {
++        dao.seed(PrivacySnapshot(timestamp = nov(20, 10, 3), score = 53, deductionsJson = "[]"))
++        dao.seed(PrivacySnapshot(timestamp = nov(21, 3, 52), score = 53, deductionsJson = "[]"))
++        val before = dao.rows()
++
++        scanAt(nov(22, 9), 60)
++        scanAt(nov(22, 21), 62)
++
++        val rows = dao.rows()
++        assertEquals(before, rows.take(2))
++        assertEquals(3, rows.size)
++        assertEquals(62, rows[2].score)
++    }
++
++    @Test
++    fun `clocks go back - the 25 hour day is still one day`() {
++        // Sun 25 Oct 2026, 03:00 CEST -> 02:00 CET: the local day has 25 hours.
++        scanAt(at(2026, Calendar.OCTOBER, 25, 10), 50)
++        scanAt(at(2026, Calendar.OCTOBER, 25, 23, 15), 52)
++        scanAt(at(2026, Calendar.OCTOBER, 25, 23, 45), 54)
++        scanAt(at(2026, Calendar.OCTOBER, 26, 0, 10), 56)
++
++        val rows = dao.rows()
++        assertEquals("one point on 25 Oct, one on 26 Oct", 2, rows.size)
++        assertEquals(at(2026, Calendar.OCTOBER, 25, 23, 45), rows[0].timestamp)
++        assertEquals(54, rows[0].score)
++        assertEquals(56, rows[1].score)
++    }
++
++    @Test
++    fun `clocks go forward - the 23 hour day ends at local midnight`() {
++        // Sun 29 Mar 2026, 02:00 CET -> 03:00 CEST: the local day has 23 hours.
++        scanAt(at(2026, Calendar.MARCH, 29, 10), 50)
++        scanAt(at(2026, Calendar.MARCH, 29, 23, 30), 52)
++        scanAt(at(2026, Calendar.MARCH, 30, 0, 30), 54)
++
++        val rows = dao.rows()
++        assertEquals(2, rows.size)
++        assertEquals(at(2026, Calendar.MARCH, 29, 23, 30), rows[0].timestamp)
++        assertEquals(52, rows[0].score)
++        assertEquals(at(2026, Calendar.MARCH, 30, 0, 30), rows[1].timestamp)
++    }
++}
++
++/** In-memory stand-in for the Room DAO. [setPointForDay] is the real default method. */
++private class FakeSnapshotDao : PrivacySnapshotDao {
++    private val table = mutableListOf<PrivacySnapshot>()
++    private var nextId = 1L
++
++    fun rows(): List<PrivacySnapshot> = table.sortedBy { it.timestamp }
++
++    fun seed(snapshot: PrivacySnapshot) {
++        table += snapshot.copy(id = nextId++)
++    }
++
++    override suspend fun insert(snapshot: PrivacySnapshot) = seed(snapshot)
++
++    override suspend fun getSnapshotsSince(since: Long) = rows().filter { it.timestamp >= since }
++
++    override suspend fun getAllSnapshots() = rows()
++
++    override suspend fun update(snapshot: PrivacySnapshot) {
++        val index = table.indexOfFirst { it.id == snapshot.id }
++        check(index >= 0) { "no row ${snapshot.id}" }
++        table[index] = snapshot
++    }
++
++    override suspend fun latestSnapshotForDay(dayStart: Long, dayEnd: Long) =
++        table.filter { it.timestamp >= dayStart && it.timestamp < dayEnd }
++            .maxWithOrNull(compareBy<PrivacySnapshot>({ it.timestamp }, { it.id }))
++
++    override suspend fun deleteAll() = table.clear()
++
++    override suspend fun getEarliestTimestamp() = table.minOfOrNull { it.timestamp }
++}
+diff --git a/docs/specs/snapshot-every-scan.md b/docs/specs/snapshot-every-scan.md
+new file mode 100644
+index 0000000..d37cba0
+--- /dev/null
++++ b/docs/specs/snapshot-every-scan.md
+@@ -0,0 +1,55 @@
++# Snapshot fix, B plus C — spec
++
++Run type: implementation run. Branch: `fix/snapshot-every-scan` (from `master`).
++Decision: Oliver, 2026-11-21, after `docs/decisions/snapshot-alarm-time.md` (Option B plus C).
++
++## Goal
++
++Score history gets one point for every day the phone scanned, filed on the right day: every finished scan sets
++today's point, and a later scan the same day replaces it. One nightly alarm stays as a safety net for days with no
++other scan.
++
++## Scope
++
++**In:**
++- Every finished scan (app scan, widget update, the safety-net alarm) records through one call; a later scan the same
++  local calendar day replaces that day's point. Day boundaries are local midnights (DST days have 23 or 25 hours).
++- One daily safety-net alarm, roughly 21:00–23:30, allowed while idle, inexact; no exact-alarm permission, no manifest
++  change, no extra alarms. Its scan records through the same call.
++- App start, boot and update never cancel or postpone a pending safety-net alarm (FLAG_NO_CREATE test, as for the
++  widget alarm).
++
++**Out:**
++- Room schema change, migration, new table or column (hard condition: stop and report if needed).
++- Rewriting or moving points of earlier days.
++- The History chart's spacing by index (own roadmap item).
++- New scans; the trust-change recompute (no scan) records nothing.
++
++## Oliver's calls
++
++| Question | Default |
++|---|---|
++| Empty-history text | Oliver decided (21 Nov): "Your history starts with your first scan." (`label_history_no_data`, the only locale). |
++| Today's point on the update day (may hold last night's late alarm) | Replaced by today's later scans like any of today's points. |
++
++## Invariants
++
++1. No change to `PrivacySnapshot`, `PrivacyDatabase` (version 1) or the manifest.
++2. At most one row per local calendar day is written; rows of earlier days are never touched.
++3. At most one snapshot alarm exists; app start, boot and update leave a pending one alone.
++4. A failed history write never stops the widget or the app showing the score.
++
++## Milestones
++
++| # | Milestone | Gate (evidence that proves it) |
++|---|---|---|
++| 1 | Every scan sets today's point | Unit tests `PrivacySnapshotRepositoryTest` (replace, midnight, alarm-only day, old points, both DST days) |
++| 2 | Safety-net alarm at 22:00 local | Unit tests `SnapshotAlarmTest`; Pixel 8 `dumpsys alarm`: one snapshot alarm, `origWhen` 22:00, `window=+1h`, no repeat, allow-while-idle flag |
++| 3 | On a device | Pixel 8: history intact after `install -r`; a scan replaces today's point; next morning the alarm fired 22:00–23:00 and re-armed; crash buffer empty (STATE.md, run 2026-11-21) |
++
++## STOP points
++
++| When | What Oliver does |
++|---|---|
++| Before the phone test | The Pixel 8 is in use elsewhere: Oliver runs or frees it for the check in STATE.md. |
++| After the phone test and diff review, before merge | Runs the external review (risky code: score history) and saves the findings file. |
+diff --git a/docs/state-archive/2026-11.md b/docs/state-archive/2026-11.md
+index 123b7aa..89a2af5 100644
+--- a/docs/state-archive/2026-11.md
++++ b/docs/state-archive/2026-11.md
+@@ -2,6 +2,28 @@
+ 
+ Newest first. Moved unedited from `STATE.md`.
+ 
++### Next, done items (moved 2026-11-21)
++
++- [x] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
++  change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
++  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. External review round 1 (2026-11-21): no High, Medium or Low; no round 2. Merged into `master` with `--no-ff`, not pushed.
++
++### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
++
++- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
++- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
++- [x] Fix (`c80d8bb`): a new-day recording with a non-zero delta stores `now`, not the older timestamp; same-day path unchanged. `testDebugUnitTest --rerun` 200/200, `compileDebugKotlin` and `assembleDebug` pass.
++- [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
++- [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
++- [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
++- [x] External review round 1 findings: `docs/reviews/fix-score-history-cap-edge-findings-1.md`, none (saved with a stray missing "f" in the name; renamed). Merged `fix/score-history-cap-edge` into `master` with `--no-ff` (2026-11-21), branch deleted, not pushed.
++
++### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
++
++- [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
++- [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
++- [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
++
+ ### 2026-11-18 — wrap-up (`chore/wrap-up-2026-11-18`)
+ 
+ - [x] STATE: Oliver pushed `master` (`c90c608`) and deleted the five merged local branches (`chore/legacy-test-device`, `chore/sandbox-followup`, `chore/sandbox-rollout`, `chore/sandbox-tinypass`, `fix/mockito-agent`). It had no line in Blocked on me (2026-11-18).
+@@ -125,3 +147,11 @@ Newest first. Moved unedited from `STATE.md`.
+   Gaps for HQ's shared guard engine: `guard.sh` finds `jq` through PATH; the guard doesn't expand variables, so a keystore path behind `$TMPDIR` passed it (sandbox still blocks real keystores). The sandbox's `**/*.keystore` / `**/*.jks` globs reach only the repo, so keystores elsewhere must be named.
+ - [x] 2026-11-11 tiny pass (`chore/sandbox-tinypass`, installed by Oliver): further sandbox blocks added (one read and edit block, write blocks on shared tool, startup and shell config paths, edit block on settings backups); missing paths get Edit() rules only. adb rules and exclusions untouched.
+   Checks pass: installed file identical to the proposal; the new read block is an empty overlay and the Read tool is denied in it; every new write block refuses Bash probes and the Write tool.
++
++### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
++
++- [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
++- [x] Why 23:00, not 23:50: `0603e0a` (2026-06-28) changed only the minute, one day after `0405dea` set 23:50; no reason recorded; three comments left at 23:50.
++- [x] Paper `docs/decisions/snapshot-alarm-time.md`: a history "day" is the calendar day the alarm fired on; a late point moves to the next day and leaves a gap; an app start after 23:00 and before delivery cancels that night's snapshot. Options A/B/C; recommends B (one-shot `setWindow` 23:00 + 55 min, re-armed nightly, never cancelling a pending one). Oliver's call; nothing built.
++- [x] Pixel 8, read-only `device-verify` (2026-11-21 12:15): snapshot alarm `origWhen` 23:00, `window=+18h`; 1W history points 17/18/20 Nov at 10:02–10:03 and 21 Nov at 03:52, so each is the previous night's alarm, filed one day late; no point for the 18 Nov alarm; the chart spaces points by index, so the gap is invisible. Crash buffer empty after, app on the home screen. Screenshots `docs/screens/snapshot-alarm-time/`.
++- [x] Seen: one cold start after a force-stop logged "snapshot alarm scheduled" twice, 350 ms apart (fits the `BootReceiver` item in Next; not checked).
