@@ -31,12 +31,13 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
-- [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
-  change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
-  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. External review round 1 (2026-11-21): no High, Medium or Low; no round 2. Merged into `master` with `--no-ff`, not pushed.
 - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
+  - [x] Oliver chose B plus C for the snapshot fix (21 Nov), after the design paper docs/decisions/snapshot-alarm-time.md (2026-11-21).
+  - [x] Built on `fix/snapshot-every-scan` (2026-11-21, `8b778cf`), unit tests pass; waits on the Pixel 8 check (run below), then external review.
+- [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Tonight's `dumpsys alarm` right after `install -r` shows which; fix the comment then.
+- [ ] [S] Trusting or untrusting an app recomputes the score without a scan, so today's history point keeps the old score until the next scan (the widget's follow-up scan records it when a widget is placed).
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
@@ -119,15 +120,27 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
+### 2026-11-21 — snapshot fix, B plus C (`fix/snapshot-every-scan`)
 
-- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
-- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
-- [x] Fix (`c80d8bb`): a new-day recording with a non-zero delta stores `now`, not the older timestamp; same-day path unchanged. `testDebugUnitTest --rerun` 200/200, `compileDebugKotlin` and `assembleDebug` pass.
-- [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
-- [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
-- [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
-- [x] External review round 1 findings: `docs/reviews/fix-score-history-cap-edge-findings-1.md`, none (saved with a stray missing "f" in the name; renamed). Merged `fix/score-history-cap-edge` into `master` with `--no-ff` (2026-11-21), branch deleted, not pushed.
+- [x] Roadmap block applied (pasted by Oliver; inbox empty). No phone this run: the Pixel 8 is in use by another project, no adb command sent.
+- [x] How history is stored: Room `privacy_history.db`, table `privacy_snapshots` (`id` autoincrement, `timestamp`, `score`, `deductionsJson`), version 1, no migrations. Only the History screen reads it. "One point per local day, replaced by a later scan" fits as is: find the day's row and update it by `id`. No schema change, migration, table or column; one `@Update` and one select added to the DAO.
+- [x] Where a scan finishes: the app scan (`PrivacyViewModel.onScanSuccess`: start, pull to refresh, return from settings, widget tap via app start); the widget scan (`PrivacyWidgetProvider.onUpdate`: 6 h alarm, boot, config Save and the app's follow-up via `requestImmediateUpdate`); the snapshot alarm (`SnapshotReceiver`). No single existing point: the scanner returns the raw score, and the trust adjuster also runs on trust changes without a scan. So one shared call, `PrivacySnapshotRepository.recordScan(adjustedScore)`, is called at those three places. No new scans.
+- [x] Old bug found by test: the day ended at midnight + 24 h, so on the 25 h day (25 Oct) a scan after 23:00 counted as a new day.
+- [x] Failing tests first (`PrivacySnapshotRepositoryTest`, fake DAO, Europe/Berlin): 4 of 6 failed on the old logic (first scan of the day won, e.g. expected 61 but was 53). With replace but the old 24 h day: the 25 h day test failed (3 points, not 2). With local-midnight day ends: all pass.
+- [x] Alarm: one `setAndAllowWhileIdle(RTC_WAKEUP, next 22:00 local)`, re-armed first thing on delivery; app start, boot and update call `ensureSnapshotAlarm`, which arms only when the PendingIntent is missing (`FLAG_NO_CREATE`). The old 23:00 repeating alarm, same PendingIntent, is replaced at its first delivery after the update. Unused `cancelMidnightSnapshot` removed. `SnapshotAlarmTest`: 22:00 tonight / tomorrow, both DST nights, the pending rule.
+- [x] Room wraps the new `setPointForDay` in `withTransaction` (generated `PrivacySnapshotDao_Impl`), so the app scan and the widget scan it triggers can't both insert.
+- [x] `compileDebugKotlin`, `testDebugUnitTest --rerun` 211/211, `assembleDebug` pass (APK 15:03, sha256 `26539635afcd…`). Manifest, entity and database unchanged against `master`.
+- [x] Own diff review against `master`: nothing to block the merge.
+- [ ] Not verified on a device: all of it. Pixel 8 check for tonight and tomorrow morning below.
+
+**Pixel 8 check, tonight, best before 21:30** (`<test serial>` from `.claude/devices.local`; read the crash buffer before any `logcat -c`):
+1. Before: `adb -s <test serial> shell dumpsys alarm`, note the `ACTION_MIDNIGHT_SNAPSHOT` alarm (expected: old one, `origWhen` 23:00, `window=+18h`, `repeatInterval=86400000`). History "All": note the point count, oldest (71, 4 Oct 09:27) and today's point (53, 21 Nov 03:52).
+2. `adb -s <test serial> install -r app/build/outputs/apk/debug/app-debug.apk`, then `dumpsys alarm` again before any start: does the old snapshot alarm survive the update? (settles the Next item on `PackageReplacedReceiver`.)
+3. `adb -s <test serial> shell am force-stop com.techtrest.privamatic.debug`, then cold start (`am start -n com.techtrest.privamatic.debug/com.techtrest.privamatic.MainActivity`). `dumpsys alarm`: exactly one snapshot alarm, `origWhen=2026-11-21 22:00:00`, `window=+1h0m0s0ms`, no `repeatInterval` (0), `flags` with the allow-while-idle bit (0x4). A second cold start without force-stop: same `origWhen` and `whenElapsed` (left alone).
+4. History "All": same count, every point before 21 Nov unchanged; the 21 Nov point now shows the cold start's scan time and score (it replaced 03:52). Pull to refresh on the Dashboard a minute later, reopen History: still one 21 Nov point, now at the refresh time.
+5. `adb -s <test serial> logcat -b crash -d`: empty. Leave the phone idle, screen off, unplugged if possible, with this debug build.
+
+**Tomorrow morning:** `dumpsys alarm`: one snapshot alarm, `origWhen=2026-11-22 22:00:00`, `window=+1h` (so tonight's fired and re-armed); the app's alarm history in the same dump: snapshot delivery time last night, expected 22:00–23:00. History 1W: the 21 Nov point is the day's last scan (the alarm, or a later widget update before midnight); a 22 Nov point exists only from a scan after midnight (the 6 h widget update). Crash buffer empty.
 
 ### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
 
@@ -137,11 +150,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Pixel 8, read-only `device-verify` (2026-11-21 12:15): snapshot alarm `origWhen` 23:00, `window=+18h`; 1W history points 17/18/20 Nov at 10:02–10:03 and 21 Nov at 03:52, so each is the previous night's alarm, filed one day late; no point for the 18 Nov alarm; the chart spaces points by index, so the gap is invisible. Crash buffer empty after, app on the home screen. Screenshots `docs/screens/snapshot-alarm-time/`.
 - [x] Seen: one cold start after a force-stop logged "snapshot alarm scheduled" twice, 350 ms apart (fits the `BootReceiver` item in Next; not checked).
 
-### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
-
-- [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
-- [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
-- [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
-
-The 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
