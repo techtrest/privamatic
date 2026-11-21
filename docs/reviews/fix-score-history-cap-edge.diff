@@ -1,0 +1,253 @@
+diff --git a/STATE.md b/STATE.md
+index 0142016..62f382b 100644
+--- a/STATE.md
++++ b/STATE.md
+@@ -33,6 +33,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
+ - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
+ - [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
+   change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
++  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. Open: external review round 1, then merge.
+ - [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
+   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
+   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
+@@ -118,6 +119,15 @@ It is the real guard. The allow and deny lists are a convenience.
+ 
+ ## Runs
+ 
++### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
++
++- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
++- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
++- [x] Fix (`c80d8bb`): a new-day recording with a non-zero delta stores `now`, not the older timestamp; same-day path unchanged. `testDebugUnitTest --rerun` 200/200, `compileDebugKotlin` and `assembleDebug` pass.
++- [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
++- [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
++- [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
++
+ ### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
+ 
+ - [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
+diff --git a/app/src/main/java/com/techtrest/privamatic/data/ScoreHistoryRepository.kt b/app/src/main/java/com/techtrest/privamatic/data/ScoreHistoryRepository.kt
+index 5bb37b0..917800b 100644
+--- a/app/src/main/java/com/techtrest/privamatic/data/ScoreHistoryRepository.kt
++++ b/app/src/main/java/com/techtrest/privamatic/data/ScoreHistoryRepository.kt
+@@ -1,6 +1,7 @@
+ package com.techtrest.privamatic.data
+ 
+ import android.content.Context
++import android.content.SharedPreferences
+ import com.techtrest.privamatic.data.model.ScoreHistory
+ import java.util.Calendar
+ 
+@@ -15,13 +16,17 @@ import java.util.Calendar
+  * - New calendar day: promote the previous currentScore to dailyBaselineScore,
+  *   set dailyBaselineTimestamp to today's midnight, save the new score.
+  */
+-class ScoreHistoryRepository(context: Context) {
++class ScoreHistoryRepository internal constructor(
++    private val prefs: SharedPreferences,
++    private val clock: () -> Long
++) {
+ 
+-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
++    constructor(context: Context) :
++        this(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE), System::currentTimeMillis)
+ 
+     fun recordScore(newScore: Int): ScoreHistory {
+         val savedCurrent = savedCurrentScore
+-        val now = System.currentTimeMillis()
++        val now = clock()
+         val todayMidnight = midnightOf(now)
+ 
+         return when {
+@@ -63,9 +68,11 @@ class ScoreHistoryRepository(context: Context) {
+                 )
+             }
+             else -> {
+-                // New calendar day — yesterday's closing score becomes today's baseline
++                // New calendar day — yesterday's closing score becomes today's baseline.
++                // A non-zero delta against it is a change since the last scan, so its window
++                // starts now; an older change's timestamp must not carry over.
+                 val delta = newScore - savedCurrent
+-                val deltaFirstAppeared = computeDeltaFirstAppeared(delta, now)
++                val deltaFirstAppeared = if (delta == 0) 0L else now
+                 prefs.edit()
+                     .putInt(KEY_DAILY_BASELINE_SCORE, savedCurrent)
+                     .putInt(KEY_CURRENT_SCORE, newScore)
+diff --git a/app/src/test/java/com/techtrest/privamatic/data/ScoreHistoryRepositoryTest.kt b/app/src/test/java/com/techtrest/privamatic/data/ScoreHistoryRepositoryTest.kt
+new file mode 100644
+index 0000000..ebb5dc7
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/data/ScoreHistoryRepositoryTest.kt
+@@ -0,0 +1,110 @@
++package com.techtrest.privamatic.data
++
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Before
++import org.junit.Test
++import java.util.Calendar
++import java.util.TimeZone
++
++/**
++ * The widget shows a score change while `now - deltaFirstAppearedTimestamp <= 48 h`
++ * (PrivacyWidgetProvider). These tests pin when that timestamp starts.
++ *
++ * Times are local times in Europe/Berlin, the zone the phones use, in November 2026.
++ */
++class ScoreHistoryRepositoryTest {
++
++    private val cap = 48L * 60 * 60 * 1000
++    private lateinit var savedZone: TimeZone
++    private var clock = 0L
++
++    @Before
++    fun setZone() {
++        savedZone = TimeZone.getDefault()
++        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"))
++    }
++
++    @After
++    fun restoreZone() {
++        TimeZone.setDefault(savedZone)
++    }
++
++    private fun at(day: Int, hour: Int, minute: Int = 0): Long = Calendar.getInstance().apply {
++        clear()
++        set(2026, Calendar.NOVEMBER, day, hour, minute)
++    }.timeInMillis
++
++    private fun repo(storage: InMemorySharedPreferences) = ScoreHistoryRepository(storage) { clock }
++
++    @Test
++    fun `a fresh change after a few days away starts a new 48 h window`() {
++        val storage = InMemorySharedPreferences()
++        clock = at(16, 10); repo(storage).recordScore(80)           // Mon 10:00, first scan
++        clock = at(16, 11); repo(storage).recordScore(70)           // Mon 11:00, a setting turned on: ↓10
++
++        // Thu 09:00, first scan since Monday: the score dropped again, 70 → 60.
++        clock = at(19, 9)
++        val thursday = repo(storage).recordScore(60)
++
++        assertEquals(70, thursday.dailyBaselineScore)
++        assertEquals(-10, thursday.scoreDelta)
++        assertEquals(at(19, 9), thursday.deltaFirstAppearedTimestamp)
++        assertTrue("the widget hides a change seen 0 h ago", clock - thursday.deltaFirstAppearedTimestamp <= cap)
++    }
++
++    @Test
++    fun `a change again each morning is still shown in the evening`() {
++        val storage = InMemorySharedPreferences()
++        clock = at(16, 8); repo(storage).recordScore(80)            // Mon 08:00
++        clock = at(16, 22); repo(storage).recordScore(70)           // Mon 22:00: ↓10
++        clock = at(17, 7, 30); repo(storage).recordScore(60)        // Tue 07:30: ↓10 again, across midnight
++        clock = at(18, 7); repo(storage).recordScore(55)            // Wed 07:00: ↓5, across midnight
++
++        // Wed 23:00, the 6 h widget update, nothing changed since 07:00.
++        clock = at(18, 23)
++        val wednesdayNight = repo(storage).recordScore(55)
++
++        assertEquals(60, wednesdayNight.dailyBaselineScore)
++        assertEquals(-5, wednesdayNight.scoreDelta)
++        assertEquals(at(18, 7), wednesdayNight.deltaFirstAppearedTimestamp)
++        assertTrue("the widget hides a change seen 16 h ago", clock - wednesdayNight.deltaFirstAppearedTimestamp <= cap)
++    }
++
++    @Test
++    fun `later scans on the same day keep the time the change first appeared`() {
++        val storage = InMemorySharedPreferences()
++        clock = at(16, 8); repo(storage).recordScore(80)
++        clock = at(16, 9); repo(storage).recordScore(72)            // ↓8 first seen at 09:00
++        clock = at(16, 15); val afternoon = repo(storage).recordScore(70)  // ↓10 against the same baseline
++
++        assertEquals(80, afternoon.dailyBaselineScore)
++        assertEquals(-10, afternoon.scoreDelta)
++        assertEquals(at(16, 9), afternoon.deltaFirstAppearedTimestamp)
++    }
++
++    @Test
++    fun `no change since yesterday clears the change after midnight`() {
++        val storage = InMemorySharedPreferences()
++        clock = at(16, 8); repo(storage).recordScore(80)
++        clock = at(16, 9); repo(storage).recordScore(70)
++        clock = at(17, 3); val tuesday = repo(storage).recordScore(70)    // 6 h widget update after midnight
++
++        assertEquals(70, tuesday.dailyBaselineScore)
++        assertEquals(0, tuesday.scoreDelta)
++        assertEquals(0L, tuesday.deltaFirstAppearedTimestamp)
++    }
++
++    @Test
++    fun `first scan ever seeds the baseline and shows no change`() {
++        val storage = InMemorySharedPreferences()
++        clock = at(16, 8)
++        val first = repo(storage).recordScore(80)
++
++        assertEquals(80, first.dailyBaselineScore)
++        assertEquals(0, first.scoreDelta)
++        assertEquals(at(16, 0), first.dailyBaselineTimestamp)
++        assertEquals(0L, first.deltaFirstAppearedTimestamp)
++    }
++}
+diff --git a/docs/reviews/fix-score-history-cap-edge-prompt-1.md b/docs/reviews/fix-score-history-cap-edge-prompt-1.md
+new file mode 100644
+index 0000000..c11dec6
+--- /dev/null
++++ b/docs/reviews/fix-score-history-cap-edge-prompt-1.md
+@@ -0,0 +1,44 @@
++Review docs/reviews/fix-score-history-cap-edge.diff at the Privamatic repo root (offline Android
++privacy auditing app, Kotlin/Compose, master..fix/score-history-cap-edge: on the first score
++recording of a new day, a non-zero change now gets its own "first seen" time instead of keeping
++an older change's, so the widget's 48 h change indicator no longer hides a fresh change;
++ScoreHistoryRepository also gets an internal constructor (prefs + clock) for unit tests). You can't run git, Gradle or tests in this workspace. Read only the
++files this diff touches, and only the functions around the changed lines —
++don't explore the rest of the repo. Skip strings.xml, fastlane metadata and
++screenshots. The new test ScoreHistoryRepositoryTest is part of the point: check
++that it really tests the cases its names claim. If you need more than
++~10 files, stop and say which and why.
++
++Don't fix anything. List findings ranked by severity (High / Medium / Low)
++with file:line, a concrete failure scenario, and your confidence.
++
++Context: first review. The widget reads the timestamp in PrivacyWidgetProvider
++(showPrivacyChange, `now - deltaFirstAppearedTimestamp <= 48 h`); the in-app card
++uses lastUpdateTimestamp and is not changed. The test was committed failing first
++(2 of 5 failed on the old logic), then the one-line fix made all 200 unit tests pass.
++
++Standing invariants — check that each holds on every path this diff touches:
++1. Offline: no INTERNET permission, no network calls, no new dependency that
++   can reach the network.
++2. User data never leaves the device: score history (Room), the trusted list
++   and settings are excluded from cloud backup and device transfer, in both
++   data_extraction_rules.xml (Android 12+) and the legacy backup rules.
++3. Room: every schema change bumps the version and ships a migration; no
++   destructive fallback; existing score history survives an upgrade.
++4. Scoring: the PrivacyCheck enum is the single source of truth for
++   deductions; trust math goes through PrivacyCheck.cappedDeductionFor();
++   no score logic elsewhere.
++5. Detection: a disabled app still returns ApplicationInfo — check
++   appInfo.enabled before treating a package as active.
++6. All user-facing text comes from strings.xml.
++7. Release builds stay unsigned (signingConfig = null) for F-Droid.
++
++Run-specific invariants:
++8. No Room schema or migration change (PrivacyDatabase, entities, DAOs untouched).
++9. No change to stored keys or file names: the SharedPreferences file stays
++   "score_history" with the same five keys and types; nothing new is written.
++10. Existing history entries read back unchanged: a value stored by the released
++    version (including a non-zero delta_first_appeared_timestamp) is read the same
++    way; only a new-day recording with a non-zero delta writes a different value.
++11. Score math unchanged: currentScore, dailyBaselineScore, the baseline
++    promotion at a new day and scoreDelta are computed exactly as before.
+diff --git a/docs/screens/score-history-cap-edge/history-all-after.png b/docs/screens/score-history-cap-edge/history-all-after.png
+new file mode 100644
+index 0000000..b4e06ce
+Binary files /dev/null and b/docs/screens/score-history-cap-edge/history-all-after.png differ
+diff --git a/docs/screens/score-history-cap-edge/history-week-after.png b/docs/screens/score-history-cap-edge/history-week-after.png
+new file mode 100644
+index 0000000..7b828ea
+Binary files /dev/null and b/docs/screens/score-history-cap-edge/history-week-after.png differ
+diff --git a/docs/screens/score-history-cap-edge/main-after.png b/docs/screens/score-history-cap-edge/main-after.png
+new file mode 100644
+index 0000000..57fa0ef
+Binary files /dev/null and b/docs/screens/score-history-cap-edge/main-after.png differ
