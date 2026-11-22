@@ -31,7 +31,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
-- [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
+- [x] [M] (done 2026-11-22, merged into `master`) Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
   - [x] Oliver chose B plus C for the snapshot fix (21 Nov), after the design paper docs/decisions/snapshot-alarm-time.md (2026-11-21).

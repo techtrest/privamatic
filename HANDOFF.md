@@ -2,30 +2,30 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 10
+- Run: 11
 - Branch: fix/snapshot-every-scan
-- Commit: fae18ec
-- Time: 2026-11-21T20:01:52+01:00
-- Deviations: 3 (the words are in status.json, not in this public file)
+- Commit: 837fefd
+- Time: 2026-11-22T09:32:33+01:00
+- Deviations: none
 
 ## Where we are
-The snapshot fix (`fix/snapshot-every-scan`) passed this evening's Pixel 8 check. The update kept history intact. One snapshot alarm is set for 22:00 tonight, with a one-hour window and no repeat, and further app starts leave it alone. A scan replaces today's history point, and the crash buffer is empty. The phone is on its home screen with the widget placed and this debug build installed. What's left is tomorrow morning's readout, then the merge. STATE.md (run 2026-11-21, evening) lists exactly what to read.
-Found: on this phone an app update keeps the app's alarms, so the comment in `PackageReplacedReceiver` is wrong. It is not changed in this run.
-Found: each app start pushes the widget's 6-hour refresh back by 6 hours. It's noted in STATE.md under Next and is outside this fix.
-Found: the alarm's flag reads 0x20, not the 0x4 in the written check. That is how the system stores an inexact allow-while-idle alarm. Oliver accepted it.
+The history snapshot fix passed its overnight check on the Pixel 8 and is merged into master locally; master is not pushed yet.
+- Overnight: the 22:00 safety-net alarm fired while the phone was idle and unplugged (22:00:26), and its scan set the 21 Nov history point (22:00, score 53).
+- Widget refresh pushed back on each app start: not caused by this fix. Master does the same once the app has been force-stopped: from then on every app start is treated like a boot, which re-arms the 6-hour widget refresh. An app update ends it. Left in Next with a fix idea.
+- Pixel 8: fix build installed, tonight's 22:00 alarm armed, widget shows 53 Fair, crash log empty, on the home screen.
+Found: users updating from 1.5.2 keep the old 23:00 nightly alarm until it fires once; it then switches itself to 22:00. By design, not tested on a device.
 
 ## Blocked on you
-Tomorrow morning, before opening the app, run the readout in STATE.md (run 2026-11-21, evening). That can be a Claude Code run.
-Optionally, unplug the Pixel 8 before 22:00 so tonight also tests deep sleep. It is on USB power now.
+None.
 
 ## Red flags
-None
+None.
 
 ## Pending decisions
-None
+None.
 
 ## Next step for chat
-Tomorrow morning: read the alarm and the history point as STATE.md describes, then merge if it passes.
+Push master. Then pick the next item: the widget refresh push-back fix (small), or v1.6 planning.
 
 ## Unapplied ROADMAP UPDATE blocks
-None
+None.
