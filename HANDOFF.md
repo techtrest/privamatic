@@ -2,21 +2,22 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 11
-- Branch: fix/snapshot-every-scan
-- Commit: 837fefd
-- Time: 2026-11-22T09:32:33+01:00
-- Deviations: none
+- Run: 12
+- Branch: fix/boot-receiver-rearm
+- Commit: ac9d105
+- Time: 2026-11-22T19:45:57+01:00
+- Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-The history snapshot fix passed its overnight check on the Pixel 8 and is merged into master locally; master is not pushed yet.
-- Overnight: the 22:00 safety-net alarm fired while the phone was idle and unplugged (22:00:26), and its scan set the 21 Nov history point (22:00, score 53).
-- Widget refresh pushed back on each app start: not caused by this fix. Master does the same once the app has been force-stopped: from then on every app start is treated like a boot, which re-arms the 6-hour widget refresh. An app update ends it. Left in Next with a fix idea.
-- Pixel 8: fix build installed, tonight's 22:00 alarm armed, widget shows 53 Fair, crash log empty, on the home screen.
-Found: users updating from 1.5.2 keep the old 23:00 nightly alarm until it fires once; it then switches itself to 22:00. By design, not tested on a device.
+App starts no longer push the widget's 6-hour refresh back. The fix is merged into master locally; master is not pushed yet.
+- Pixel 8: after a force-stop and two more app starts, the widget refresh stayed at the same time, and there was still only one. After a real reboot: one widget refresh about 6 hours out, one refresh scan, tonight's 22:00 history alarm still armed. No app crashes.
+- Pixel 8 left with the fix build, on the home screen, widget 53 Fair, 22:00 alarm armed.
+Found: after a reboot the widget itself set the refresh before the boot step ran, so the boot step's own "set it again" path wasn't used on the phone; only the unit tests cover it.
+Found: no external review, because this is a small change that reuses the already-reviewed check from app start.
+Found: device commands that wait for the phone, or that filter the output on the phone side, hang inside the sandbox; the device checks avoid them now.
 
 ## Blocked on you
-None.
+Push master.
 
 ## Red flags
 None.
@@ -25,7 +26,7 @@ None.
 None.
 
 ## Next step for chat
-Push master. Then pick the next item: the widget refresh push-back fix (small), or v1.6 planning.
+Push master. The next small items in STATE.md's Next are the PackageReplacedReceiver comment fix and the first-run screen scan question.
 
 ## Unapplied ROADMAP UPDATE blocks
 None.
