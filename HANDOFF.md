@@ -3,30 +3,34 @@
 - Format: 3
 - Project: Privamatic
 - Run: 12
-- Branch: fix/boot-receiver-rearm
-- Commit: ac9d105
-- Time: 2026-11-22T19:45:57+01:00
+- Branch: fix/guard-serial-assignments
+- Commit: f2ab120
+- Time: 2026-11-22T20:11:01+01:00
 - Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-App starts no longer push the widget's 6-hour refresh back. The fix is merged into master locally; master is not pushed yet.
-- Pixel 8: after a force-stop and two more app starts, the widget refresh stayed at the same time, and there was still only one. After a real reboot: one widget refresh about 6 hours out, one refresh scan, tonight's 22:00 history alarm still armed. No app crashes.
-- Pixel 8 left with the fix build, on the home screen, widget 53 Fair, 22:00 alarm armed.
-Found: after a reboot the widget itself set the refresh before the boot step ran, so the boot step's own "set it again" path wasn't used on the phone; only the unit tests cover it.
-Found: no external review, because this is a small change that reuses the already-reviewed check from app start.
-Found: device commands that wait for the phone, or that filter the output on the phone side, hang inside the sandbox; the device checks avoid them now.
+The guard's device-serial check has a gap, and a fix is ready for review. It is not installed.
+- 16 test cases from Cull, adapted, plus 6 for the export path: when two serials are given, the guard already judges the last one, as Cull does.
+- 7 cases fail on the installed guard: when `env -i` or `env -u ANDROID_SERIAL` drops the serial, the guard still lets a Gradle install through, which could then reach any attached phone.
+- The proposed guard (scripts/guard.sh.proposed) makes env forget the dropped serial and changes nothing else. All 563 guard tests pass against it.
+- The branch stays checked out; it merges after the guard is installed. Master also has the widget refresh fix, still not pushed.
+- Roadmap block from chat applied (1 change, 3 additions, the HQ rule on proposed files noted in STATE.md).
+Found: the sandbox won't write into .claude/hooks, so the proposed file sits in scripts/ beside the test script.
+Found: no phone was used.
 
 ## Blocked on you
+Take scripts/guard.sh.proposed to the HQ chat for review.
+After the review, install it as .claude/hooks/guard.sh and run bash scripts/test-hook.sh.
 Push master.
 
 ## Red flags
 None.
 
 ## Pending decisions
-None.
+Stopgap in today's guard for hanging device commands: decided at HQ's pilot review on 25 Nov.
 
 ## Next step for chat
-Push master. The next small items in STATE.md's Next are the PackageReplacedReceiver comment fix and the first-run screen scan question.
+Review scripts/guard.sh.proposed in the HQ chat. Once Oliver has installed it and the tests pass, a short run merges fix/guard-serial-assignments.
 
 ## Unapplied ROADMAP UPDATE blocks
 None.
