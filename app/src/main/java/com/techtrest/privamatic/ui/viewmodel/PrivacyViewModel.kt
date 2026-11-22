@@ -224,6 +224,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         val trusted = trustedAppsRepository.trustedPackages.first()
         val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
         _scoreHistory.value = scoreHistoryRepository.recordScore(adjustedScore.score)
+        snapshotRepository.recordScan(adjustedScore)
         reloadHistory()
         _scanState.value = PrivacyScanState.Success(adjustedScore)
     }

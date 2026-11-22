@@ -1,29 +1,58 @@
 package com.techtrest.privamatic.data
 
 import android.content.Context
+import android.util.Log
+import com.techtrest.privamatic.BuildConfig
 import com.techtrest.privamatic.data.model.CheckDeduction
+import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.model.PrivacySnapshot
+import kotlinx.coroutines.CancellationException
 import java.util.Calendar
 
 enum class HistoryFilter { WEEK, MONTH, THREE_MONTHS, SIX_MONTHS, YEAR, ALL }
 
-class PrivacySnapshotRepository(context: Context) {
-    private val dao = PrivacyDatabase.getInstance(context).snapshotDao()
+class PrivacySnapshotRepository internal constructor(
+    private val dao: PrivacySnapshotDao,
+    private val clock: () -> Long
+) {
+    constructor(context: Context) :
+        this(PrivacyDatabase.getInstance(context).snapshotDao(), System::currentTimeMillis)
 
-    /** Records a snapshot — at most one per calendar day. Skips if one already exists today. */
-    suspend fun recordSnapshot(score: Int, deductions: List<CheckDeduction>) {
-        val now = System.currentTimeMillis()
-        val dayStart = midnightOf(now)
-        val dayEnd = dayStart + DAY_MS
-        if (dao.countSnapshotsForDay(dayStart, dayEnd) == 0) {
-            dao.insert(
-                PrivacySnapshot(
-                    timestamp = now,
-                    score = score,
-                    deductionsJson = CheckDeduction.encode(deductions)
-                )
-            )
+    /**
+     * The one place a finished scan records history: the app scan (PrivacyViewModel), the widget
+     * scan (PrivacyWidgetProvider) and the nightly safety-net scan (SnapshotReceiver) all call it
+     * with the trust-adjusted score. A failed write is logged and swallowed, so the caller's own
+     * work (the score on screen, the widget) goes on.
+     */
+    suspend fun recordScan(adjustedScore: PrivacyScore) {
+        try {
+            recordSnapshot(adjustedScore.score, deductionsOf(adjustedScore))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (BuildConfig.DEBUG) Log.e(TAG, "Recording today's history point failed", e)
         }
+    }
+
+    /** Sets today's point (local calendar day); a later scan the same day replaces it. */
+    internal suspend fun recordSnapshot(score: Int, deductions: List<CheckDeduction>) {
+        val now = clock()
+        val (dayStart, dayEnd) = dayBoundsOf(now)
+        dao.setPointForDay(
+            dayStart,
+            dayEnd,
+            PrivacySnapshot(
+                timestamp = now,
+                score = score,
+                deductionsJson = CheckDeduction.encode(deductions)
+            )
+        )
+    }
+
+    /** True once a scan has set today's point (local calendar day). */
+    suspend fun hasPointToday(): Boolean {
+        val (dayStart, dayEnd) = dayBoundsOf(clock())
+        return dao.latestSnapshotForDay(dayStart, dayEnd) != null
     }
 
     suspend fun getSnapshots(filter: HistoryFilter): List<PrivacySnapshot> {
@@ -49,7 +78,23 @@ class PrivacySnapshotRepository(context: Context) {
     }
 
     companion object {
+        private const val TAG = "PrivacySnapshotRepo"
         private const val DAY_MS = 24L * 60 * 60 * 1000
+
+        internal fun deductionsOf(adjustedScore: PrivacyScore): List<CheckDeduction> =
+            adjustedScore.issues
+                .filter { it.pointDeduction > 0 }
+                .map { CheckDeduction(it.check.name, it.pointDeduction) }
+
+        /** [local midnight, next local midnight); not start + 24 h: DST days have 23 or 25 hours. */
+        private fun dayBoundsOf(ms: Long): Pair<Long, Long> {
+            val dayStart = midnightOf(ms)
+            val dayEnd = Calendar.getInstance().apply {
+                timeInMillis = dayStart
+                add(Calendar.DAY_OF_MONTH, 1)
+            }.timeInMillis
+            return dayStart to dayEnd
+        }
 
         private fun midnightOf(ms: Long): Long = Calendar.getInstance().apply {
             timeInMillis = ms

@@ -1042,7 +1042,7 @@
     <string name="label_history_filter_six_months">6M</string>
     <string name="label_history_filter_year">1Y</string>
     <string name="label_history_filter_all">All</string>
-    <string name="label_history_no_data">Your first data point will appear tonight. Privamatic records your score once a day.</string>
+    <string name="label_history_no_data">Your history starts with your first scan.</string>
     <string name="label_history_no_data_in_range">No scores recorded in this range. Choose a longer range to see older scores.</string>
     <string name="label_history_tap_prompt">Tap a point to see details</string>
     <string name="label_history_selected_score">Score: %1$d</string>

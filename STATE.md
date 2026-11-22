@@ -31,12 +31,22 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
-- [ ] [M] 48 h change cap edge: a score change again across midnight keeps the first change's timestamp, so the cap can hide a fresh
-  change (`ScoreHistoryRepository.kt:93-97`). Code reading only; failing test first. Risky code (score history).
-  - [x] Reproduced by unit test and fixed on `fix/score-history-cap-edge` (2026-11-21); Pixel 8 gate passed. External review round 1 (2026-11-21): no High, Medium or Low; no round 2. Merged into `master` with `--no-ff`, not pushed.
-- [ ] [M] Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
+- [x] [M] (done 2026-11-22, merged into `master`) Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
   - [x] Design run 2026-11-21: `docs/decisions/snapshot-alarm-time.md`; recommends Option B after a one-night Doze check. Waits on Oliver's choice.
+  - [x] Oliver chose B plus C for the snapshot fix (21 Nov), after the design paper docs/decisions/snapshot-alarm-time.md (2026-11-21).
+  - [x] Built on `fix/snapshot-every-scan` (2026-11-21, `8b778cf`), unit tests pass; waits on the Pixel 8 check (run below), then external review.
+  - [x] External review round 1: no High; Medium and Low 2 fixed, Low 1 moved to the device check, Low 3 rejected (2026-11-21, review fixes run). Waits on the Pixel 8 check, then merge.
+  - [x] Pixel 8 evening check passed (2026-11-21, run below; snapshot alarm flag is 0x20, accepted by Oliver). Waits on tomorrow morning's readout, then merge.
+  - [x] Overnight readout passed (2026-11-22): the 22:00 alarm fired in Doze at 22:00:26 and its scan set the 21 Nov point (22:00, 53).
+- [ ] [S] Optional device check of review Medium: on a later evening after 22:00, before any scan that day (no app start; with a widget placed its boot scan records first, so this needs no widget), reboot: `dumpsys alarm` shows the snapshot alarm due within minutes, not tomorrow 22:00; after it fires, History has a point for that day and the alarm is at tomorrow 22:00.
+- [ ] [S] `PackageReplacedReceiver` says an update clears the app's alarms; AOSP keeps them on a replace. Fix the comment.
+  - [x] Settled 2026-11-21 (Pixel 8): after `install -r` both alarms were still there, unchanged. The comment is wrong.
+- [ ] [S] Each app start pushes the widget's 6 h alarm back 6 h (Pixel 8, 2026-11-21: new alarm object at +5h59m after each `am kill` cold start, log "Periodic widget updates scheduled" each time), although `rearmPeriodicUpdatesIfPlaced` should leave a live alarm alone. Read-only finding, not this branch's scope.
+  - [x] Code reading 2026-11-22 (hypothesis, not evidence): this branch doesn't touch the widget alarm. Its only change to the widget provider is a `recordScan` call inside the scan; `schedulePeriodicUpdates` is still called only from `onEnabled`, `BootReceiver` and `rearmPeriodicUpdatesIfPlaced` (when the alarm's PendingIntent is gone), all as on `master`. So a push-back on each start would need `BootReceiver` running or `isAlarmPending` returning false, on `master` too.
+  - [x] Pixel 8, 2026-11-22: **not this branch's**. Cause: after a force-stop, every later app start (even after `am kill`, `stopped=false`) gets `BOOT_COMPLETED`, and `BootReceiver` re-arms the widget alarm unconditionally (`schedulePeriodicUpdates`), ~6 h from that start. Branch build after last night's force-stop: 2 of 2 starts replaced it. `master` build straight after `install -r`: 2 of 2 starts left it alone, no `BootReceiver` line. `master` after force-stop + one start: 2 of 2 starts replaced it, `BootReceiver` logged each time. So `install -r` ends it, a force-stop starts it. Fix idea (not done): let `BootReceiver` use `rearmPeriodicUpdatesIfPlaced` too. Why Android keeps sending `BOOT_COMPLETED` is not known.
+- [ ] [S] Trusting or untrusting an app recomputes the score without a scan, so today's history point keeps the old score until the next scan (the widget's follow-up scan records it when a widget is placed).
+  - [x] Oliver decided (21 Nov): keep it so, today's point stays until the next scan.
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
@@ -51,29 +61,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
   See HANDOFF.md: HQ's command keeps this list there.
 
-## Done (moved from Next, 2026-10-25)
-
-- [x] [S] Default Keyboard row strings moved to `strings.xml`; `.gitignore` covers `docs/store/`, `docs/store-graphics/`, `docs/audits/` (2026-10-25, see archive).
-- [x] [S] Step 1b — trial fix: Default Launcher row debug text. See archive.
-- [x] [S] Same leak in browser, SMS, email rows (2026-10-21, `666a434`).
-- [x] [S] `QuickWinsDetector.extractAppName` parsed UI copy; replaced by `PrivacyIssue.appName` (`666a434`).
-- [x] [M] Guard hook (`015f699`); see Guard hook below.
-- [x] [S] Guard hook live smoke test (2026-10-20): all 11 checks as intended (5 deny, 3 ask, 1 silent allow on the Pixel 9);
-  `.claude/hook.log` had 8 lines, one per deny and ask. Closes the workflow-setup "rules match in a live session" item.
-  Side effect: `adb devices` starts the adb daemon, so a "first" adb call is never fully read-only on the host.
-- [x] [M] Backup-rules fix (`87b6f78`, external review round 1: no findings). The four suspicions:
-  - Missing `.xml` was not a bug: `ad_id_prefs.xml` and `score_history.xml` already stayed out of backup (device, before-run).
-  - `-shm` / `-wal` moot: the database domain is excluded and Room uses TRUNCATE mode.
-  - `<cloud-backup>` and `<device-transfer>` fixed, mirrored, enforced by `BackupRulesTest`.
-  - Room was already excluded with `domain="database"` (device, before-run).
-- [x] [S] Widget readability design run: `docs/decisions/widget-readability.md`; see archive.
-- [x] [L] Widget readability + widget pack (`feat/widget-pack`, merged `3f5a553` 2026-10-24). Rounds 1–2 parked; round 3 gate clean.
-  "↓12" at font 2.0 fits 40 dp; `.gitignore` tracks `app/src/release/`; 28 dp sides, 18 sp score, rows aligned at 1.0 and 2.0.
-  External review round 1: no High; L1 fixed (`e2093fc`), M1 rejected for this release.
-- [x] [S] Release note for the backup change, agreed by Oliver 2026-10-21; use exactly:
-  "Privamatic no longer copies any of its data into backups or to a new phone. On a new phone, set up your trusted apps and settings again."
-- [x] [S] Koloe17 report closed: resolved by #19 in 1.4.1; no newer report exists (Oliver, 2026-10-25).
-- [x] [S] Spec "Out" line corrected: a font-scale change does trigger widget updates (2026-10-24).
+Done items moved from Next on 2026-10-25: `docs/state-archive/2026-10.md`.
 
 ## Guard hook
 
@@ -119,29 +107,20 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-21 — 48 h change cap edge (`fix/score-history-cap-edge`)
+### 2026-11-21 — snapshot fix, B plus C (`fix/snapshot-every-scan`)
 
-- [x] Root cause: on the first `recordScore` of a new day the baseline becomes yesterday's last score, so a non-zero delta there is always a new change. But `computeDeltaFirstAppeared` (`ScoreHistoryRepository.kt:93-97`) keeps any stored timestamp, so the widget's 48 h check (`PrivacyWidgetProvider.kt:107-110`) measures from the older change. Only the widget is affected: the in-app card measures from `lastUpdateTimestamp` (`DeviceInfoCard.kt:36-39`).
-- [x] Failing test first: `ScoreHistoryRepositoryTest`, Europe/Berlin times in Nov 2026. Fails on `master` logic: Thu 09:00 fresh change after days away keeps Mon 11:00 (71 h, hidden at once); daily morning changes keep Mon 22:00, so Wed 23:00 hides a change seen at 07:00. 200 tests, these 2 failed. Seam: an `internal` constructor taking prefs and a clock; same prefs file and keys.
-- [x] Fix (`c80d8bb`): a new-day recording with a non-zero delta stores `now`, not the older timestamp; same-day path unchanged. `testDebugUnitTest --rerun` 200/200, `compileDebugKotlin` and `assembleDebug` pass.
-- [x] Pixel 8 gate (`device-verify`, 2026-11-21 12:22): fresh APK, `install -r` Success, cold start 714 ms; `score_history` prefs same five keys, only `last_update_timestamp` moved; History "All" 4 Oct – 21 Nov, ~34 points, oldest 71 at 4 Oct 09:27, newest 53 at 21 Nov 03:52, identical to the morning baseline; 1W the same four points; crash buffer empty before and after; phone on the home screen with this debug build. Screenshots `docs/screens/score-history-cap-edge/`.
-- [ ] Not verified on a device: the edge itself (a change on the first scan after midnight). It needs a score change across a real midnight; the unit test shows it.
-- [x] Own diff review against `master`: nothing to block. External review round 1 files written; stopped at external review.
-- [x] External review round 1 findings: `docs/reviews/fix-score-history-cap-edge-findings-1.md`, none (saved with a stray missing "f" in the name; renamed). Merged `fix/score-history-cap-edge` into `master` with `--no-ff` (2026-11-21), branch deleted, not pushed.
+- [x] Build, unit tests, review round 1 and its fixes: `docs/state-archive/2026-11.md` (run moved there 2026-11-21).
+- [x] Overnight result: the 22:00 alarm fired in Doze (22:00:26) and its scan set the 21 Nov point (run 2026-11-22).
 
-### 2026-11-21 — snapshot alarm time, design run (`docs/snapshot-alarm-time`)
+### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
 
-- [x] Unattended run. Roadmap inbox empty; the "any decisions from chats?" question was not asked (Oliver away), see the handoff.
-- [x] Why 23:00, not 23:50: `0603e0a` (2026-06-28) changed only the minute, one day after `0405dea` set 23:50; no reason recorded; three comments left at 23:50.
-- [x] Paper `docs/decisions/snapshot-alarm-time.md`: a history "day" is the calendar day the alarm fired on; a late point moves to the next day and leaves a gap; an app start after 23:00 and before delivery cancels that night's snapshot. Options A/B/C; recommends B (one-shot `setWindow` 23:00 + 55 min, re-armed nightly, never cancelling a pending one). Oliver's call; nothing built.
-- [x] Pixel 8, read-only `device-verify` (2026-11-21 12:15): snapshot alarm `origWhen` 23:00, `window=+18h`; 1W history points 17/18/20 Nov at 10:02–10:03 and 21 Nov at 03:52, so each is the previous night's alarm, filed one day late; no point for the 18 Nov alarm; the chart spaces points by index, so the gap is invisible. Crash buffer empty after, app on the home screen. Screenshots `docs/screens/snapshot-alarm-time/`.
-- [x] Seen: one cold start after a force-stop logged "snapshot alarm scheduled" twice, 350 ms apart (fits the `BootReceiver` item in Next; not checked).
+- [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
+- [x] 1. Readout before any app start (phone 09:14:49): `Alarm Stats` snapshot "1 alarms, last -11h14m23s616ms" → **delivered 2026-11-21 22:00:26**, via the allow-while-idle path; pending snapshot alarm now `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20` (re-armed on delivery). Widget alarm: 2 deliveries overnight, last 09:09:42.
+- [x] 2. History (1W, screenshot `docs/screens/2026-11-22-overnight-readout/history-21nov.png`): 21 Nov point **22:00, score 53** (was 19:40 last night) → the alarm's scan recorded it (to the minute; the screen shows no seconds). 22 Nov point 09:09, score 53 = the widget alarm's scan. Crash buffer empty. Outcome: **alarm's scan recorded**.
+- [x] 3. Widget push-back (Next item): code reading, then the same `am kill` start check on the branch and the `master` build (both in the Next item). Not this branch's; left in Next. The `master` APK had to be built in place: an `install -r` from the scratchpad runs inside the sandbox and can't reach the phone.
+- [x] 4. Final state (09:30): branch build reinstalled (`install -r`, APK `00998bd6…`), force-stop + cold start; exactly one snapshot alarm `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20`, and one widget alarm. Crash buffer empty. Home screen, widget 53 Fair (`docs/screens/2026-11-22-overnight-readout/home-final.png`). After the `install -r` over `master`, the update left master's 23:00 repeating alarm pending ("already pending, left alone"); by design its first delivery re-arms the 22:00 one-shot (`SnapshotReceiver.onReceive`), so users updating from 1.5.2 get one last late-window night. Not device-tested; the force-stop replaced it here.
+- [x] Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
 
-### 2026-11-20 — HQ managed section v1.3 (`chore/hq-section-v1.3`)
 
-- [x] STATE: Oliver pushed `master` (`origin/master` at `a55b5fc`, `git merge-base --is-ancestor a55b5fc origin/master`); "Push master" left out of the new list (2026-11-20).
-- [x] CLAUDE.md: HQ section v1.2 swapped for v1.3, word for word; nothing else in the file changed. Guard test 541/541; the guard lets HQ's `write` and `stop-now` commands through silently.
-- [x] Blocked on me and Red flags now hold only the pointer line; the open item (Framework laptop setup) moved to HQ's list. Done items from Blocked on me moved to `docs/state-archive/2026-11.md` (2026-11-18). Docs only: no build, no external review.
-
-The 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
