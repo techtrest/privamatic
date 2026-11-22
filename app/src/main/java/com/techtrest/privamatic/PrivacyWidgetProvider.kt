@@ -313,13 +313,16 @@ class PrivacyWidgetProvider : AppWidgetProvider() {
          * Does nothing when no widget is placed or the alarm is still set: re-arming a live alarm
          * would push its next fire 6 hours out from every app start (review round 1, L1).
          * The manager is null on devices without widgets.
+         * Returns true when it re-armed the alarm.
          */
-        fun rearmPeriodicUpdatesIfPlaced(context: Context) {
-            val manager = AppWidgetManager.getInstance(context) ?: return
+        fun rearmPeriodicUpdatesIfPlaced(context: Context): Boolean {
+            val manager = AppWidgetManager.getInstance(context) ?: return false
             val ids = manager.getAppWidgetIds(
                 ComponentName(context, PrivacyWidgetProvider::class.java)
             )
-            if (needsRearm(ids.size, isAlarmPending(context))) schedulePeriodicUpdates(context)
+            if (!needsRearm(ids.size, isAlarmPending(context))) return false
+            schedulePeriodicUpdates(context)
+            return true
         }
 
         /** Re-arm only when a widget is placed and the alarm is gone. */
