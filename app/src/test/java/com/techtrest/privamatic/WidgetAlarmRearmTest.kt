@@ -7,6 +7,8 @@ import org.junit.Test
 /**
  * App start re-arms the 6-hour widget alarm only when it is missing (review round 1, L1):
  * re-arming a live alarm would move its next fire 6 hours out from every app start.
+ * BootReceiver uses the same decision, and refreshes the widget only when it re-armed:
+ * Android 15+ sends BOOT_COMPLETED on app starts after a force-stop.
  */
 class WidgetAlarmRearmTest {
 
