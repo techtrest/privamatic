@@ -30,7 +30,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [S] Investigate `BootReceiver` running when no boot explains it. Pixel 8 (Android 15+): on cold starts right after a force-stop it ran too (2 alarm arms, 2 scans), a later cold start didn't. S8: it ran twice in two processes after a reboot, and only the second armed the widget alarm. Alarm count stayed correct in both.
   2026-11-18, Pixel 8: the system log shows a real `BOOT_COMPLETED` delivered on the first start after a force-stop (Android 15+ behaviour), 335 ms after the start's own arm.
 - [ ] [S] First-run screen (S8): a widget tap or app start doesn't scan while the app is on that screen; once past it, both do. Check whether that is wanted. Path not changed by the widget hardening.
-- [ ] [S] Device commands that wait for the phone (`wait-for-device`) or pipe the output into another command (`| grep`) aren't on the sandbox exclusion list, so they run inside the sandbox with a fresh adb server and hang (2026-11-22, device-verify and main session). Poll `get-state` and `getprop sys.boot_completed`; filter output on the computer.
+- [x] [S] (merged 2026-11-22 into ROADMAP.md Next, "adb outside the excluded forms … hangs") Device commands that wait for the phone (`wait-for-device`) or pipe the output into another command (`| grep`) aren't on the sandbox exclusion list, so they run inside the sandbox with a fresh adb server and hang (2026-11-22, device-verify and main session). Poll `get-state` and `getprop sys.boot_completed`; filter output on the computer.
 - [ ] [S] `device-verify`: read the crash buffer before any `logcat -c` (it also clears crash on the Pixel 8) and before a reboot; the main log buffer can rotate within 60 s on the Pixel 8, so read boot lines sooner.
 - [x] [M] (done 2026-11-22, merged into `master`) Snapshot alarm time: comments say 23:50, code sets 23:00 (`SnapshotReceiver.kt:69`); the inexact daily alarm has an 18 h
   window on the Pixel 8, so a "midnight" snapshot can land at 17:00 next day. Read-only finding. Risky code (score history).
@@ -109,11 +109,6 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-21 — snapshot fix, B plus C (`fix/snapshot-every-scan`)
-
-- [x] Build, unit tests, review round 1 and its fixes: `docs/state-archive/2026-11.md` (run moved there 2026-11-21).
-- [x] Overnight result: the 22:00 alarm fired in Doze (22:00:26) and its scan set the 21 Nov point (run 2026-11-22).
-
 ### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
 
 - [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
@@ -134,6 +129,19 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Gate 4: crash buffer has no app entries (one system `init` SIGABRT per reboot). Home screen, widget 53 Fair (`docs/screens/2026-11-22-boot-receiver-rearm/home-widget-after-reboot.png`); 22:00 alarm armed.
 - [x] Found: after a reboot the widget's enabled step (`APPWIDGET_ENABLED` → `onEnabled`) armed the alarm before `BootReceiver` ran, so `BootReceiver`'s own re-arm branch was not exercised on the device; that path is covered only by the `needsRearm` unit tests.
 - [x] No external review (small receiver fix reusing the reviewed re-arm pattern). Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
+
+### 2026-11-22 — guard serial assignments (`fix/guard-serial-assignments`, no phone)
+
+- [x] Inbox (block pasted in chat): 1 CHANGE, 3 ADD, 1 STATE: applied to ROADMAP.md; the 22 Nov Next item on hanging device commands merged into the roadmap item.
+- [x] Rule from HQ (22 Nov): any .proposed sandbox or hook file from a Privamatic run goes to the HQ chat for review before Oliver installs it.
+- [x] Cull's 16 `ANDROID_SERIAL` cases (Cull `.claude/hooks/test-hook.sh:158-173`, read only) adapted into `scripts/test-hook.sh` (Cull's second test phone → Pixel 8, its P8 → S8, its unknown phone → `OTHER0SERIAL`), plus 6 for the `export` path. Cull's 5 `P8_SERIAL` cases are for its fixtures script, which Privamatic has no counterpart for.
+- [x] Installed guard: 556 passed, **7 failed** of 563. Every last-assignment case passes (line 1086 keeps the last one). All 7 failures are env dropping the serial: `env -u ANDROID_SERIAL`, `env --unset=ANDROID_SERIAL`, `env -i`, `env -iv`, `env -` after a prefix, and `env -u` / `env -i` after `export ANDROID_SERIAL=`. The guard let through a Gradle install that, as written, runs with no serial.
+- [x] Proposed fix `scripts/guard.sh.proposed` (sandbox: `.claude/hooks` is read-only): env `-u NAME`, `--unset=NAME`, `-uNAME` forget NAME; `-i`, `-`, `--ignore-environment` and `-iv`-style clusters forget all, and the exported serial no longer counts for that command. Nothing else changed. Full `test-hook.sh` against it (`GUARD_HOOK=…`): 563/563.
+- [x] HQ chat review 1 (22 Nov): right direction, not yet OK to install. Each finding proven by test cases first.
+  - [x] M1 (must), confirmed: `env -vu NAME`, `-0u NAME`, `-vC DIR` and unknown options skipped one word, so the gradle call wasn't analysed (both guards: none). Fix: env reads only known options and clusters of `0`/`i`/`v`; anything else is denied (`env-options-unparsed`, hint: write the options separately). `-CDIR`, `--chdir=DIR` and the signal options are read correctly.
+  - [x] M2 (must), not a hole: adb without `-s` never falls back to `ANDROID_SERIAL`, so `env -u ANDROID_SERIAL adb …`, `env -i adb …` and `export ANDROID_SERIAL=… && adb shell ls` are already denied (`adb-no-serial`) by the installed guard. No change; cases added.
+  - [x] Should: cases for M1, M2 and chained (`env -u ANDROID_SERIAL true && ./gradlew installDebug` denied; after an `export` it stays allowed). Full suite: installed guard 567/579 (the 7 env cases + 5 M1), proposed 579/579.
+- [ ] Waits on the HQ chat's re-check of the new diff, then Oliver installs `scripts/guard.sh.proposed` as `.claude/hooks/guard.sh` and re-runs `bash scripts/test-hook.sh` (expect 579/579), then merge.
 
 The 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
