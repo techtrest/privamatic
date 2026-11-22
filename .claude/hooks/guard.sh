@@ -370,6 +370,7 @@ analyze_rec() {
   local depth=$2 ctx=$3 k
   _split "$1"
   local -a W=("${SPLIT[@]}") A=() R=() E=()
+  local SERIAL_DROPPED=0  # env -i/-u dropped ANDROID_SERIAL for this command
   for ((k = 0; k < ${#W[@]}; k++)); do
     if [[ ${W[k]} == "$RD"* ]]; then
       R+=("${W[k]#"$RD"}" "${W[k+1]-}"); ((k++))
@@ -390,6 +391,14 @@ strip_prefix() {  # leading assignments into E, then shell keywords
       *) break ;;
     esac
   done
+}
+
+drop_env() {  # drop_env NAME: env -u NAME forgets earlier NAME= assignments
+  local -a keep=() x
+  for x in "${E[@]}"; do [[ $x == "$1="* || $x == "$1+="* ]] || keep+=("$x"); done
+  E=("${keep[@]}")
+  [[ $1 == ANDROID_SERIAL ]] && SERIAL_DROPPED=1
+  return 0
 }
 
 unwrap() {  # strip wrapper commands (env, timeout, xargs, ...) from A
@@ -416,12 +425,26 @@ unwrap() {  # strip wrapper commands (env, timeout, xargs, ...) from A
       env)
         while (( ${#A[@]} )); do
           case ${A[0]} in
-            -u|-C|--unset|--chdir) A=("${A[@]:2}") ;;
+            -u|--unset) drop_env "${A[1]-}"; A=("${A[@]:2}") ;;
+            --unset=*) drop_env "${A[0]#--unset=}"; A=("${A[@]:1}") ;;
+            -u*) drop_env "${A[0]#-u}"; A=("${A[@]:1}") ;;
+            -C|--chdir) A=("${A[@]:2}") ;;
+            -C?*|--chdir=*) A=("${A[@]:1}") ;;
+            -|-i|--ignore-environment) E=(); SERIAL_DROPPED=1; A=("${A[@]:1}") ;;
+            -0|-v|--null|--debug|--list-signal-handling|--block-signal|--block-signal=*|--default-signal|--default-signal=*|--ignore-signal|--ignore-signal=*)
+              A=("${A[@]:1}") ;;
             -S|--split-string) read -r -a sp <<< "${A[1]-}"; A=("${sp[@]}" "${A[@]:2}") ;;
             -S*|--split-string=*) v=${A[0]#-S}; v=${v#--split-string=}
                                   read -r -a sp <<< "$v"; A=("${sp[@]}" "${A[@]:1}") ;;
             --) A=("${A[@]:1}"); break ;;
-            -*) A=("${A[@]:1}") ;;
+            -*) # only clusters of the no-argument flags 0, i, v are read; anything else
+                # (-vu NAME, -0C DIR, -iS STR, unknown flags) would shift the words, so deny
+                if [[ ! ${A[0]} =~ ^-[0iv]+$ ]]; then
+                  decide deny env-options-unparsed "can't parse env option ${A[0]} safely; write env's options separately (e.g. env -v -u NAME)."
+                  A=(); return
+                fi
+                [[ ${A[0]} == *i* ]] && { E=(); SERIAL_DROPPED=1; }  # clustered, e.g. -iv
+                A=("${A[@]:1}") ;;
             *=*) E+=("${A[0]}"); A=("${A[@]:1}") ;;
             *) break ;;
           esac
@@ -1084,7 +1107,7 @@ analyze_gradle() {
     return
   fi
   for a in "${E[@]}"; do [[ $a == ANDROID_SERIAL=* ]] && ser=${a#*=}; done
-  [[ -z $ser ]] && ser=$EXPORTED_SERIAL
+  [[ -z $ser ]] && (( ! SERIAL_DROPPED )) && ser=$EXPORTED_SERIAL
   if ! is_free_device "$ser"; then
     decide deny gradle-device-task "Gradle task $dev talks to a device; prefix ANDROID_SERIAL=$P8 in the same command (CLAUDE.md Devices)."
   fi
