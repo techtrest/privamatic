@@ -464,6 +464,25 @@ dev none "export ANDROID_SERIAL=$P9 && export ANDROID_SERIAL=$P8 && ./gradlew in
 dev deny "export ANDROID_SERIAL=$P8 && env -u ANDROID_SERIAL ./gradlew installDebug" "$LF"
 dev deny "export ANDROID_SERIAL=$P8 && env -i ./gradlew installDebug" "$LF"
 dev none "export ANDROID_SERIAL=$P9 && env -i ANDROID_SERIAL=$P8 ./gradlew installDebug" "$LF"
+# HQ review 22 Nov, M1: clustered env options that take an argument are denied, not skipped.
+dev deny "ANDROID_SERIAL=$P8 env -vu ANDROID_SERIAL ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -0u ANDROID_SERIAL ./gradlew :app:installDebug" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && env -vu ANDROID_SERIAL ./gradlew installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -vC /x ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -iS 'ANDROID_SERIAL=$P8 ./gradlew :app:installDebug'" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env --no-such-option ./gradlew :app:installDebug" "$LF"
+dev none "ANDROID_SERIAL=$P8 env -v -u FOO ./gradlew :app:installDebug" "$LF"
+dev none "ANDROID_SERIAL=$P8 env -uFOO -C/x --unset=BAR -0v ./gradlew :app:installDebug" "$LF"
+# M2: adb never falls back to an exported or prefixed serial, so env -u/-i before adb stays denied.
+dev deny "env -u ANDROID_SERIAL adb shell ls" "$LF"
+dev deny "env -i adb shell ls" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -u ANDROID_SERIAL adb shell ls" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && env -i adb shell ls" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && adb shell ls" "$LF"
+# Chained: dropping the serial for one command doesn't carry over, and nothing set it for the next.
+dev deny "env -u ANDROID_SERIAL true && ./gradlew installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -u ANDROID_SERIAL true && ./gradlew installDebug" "$LF"
+dev none "export ANDROID_SERIAL=$P8 && env -u ANDROID_SERIAL true && ./gradlew installDebug" "$LF"
 # Missing, empty or invalid: only the S8 turns into an unknown device.
 printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P9" > "$TMP/legacy-missing"
 printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=\n' "$P8" "$P9" > "$TMP/legacy-empty"

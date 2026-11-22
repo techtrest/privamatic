@@ -429,12 +429,21 @@ unwrap() {  # strip wrapper commands (env, timeout, xargs, ...) from A
             --unset=*) drop_env "${A[0]#--unset=}"; A=("${A[@]:1}") ;;
             -u*) drop_env "${A[0]#-u}"; A=("${A[@]:1}") ;;
             -C|--chdir) A=("${A[@]:2}") ;;
+            -C?*|--chdir=*) A=("${A[@]:1}") ;;
             -|-i|--ignore-environment) E=(); SERIAL_DROPPED=1; A=("${A[@]:1}") ;;
+            -0|-v|--null|--debug|--list-signal-handling|--block-signal|--block-signal=*|--default-signal|--default-signal=*|--ignore-signal|--ignore-signal=*)
+              A=("${A[@]:1}") ;;
             -S|--split-string) read -r -a sp <<< "${A[1]-}"; A=("${sp[@]}" "${A[@]:2}") ;;
             -S*|--split-string=*) v=${A[0]#-S}; v=${v#--split-string=}
                                   read -r -a sp <<< "$v"; A=("${sp[@]}" "${A[@]:1}") ;;
             --) A=("${A[@]:1}"); break ;;
-            -*) [[ ${A[0]} =~ ^-[0iv]*i[0iv]*$ ]] && { E=(); SERIAL_DROPPED=1; }  # clustered, e.g. -iv
+            -*) # only clusters of the no-argument flags 0, i, v are read; anything else
+                # (-vu NAME, -0C DIR, -iS STR, unknown flags) would shift the words, so deny
+                if [[ ! ${A[0]} =~ ^-[0iv]+$ ]]; then
+                  decide deny env-options-unparsed "can't parse env option ${A[0]} safely; write env's options separately (e.g. env -v -u NAME)."
+                  A=(); return
+                fi
+                [[ ${A[0]} == *i* ]] && { E=(); SERIAL_DROPPED=1; }  # clustered, e.g. -iv
                 A=("${A[@]:1}") ;;
             *=*) E+=("${A[0]}"); A=("${A[@]:1}") ;;
             *) break ;;
