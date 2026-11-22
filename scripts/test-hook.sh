@@ -7,7 +7,7 @@
 
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-HOOK=$ROOT/.claude/hooks/guard.sh
+HOOK=${GUARD_HOOK:-$ROOT/.claude/hooks/guard.sh}  # GUARD_HOOK: test a proposed guard file
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 export GUARD_LOG=$TMP/hook.log
@@ -439,6 +439,31 @@ dev deny "ANDROID_SERIAL=$P9 ./gradlew installDebug" "$LF"
 dev deny "ANDROID_SERIAL=OTHER0SERIAL ./gradlew installDebug" "$LF"
 dev deny './gradlew installDebug' "$LF"
 dev deny "adb shell pm list packages" "$LF"
+echo "== ANDROID_SERIAL: the last assignment counts (Cull's 16 cases, adapted; env -i/-u forget it)"
+# Cull's G2 -> Pixel 8, Cull's P8 -> S8 (both free here), Cull's unknown S8 -> OTHER0SERIAL.
+dev deny "ANDROID_SERIAL=$P8 ANDROID_SERIAL=$P9 ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$LS ANDROID_SERIAL=$P9 ./gradlew :app:connectedDebugAndroidTest" "$LF"
+dev deny "env ANDROID_SERIAL=$P8 ANDROID_SERIAL=$P9 ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env ANDROID_SERIAL=$P9 ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 ANDROID_SERIAL=OTHER0SERIAL ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=\"$P8 $P9\" ./gradlew :app:installDebug" "$LF"
+dev deny "FOO=\"x ANDROID_SERIAL=$P8\" ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -u ANDROID_SERIAL ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env --unset=ANDROID_SERIAL ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$P8 env -i ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$LS env -iv ./gradlew :app:installDebug" "$LF"
+dev deny "ANDROID_SERIAL=$LS env - ./gradlew :app:installDebug" "$LF"
+dev none "ANDROID_SERIAL=$P9 ANDROID_SERIAL=$P8 ./gradlew :app:installDebug" "$LF"
+dev none "env -i ANDROID_SERIAL=$P8 ./gradlew :app:installDebug" "$LF"
+dev none "ANDROID_SERIAL=$P8 env FOO=1 ./gradlew :app:installDebug" "$LF"
+dev none "ANDROID_SERIAL=$LS env -C /x ./gradlew :app:installDebug" "$LF"
+# The export path (guard note_assign): same rules.
+dev deny "export ANDROID_SERIAL=$P8 && ANDROID_SERIAL=$P9 ./gradlew installDebug" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && export ANDROID_SERIAL=$P9 && ./gradlew installDebug" "$LF"
+dev none "export ANDROID_SERIAL=$P9 && export ANDROID_SERIAL=$P8 && ./gradlew installDebug" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && env -u ANDROID_SERIAL ./gradlew installDebug" "$LF"
+dev deny "export ANDROID_SERIAL=$P8 && env -i ./gradlew installDebug" "$LF"
+dev none "export ANDROID_SERIAL=$P9 && env -i ANDROID_SERIAL=$P8 ./gradlew installDebug" "$LF"
 # Missing, empty or invalid: only the S8 turns into an unknown device.
 printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\n' "$P8" "$P9" > "$TMP/legacy-missing"
 printf 'TEST_DEVICE_SERIAL=%s\nDAILY_PHONE_SERIAL=%s\nLEGACY_TEST_SERIAL=\n' "$P8" "$P9" > "$TMP/legacy-empty"
