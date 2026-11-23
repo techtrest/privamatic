@@ -6,6 +6,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
 ## Current
 
 Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
+v1.5.3 (versionCode 11) is prepared on `master` (2026-11-23 release run); Oliver pushes and tags it.
 The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
@@ -98,6 +99,17 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-23 — v1.5.3 release (`release/v1.5.3`, no phone)
+
+- [x] Inbox: Oliver's pasted block (1 STATE:) and the inbox block (1 CHANGE, 1 ADD Next, 1 STATE:) applied; inbox cleared.
+- [x] Oliver checked the F-Droid description against v1.5.3 on 23 Nov: still current, no refresh needed. Oliver agreed the v1.5.3 changelog text on 23 Nov. (2026-11-23)
+- [x] Oliver decided (23 Nov): features and UX come first. Order: v1.5.3 release now, v1.6 "fix → result" (tight), v1.7 Privacy Watch as the differentiator. Tooling and HQ work max about one evening a week; HQ topics go to the HQ chat, not into Privamatic runs; reliability bugs only take priority when users would notice them. (2026-11-23)
+- [x] Changelog's last line checked against `c5d1631`: before it the provider was `exported="true"` with no permission and an `ACTION_UPDATE_WIDGET` filter, and `onReceive` runs a full scan and refresh on that action. So another app could make the widget refresh; the wording holds.
+- [x] `versionCode` 10 → 11, `versionName` "1.5.3"; `changelogs/11.txt` = the agreed text, 374 bytes, one trailing newline. Descriptions untouched.
+- [x] Gate: `compileDebugKotlin`, `testDebugUnitTest --rerun` (216 tests, 0 failures), `assembleRelease` all pass. Release build: `isMinifyEnabled = true`, `isShrinkResources = true` (R8 ran); unsigned APK `cc848828…` says versionCode 11 / 1.5.3.
+- [x] Own diff review against `master`: version lines and the new changelog only, no blocking problems. No external review (version/copy only). Merged with `--no-ff`, not pushed, not tagged.
+
+
 ### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
 
 - [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
@@ -119,18 +131,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Found: after a reboot the widget's enabled step (`APPWIDGET_ENABLED` → `onEnabled`) armed the alarm before `BootReceiver` ran, so `BootReceiver`'s own re-arm branch was not exercised on the device; that path is covered only by the `needsRearm` unit tests.
 - [x] No external review (small receiver fix reusing the reviewed re-arm pattern). Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
 
-### 2026-11-22 — guard serial assignments (`fix/guard-serial-assignments`, no phone)
-
-- [x] Inbox (block pasted in chat): 1 CHANGE, 3 ADD, 1 STATE: applied to ROADMAP.md; the 22 Nov Next item on hanging device commands merged into the roadmap item.
-- [x] Rule from HQ (22 Nov): any .proposed sandbox or hook file from a Privamatic run goes to the HQ chat for review before Oliver installs it.
-- [x] Cull's 16 `ANDROID_SERIAL` cases (Cull `.claude/hooks/test-hook.sh:158-173`, read only) adapted into `scripts/test-hook.sh` (Cull's second test phone → Pixel 8, its P8 → S8, its unknown phone → `OTHER0SERIAL`), plus 6 for the `export` path. Cull's 5 `P8_SERIAL` cases are for its fixtures script, which Privamatic has no counterpart for.
-- [x] Installed guard: 556 passed, **7 failed** of 563. Every last-assignment case passes (line 1086 keeps the last one). All 7 failures are env dropping the serial: `env -u ANDROID_SERIAL`, `env --unset=ANDROID_SERIAL`, `env -i`, `env -iv`, `env -` after a prefix, and `env -u` / `env -i` after `export ANDROID_SERIAL=`. The guard let through a Gradle install that, as written, runs with no serial.
-- [x] Proposed fix `scripts/guard.sh.proposed` (sandbox: `.claude/hooks` is read-only): env `-u NAME`, `--unset=NAME`, `-uNAME` forget NAME; `-i`, `-`, `--ignore-environment` and `-iv`-style clusters forget all, and the exported serial no longer counts for that command. Nothing else changed. Full `test-hook.sh` against it (`GUARD_HOOK=…`): 563/563.
-- [x] HQ chat review 1 (22 Nov): right direction, not yet OK to install. Each finding proven by test cases first.
-  - [x] M1 (must), confirmed: `env -vu NAME`, `-0u NAME`, `-vC DIR` and unknown options skipped one word, so the gradle call wasn't analysed (both guards: none). Fix: env reads only known options and clusters of `0`/`i`/`v`; anything else is denied (`env-options-unparsed`, hint: write the options separately). `-CDIR`, `--chdir=DIR` and the signal options are read correctly.
-  - [x] M2 (must), not a hole: adb without `-s` never falls back to `ANDROID_SERIAL`, so `env -u ANDROID_SERIAL adb …`, `env -i adb …` and `export ANDROID_SERIAL=… && adb shell ls` are already denied (`adb-no-serial`) by the installed guard. No change; cases added.
-  - [x] Should: cases for M1, M2 and chained (`env -u ANDROID_SERIAL true && ./gradlew installDebug` denied; after an `export` it stays allowed). Full suite: installed guard 567/579 (the 7 env cases + 5 M1), proposed 579/579.
-- [x] HQ chat approved the guard fix in round 2 (22 Nov); Oliver installed scripts/guard.sh.proposed as .claude/hooks/guard.sh (backup of the old guard at ~/guard.sh.bak-2026-11-22), committed it (0042a1a), merged (76d351d) and pushed; test-hook.sh 579/579 on the installed guard.
-
-The 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

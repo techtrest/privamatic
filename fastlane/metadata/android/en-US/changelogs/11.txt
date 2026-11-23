@@ -1,0 +1,4 @@
+- Score History no longer skips days: every scan records that day's score, and an evening backup records one if you didn't scan.
+- Widget: a score change on the first scan of a new day now shows for the full 48 hours instead of disappearing early.
+- Widget: keeps refreshing after a restart, without setting extra alarms.
+- Widget: other apps can no longer make it refresh.
