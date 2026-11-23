@@ -3,6 +3,7 @@ package com.techtrest.privamatic.data.util
 import android.Manifest
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import org.junit.Assert.assertEquals
@@ -10,6 +11,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
@@ -183,5 +186,46 @@ class PackageManagerUtilTest {
         `when`(pm.getPackageInfo(PHOTOS, PackageManager.GET_PERMISSIONS))
             .thenThrow(RuntimeException("binder transaction too large"))
         assertFalse(PackageManagerUtil.isGooglePhotosShim(pm))
+    }
+
+    // -------------------------------------------------------------------------
+    // isSystemApp: "came with the phone" for the v1.6 hard rule
+    // -------------------------------------------------------------------------
+
+    private fun packageManagerWithFlags(pkg: String, appFlags: Int): PackageManager {
+        val appInfo = mock(ApplicationInfo::class.java).apply { flags = appFlags }
+        val pm = mock(PackageManager::class.java)
+        `when`(pm.getApplicationInfo(pkg, 0)).thenReturn(appInfo)
+        return pm
+    }
+
+    @Test
+    fun `app on the system image came with the phone`() {
+        val pm = packageManagerWithFlags("com.android.chrome", ApplicationInfo.FLAG_SYSTEM)
+        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.android.chrome"))
+    }
+
+    @Test
+    fun `system app updated from the Play Store still came with the phone`() {
+        // Android keeps FLAG_SYSTEM on an updated system app and adds FLAG_UPDATED_SYSTEM_APP.
+        val pm = packageManagerWithFlags(
+            "com.google.android.gm",
+            ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+        )
+        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.google.android.gm"))
+    }
+
+    @Test
+    fun `user-installed app did not come with the phone`() {
+        val pm = packageManagerWithFlags("com.facebook.katana", 0)
+        assertFalse(PackageManagerUtil.isSystemApp(pm, "com.facebook.katana"))
+    }
+
+    @Test
+    fun `unresolvable package counts as system so no removal advice is given`() {
+        val pm = mock(PackageManager::class.java)
+        `when`(pm.getApplicationInfo(anyString(), anyInt()))
+            .thenThrow(PackageManager.NameNotFoundException::class.java)
+        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.example.gone"))
     }
 }

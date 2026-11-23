@@ -231,7 +231,7 @@
     <string name="privacy_check_google_camera_name">Google Camera</string>
     <string name="privacy_check_google_camera_description">Google Camera app is installed on your device</string>
     <string name="privacy_check_google_camera_recommendation">Consider uninstalling Google Camera and switching to Open Camera or Simple Camera.</string>
-    <string name="privacy_check_google_camera_system_recommendation">%1$s came with your phone, so it can\'t be uninstalled. Disabling it in App settings leaves your phone with no camera app at all, including for scanning QR codes, so install another camera such as Open Camera first. You can re-enable it from the same page at any time.</string>
+    <string name="privacy_check_google_camera_system_recommendation">%1$s came with your phone and can\'t be removed. If you\'d rather use an open-source camera, install Open Camera and use that instead. Keep %1$s as it is: it is your phone\'s built-in camera.</string>
     <string name="privacy_check_google_camera_action">Open App Settings</string>
 
     <string name="privacy_check_google_docs_name">Google Docs</string>
@@ -583,7 +583,7 @@
     <string name="quick_win_uninstall_app_time">30 seconds</string>
     <string name="quick_win_uninstall_app_action">Open App Settings</string>
     <string name="quick_win_uninstall_app_short">App</string>
-    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling or disabling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\' or \'Disable\'\n3. Confirm\n\nIf the app came pre-installed, you may only be able to disable it rather than fully uninstall it.\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap Uninstall.\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
 
     <!-- ============================================================ -->
     <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->
@@ -786,7 +786,7 @@
     <string name="label_issue_detected">Issue detected</string>
     <string name="label_issue_unknown">Status unknown</string>
     <string name="label_issue_recommendation">Recommendation:</string>
-    <string name="fmt_recommendation_system_app">%1$s came with your phone, so it can\'t be uninstalled. If you don\'t use it, you can disable it in App settings: it stops running and disappears from your app list, and apps that rely on it may stop working. You can re-enable it from the same page at any time.</string>
+    <string name="fmt_recommendation_system_app">%1$s came with your phone and can\'t be removed, so it costs 1 pt while it\'s here. You don\'t have to use it: pick an alternative, and keep your account and data out of it.</string>
     <string name="label_issue_fix">Fix</string>
 
     <!-- ============================================================ -->

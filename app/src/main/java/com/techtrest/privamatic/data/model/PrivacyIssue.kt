@@ -38,6 +38,14 @@ data class PrivacyIssue(
     @get:StringRes
     val systemAppRecommendation: Int
         get() = check.systemAppRecommendation ?: R.string.fmt_recommendation_system_app
+
+    /**
+     * The settings page the row's button opens, or null for no button. A preinstalled app
+     * gets none: its App info page puts Disable one tap away, which can break a stock phone
+     * (v1.6 hard rule, Oliver's call 10). Its point deduction is unchanged (call 12).
+     */
+    val rowActionType: ActionType?
+        get() = if (isPreinstalledApp) null else check.actionType
 }
 
 /**

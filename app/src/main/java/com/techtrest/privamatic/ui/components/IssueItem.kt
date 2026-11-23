@@ -147,7 +147,7 @@ fun IssueItem(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            issue.check.actionType?.let { actionType ->
+                            issue.rowActionType?.let { actionType ->
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedButton(
                                     onClick = {
@@ -196,7 +196,7 @@ fun IssueItem(
                             )
 
                             // Action button
-                            issue.check.actionType?.let { actionType ->
+                            issue.rowActionType?.let { actionType ->
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedButton(
                                     onClick = {
