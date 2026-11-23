@@ -2,29 +2,26 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 12
-- Branch: chore/wrap-up-2026-11-22
-- Commit: 76d351d
-- Time: 2026-11-22T20:22:57+01:00
+- Run: 13
+- Branch: release/v1.5.3
+- Commit: 985a861
+- Time: 2026-11-23T18:18:38+01:00
 - Deviations: none
 
 ## Where we are
-Today's work is all in master: the widget refresh fix, and the guard fix that Oliver installed after HQ's second review (579 of 579 guard tests pass). This wrap-up only updates the notes; master waits to be pushed.
-- The roadmap block from chat is applied, and the guard review gate is ticked.
-- STATE.md's Next list is current: finished items moved to the November archive, the trust/untrust item ticked as decided, and the boot-step item narrowed to the one open question.
-Found: no phone and no code in this run.
+v1.5.3 (versionCode 11) is ready on release/v1.5.3 and is being merged into master locally. It holds master's four reliability fixes, which were device-tested earlier: widget hardening, the 48 h change cap edge, the snapshot fix and the BootReceiver re-arm. The changelog (changelogs/11.txt, 374 bytes) uses the text Oliver agreed. Gate: compileDebugKotlin, testDebugUnitTest --rerun (216 tests, 0 failures) and assembleRelease all pass; R8 minification and resource shrinking are on for release. The in-app What's new card is unchanged and still shows the v1.5.2 notes, as designed for releases that add no notes of their own.
 
 ## Blocked on you
-Push master.
+Tag v1.5.3 on the release merge commit and push the tag, after pushing master.
 
 ## Red flags
-None.
+None
 
 ## Pending decisions
-Stopgap in today's guard for hanging device commands: decided at HQ's pilot review on 25 Nov.
+None
 
 ## Next step for chat
-Push master. Small next items in STATE.md: the PackageReplacedReceiver comment fix and the first-run screen scan question.
+Push master, then tag v1.5.3 and push the tag.
 
 ## Unapplied ROADMAP UPDATE blocks
-None.
+None
