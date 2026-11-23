@@ -2,31 +2,32 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 15
-- Branch: docs/v1.6-spec
-- Commit: b70c3a4
-- Time: 2026-11-23T19:28:53+01:00
-- Deviations: 1 (the words are in status.json, not in this public file)
+- Run: 16
+- Branch: fix/stock-safe-advice
+- Commit: a46fc33
+- Time: 2026-11-23T19:48:43+01:00
+- Deviations: 2 (the words are in status.json, not in this public file)
 
 ## Where we are
-Oliver's v1.6 spec decisions of 23 Nov are recorded in `docs/decisions/v1.6-fix-to-result.md`, and `docs/v1.6-spec` is merged into master. It is not pushed.
-v1.6 "the loop" is runs 1, 2+3 as one branch, 4, 5, 6, 9 and a release with today's single What's new card, including the Private DNS line: about 12.25 evenings.
-v1.6.1 "explaining" is runs 7, 8, 10, 11 and a release: about 8 evenings. The Ad ID item (run 12) moved to Later.
-Crash check of v1.5.3's settings buttons, from reading code only: no button is known to crash. The Ad ID screen's "Open settings" is the one plausible risk: it would crash only if a Google Play services update stops exporting the page it opens. Runs 4 and 6 add the missing catch. No hotfix needed.
-Spec only: no app code changed, no phone used.
+v1.6 run 1 (`fix/stock-safe-advice`) is built and committed. On stock Android, rows for apps that came with the phone (Chrome, Gmail, YouTube and the like) no longer say they can be disabled and no longer show an App settings button. Google Camera's text now says to keep it. User-installed apps keep their advice and button. Scores are unchanged.
+The build, the unit tests (232, 0 failures) and the debug APK all pass. The phone check has not run: the S8 shows as "no permissions" in `adb devices`, so nothing could be installed on it. The Pixel 8 was busy and the Pixel 9 wasn't used.
+The review files are written (`docs/reviews/fix-stock-safe-advice.diff`, `-prompt-1.md`), and the branch stays checked out for Cursor.
+The Google Camera row can't be checked on the S8 (it has no Google Camera); that check is now part of run 2+3's Pixel 8 gate in the spec.
+Found: the uninstall Quick Win, shown for user-installed apps only, still says "Tap 'Uninstall' or 'Disable'", and user apps have no Disable button. Left for run 2+3, which rewrites that text.
+Found: preinstalled AI-app rows (for example Gemini on a Pixel) lose their App settings button too, because the same rule covers every app that came with the phone.
 
 ## Blocked on you
-Push master (the v1.6 spec merge).
-Before v1.6.1 run 10: decide call 8, whether AI-app rows get "I've checked this".
+1. Make the S8 reachable over USB, then tell this session so it can run the phone check. Right now `adb devices` lists it as "no permissions", which usually means USB mode or computer access, not the debugging prompt. A second, unknown device on another USB port shows the same and was left alone.
+2. Run the external review of fix/stock-safe-advice in Cursor and save `docs/reviews/fix-stock-safe-advice-findings-1.md`.
 
 ## Red flags
 None
 
 ## Pending decisions
-Call 8: AI-app rows aren't unknown. The scan reads them fine: the app is installed, costs 0 pts and is shown for awareness. So the spec says no until you decide.
+None
 
 ## Next step for chat
-Start v1.6 run 1 (stock-safe advice).
+Once the S8 is reachable: install the debug build, scan, and check that the Chrome, Gmail and YouTube rows show the new text and no button. Then apply the review findings, merge, and start run 2+3 `feat/rescan-in-place`.
 
 ## Unapplied ROADMAP UPDATE blocks
 None

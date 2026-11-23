@@ -1,0 +1,393 @@
+diff --git a/STATE.md b/STATE.md
+index fcac19e..4b14597 100644
+--- a/STATE.md
++++ b/STATE.md
+@@ -25,7 +25,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
+ 
+ ## Next
+ 
+-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Next: run 1 `fix/stock-safe-advice`.
++- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` built, waits for the S8 phone check and the external review; next: run 2+3 `feat/rescan-in-place`.
+ - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows).
+ - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
+ - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
+@@ -101,6 +101,16 @@ It is the real guard. The allow and deny lists are a convenience.
+ 
+ ## Runs
+ 
++### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 unreachable)
++
++- [x] Inbox empty; Oliver: no ROADMAP block from chat.
++- [x] Strings (spec 4.1 hard rule): `fmt_recommendation_system_app` no longer says disable, it says the app came with the phone, costs 1 pt and needn't be used; `privacy_check_google_camera_system_recommendation` says keep it, use Open Camera instead if wanted; `quick_win_uninstall_app_instructions` lost its pre-installed sentence. Play Services row untouched.
++- [x] Call 10: new `PrivacyIssue.rowActionType` (null when `isPreinstalledApp`); both `IssueItem` button sites read it, so preinstalled rows (also the informational AI rows, e.g. a preinstalled Gemini) have no App settings button. User-installed rows keep theirs. Call 12: no scoring change.
++- [x] Tests: `PrivacyIssueTest` (button per system/user app, camera text choice, still 1 pt, every scored app check costs 1 pt as the text says), `PackageManagerUtilTest` (system, updated system, user, unresolvable), new `StockSafeAdviceTest` (strings.xml: no "disabl", no "uninstall it"/"remove it", no "!"). `compileDebugKotlin`, `testDebugUnitTest --rerun` (232 tests, 0 failures; 216 before), `assembleDebug` pass.
++- [ ] Phone gate (S8): **not run.** `adb devices` shows the S8 as `no permissions` (USB access, not authorisation), so device-verify could run nothing on it; an unknown device on another port shows the same, left alone. Pixel 8 not used (busy), Pixel 9 not used.
++- [ ] Google Camera row: not verified on a phone: covered by unit test, phone check in run 2+3's Pixel 8 gate (added to spec 4.2).
++- [x] Own diff review against `master`: no blocking problems. Found: the uninstall Quick Win (user apps only) still says "Tap 'Uninstall' or 'Disable'", but user apps have no Disable button; left for run 2+3, which rewrites that text anyway.
++
+ ### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
+ 
+ - [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
+@@ -128,15 +138,5 @@ It is the real guard. The allow and deny lists are a convenience.
+ - [x] Own diff review against `master`: version lines and the new changelog only, no blocking problems. No external review (version/copy only). Merged with `--no-ff`, not pushed, not tagged.
+ 
+ 
+-### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
+-
+-- [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
+-- [x] 1. Readout before any app start (phone 09:14:49): `Alarm Stats` snapshot "1 alarms, last -11h14m23s616ms" → **delivered 2026-11-21 22:00:26**, via the allow-while-idle path; pending snapshot alarm now `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20` (re-armed on delivery). Widget alarm: 2 deliveries overnight, last 09:09:42.
+-- [x] 2. History (1W, screenshot `docs/screens/2026-11-22-overnight-readout/history-21nov.png`): 21 Nov point **22:00, score 53** (was 19:40 last night) → the alarm's scan recorded it (to the minute; the screen shows no seconds). 22 Nov point 09:09, score 53 = the widget alarm's scan. Crash buffer empty. Outcome: **alarm's scan recorded**.
+-- [x] 3. Widget push-back (Next item): code reading, then the same `am kill` start check on the branch and the `master` build (both in the Next item). Not this branch's; left in Next. The `master` APK had to be built in place: an `install -r` from the scratchpad runs inside the sandbox and can't reach the phone.
+-- [x] 4. Final state (09:30): branch build reinstalled (`install -r`, APK `00998bd6…`), force-stop + cold start; exactly one snapshot alarm `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20`, and one widget alarm. Crash buffer empty. Home screen, widget 53 Fair (`docs/screens/2026-11-22-overnight-readout/home-final.png`). After the `install -r` over `master`, the update left master's 23:00 repeating alarm pending ("already pending, left alone"); by design its first delivery re-arms the 22:00 one-shot (`SnapshotReceiver.onReceive`), so users updating from 1.5.2 get one last late-window night. Not device-tested; the force-stop replaced it here.
+-- [x] Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
+-
+-
+-The 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
++The 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+ Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
+diff --git a/app/src/main/java/com/techtrest/privamatic/data/model/PrivacyIssue.kt b/app/src/main/java/com/techtrest/privamatic/data/model/PrivacyIssue.kt
+index 4ef0e59..265f59c 100644
+--- a/app/src/main/java/com/techtrest/privamatic/data/model/PrivacyIssue.kt
++++ b/app/src/main/java/com/techtrest/privamatic/data/model/PrivacyIssue.kt
+@@ -38,6 +38,14 @@ data class PrivacyIssue(
+     @get:StringRes
+     val systemAppRecommendation: Int
+         get() = check.systemAppRecommendation ?: R.string.fmt_recommendation_system_app
++
++    /**
++     * The settings page the row's button opens, or null for no button. A preinstalled app
++     * gets none: its App info page puts Disable one tap away, which can break a stock phone
++     * (v1.6 hard rule, Oliver's call 10). Its point deduction is unchanged (call 12).
++     */
++    val rowActionType: ActionType?
++        get() = if (isPreinstalledApp) null else check.actionType
+ }
+ 
+ /**
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt b/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
+index 12090c2..2356b41 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
+@@ -147,7 +147,7 @@ fun IssueItem(
+                                 style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                             )
+-                            issue.check.actionType?.let { actionType ->
++                            issue.rowActionType?.let { actionType ->
+                                 Spacer(modifier = Modifier.height(8.dp))
+                                 OutlinedButton(
+                                     onClick = {
+@@ -196,7 +196,7 @@ fun IssueItem(
+                             )
+ 
+                             // Action button
+-                            issue.check.actionType?.let { actionType ->
++                            issue.rowActionType?.let { actionType ->
+                                 Spacer(modifier = Modifier.height(8.dp))
+                                 OutlinedButton(
+                                     onClick = {
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index aa96d91..2b215ab 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -231,7 +231,7 @@
+     <string name="privacy_check_google_camera_name">Google Camera</string>
+     <string name="privacy_check_google_camera_description">Google Camera app is installed on your device</string>
+     <string name="privacy_check_google_camera_recommendation">Consider uninstalling Google Camera and switching to Open Camera or Simple Camera.</string>
+-    <string name="privacy_check_google_camera_system_recommendation">%1$s came with your phone, so it can\'t be uninstalled. Disabling it in App settings leaves your phone with no camera app at all, including for scanning QR codes, so install another camera such as Open Camera first. You can re-enable it from the same page at any time.</string>
++    <string name="privacy_check_google_camera_system_recommendation">%1$s came with your phone and can\'t be removed. If you\'d rather use an open-source camera, install Open Camera and use that instead. Keep %1$s as it is: it is your phone\'s built-in camera.</string>
+     <string name="privacy_check_google_camera_action">Open App Settings</string>
+ 
+     <string name="privacy_check_google_docs_name">Google Docs</string>
+@@ -583,7 +583,7 @@
+     <string name="quick_win_uninstall_app_time">30 seconds</string>
+     <string name="quick_win_uninstall_app_action">Open App Settings</string>
+     <string name="quick_win_uninstall_app_short">App</string>
+-    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling or disabling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\' or \'Disable\'\n3. Confirm\n\nIf the app came pre-installed, you may only be able to disable it rather than fully uninstall it.\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling or disabling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\' or \'Disable\'\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
+ 
+     <!-- ============================================================ -->
+     <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->
+@@ -786,7 +786,7 @@
+     <string name="label_issue_detected">Issue detected</string>
+     <string name="label_issue_unknown">Status unknown</string>
+     <string name="label_issue_recommendation">Recommendation:</string>
+-    <string name="fmt_recommendation_system_app">%1$s came with your phone, so it can\'t be uninstalled. If you don\'t use it, you can disable it in App settings: it stops running and disappears from your app list, and apps that rely on it may stop working. You can re-enable it from the same page at any time.</string>
++    <string name="fmt_recommendation_system_app">%1$s came with your phone and can\'t be removed. It costs 1 pt for as long as it\'s here. You don\'t have to use it: set another app as your default and keep your data out of it.</string>
+     <string name="label_issue_fix">Fix</string>
+ 
+     <!-- ============================================================ -->
+diff --git a/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt b/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt
+new file mode 100644
+index 0000000..e0d1f31
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt
+@@ -0,0 +1,75 @@
++package com.techtrest.privamatic
++
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import org.w3c.dom.Element
++import java.io.File
++import javax.xml.parsers.DocumentBuilderFactory
++
++/**
++ * v1.6 hard rule (docs/decisions/v1.6-fix-to-result.md, section 2): nothing tells the user
++ * to disable or uninstall an app that came with the phone. Reads strings.xml as text.
++ * Unit tests run with the module directory as working directory.
++ */
++class StockSafeAdviceTest {
++
++    private val strings: Map<String, String> by lazy {
++        val root = DocumentBuilderFactory.newInstance()
++            .newDocumentBuilder()
++            .parse(File("src/main/res/values/strings.xml"))
++            .documentElement
++        val nodes = root.getElementsByTagName("string")
++        (0 until nodes.length)
++            .map { nodes.item(it) as Element }
++            .associate { it.getAttribute("name") to it.textContent }
++    }
++
++    private fun text(name: String): String =
++        requireNotNull(strings[name]) { "missing string $name" }.lowercase()
++
++    /** Shown only on rows for apps that came with the phone. */
++    private val systemAppStrings = listOf(
++        "fmt_recommendation_system_app",
++        "privacy_check_google_camera_system_recommendation"
++    )
++
++    @Test
++    fun `system-app advice never says disable`() {
++        for (name in systemAppStrings) {
++            assertFalse(name, "disabl" in text(name))
++        }
++    }
++
++    @Test
++    fun `system-app advice never says uninstall or remove it`() {
++        for (name in systemAppStrings) {
++            val t = text(name)
++            assertFalse(name, "uninstall it" in t)
++            assertFalse(name, "remove it" in t)
++        }
++    }
++
++    @Test
++    fun `system-app advice says the app came with the phone`() {
++        for (name in systemAppStrings) {
++            assertTrue(name, "came with your phone" in text(name))
++        }
++    }
++
++    @Test
++    fun `system-app advice has no exclamation marks`() {
++        for (name in systemAppStrings) {
++            assertFalse(name, '!' in text(name))
++        }
++    }
++
++    @Test
++    fun `uninstall quick win no longer mentions pre-installed apps`() {
++        // The tile only exists for user-installed apps (QuickWinsDetector.checkInstalledApps).
++        val t = text("quick_win_uninstall_app_instructions")
++        assertFalse("pre-installed" in t)
++        assertFalse("preinstalled" in t)
++        assertFalse("came with" in t)
++    }
++}
+diff --git a/app/src/test/java/com/techtrest/privamatic/data/model/PrivacyIssueTest.kt b/app/src/test/java/com/techtrest/privamatic/data/model/PrivacyIssueTest.kt
+index 0e8f641..876e22c 100644
+--- a/app/src/test/java/com/techtrest/privamatic/data/model/PrivacyIssueTest.kt
++++ b/app/src/test/java/com/techtrest/privamatic/data/model/PrivacyIssueTest.kt
+@@ -29,25 +29,86 @@ class PrivacyIssueTest {
+     }
+ 
+     @Test
+-    fun `preinstalled app gets the generic disable advice`() {
++    fun `preinstalled app gets the generic came-with-your-phone advice`() {
+         val issue = installed(PrivacyCheck.GOOGLE_MAPS, isSystemApp = true)
+         assertTrue(issue.isPreinstalledApp)
+         assertEquals(R.string.fmt_recommendation_system_app, issue.systemAppRecommendation)
+     }
+ 
+     @Test
+-    fun `preinstalled camera warns that disabling leaves no camera`() {
++    fun `preinstalled camera gets its own keep-it advice`() {
+         val issue = installed(PrivacyCheck.GOOGLE_CAMERA, isSystemApp = true)
++        assertTrue(issue.isPreinstalledApp)
+         assertEquals(
+             R.string.privacy_check_google_camera_system_recommendation,
+             issue.systemAppRecommendation
+         )
+     }
+ 
++    @Test
++    fun `user-installed camera keeps its uninstall recommendation`() {
++        // GrapheneOS and other ROMs: Google Camera is a user app and may be removed.
++        val issue = installed(PrivacyCheck.GOOGLE_CAMERA, isSystemApp = false)
++        assertFalse(issue.isPreinstalledApp)
++        assertEquals(PrivacyCheck.GOOGLE_CAMERA.recommendation, issue.recommendation)
++    }
++
+     @Test
+     fun `user-installed app keeps its uninstall recommendation`() {
+         val issue = installed(PrivacyCheck.GOOGLE_KEEP, isSystemApp = false)
+         assertFalse(issue.isPreinstalledApp)
+         assertEquals(PrivacyCheck.GOOGLE_KEEP.recommendation, issue.recommendation)
+     }
++
++    // ----- Row button (Oliver's call 10) -----
++
++    @Test
++    fun `preinstalled flagged app row has no settings button`() {
++        for (check in listOf(PrivacyCheck.GOOGLE_CHROME, PrivacyCheck.GMAIL_APP,
++            PrivacyCheck.YOUTUBE, PrivacyCheck.GOOGLE_CAMERA)) {
++            assertNull(check.name, installed(check, isSystemApp = true).rowActionType)
++        }
++    }
++
++    @Test
++    fun `user-installed flagged app row keeps its app settings button`() {
++        val issue = installed(PrivacyCheck.FACEBOOK_APP, isSystemApp = false)
++        assertEquals(ActionType.OPEN_APP_SETTINGS, issue.rowActionType)
++    }
++
++    @Test
++    fun `preinstalled informational app row has no settings button either`() {
++        // Gemini ships with stock Pixels; its App info page has the same Disable button.
++        val issue = installed(PrivacyCheck.GOOGLE_GEMINI, isSystemApp = true)
++        assertNull(issue.rowActionType)
++    }
++
++    @Test
++    fun `rows without an app keep their check's button`() {
++        // isSystemApp only means something for app rows; a settings row is never preinstalled.
++        val issue = installed(PrivacyCheck.NOTIFICATION_LISTENER, isSystemApp = true)
++        assertEquals(ActionType.NOTIFICATION_LISTENER, issue.rowActionType)
++    }
++
++    // ----- Scoring unchanged (Oliver's call 12) -----
++
++    @Test
++    fun `preinstalled flagged app still costs its points`() {
++        val issue = installed(PrivacyCheck.GOOGLE_CHROME, isSystemApp = true)
++        assertEquals(PrivacyCheck.GOOGLE_CHROME.pointDeduction, issue.pointDeduction)
++        assertEquals(1, issue.pointDeduction)
++    }
++
++    @Test
++    fun `every scored app check costs 1 pt as the preinstalled advice says`() {
++        // fmt_recommendation_system_app says "It costs 1 pt". If an app check's value
++        // changes, the copy must change with it.
++        val scoredAppChecks = PrivacyCheck.entries.filter {
++            it.packageName != null && !it.isInformational
++        }
++        assertTrue(scoredAppChecks.isNotEmpty())
++        for (check in scoredAppChecks) {
++            assertEquals(check.name, 1, check.pointDeduction)
++        }
++    }
+ }
+diff --git a/app/src/test/java/com/techtrest/privamatic/data/util/PackageManagerUtilTest.kt b/app/src/test/java/com/techtrest/privamatic/data/util/PackageManagerUtilTest.kt
+index 822aeb6..7f0d162 100644
+--- a/app/src/test/java/com/techtrest/privamatic/data/util/PackageManagerUtilTest.kt
++++ b/app/src/test/java/com/techtrest/privamatic/data/util/PackageManagerUtilTest.kt
+@@ -3,6 +3,7 @@ package com.techtrest.privamatic.data.util
+ import android.Manifest
+ import android.content.Intent
+ import android.content.pm.ActivityInfo
++import android.content.pm.ApplicationInfo
+ import android.content.pm.PackageInfo
+ import android.content.pm.PackageManager
+ import org.junit.Assert.assertEquals
+@@ -10,6 +11,8 @@ import org.junit.Assert.assertFalse
+ import org.junit.Assert.assertNull
+ import org.junit.Assert.assertTrue
+ import org.junit.Test
++import org.mockito.ArgumentMatchers.anyInt
++import org.mockito.ArgumentMatchers.anyString
+ import org.mockito.Mockito.mock
+ import org.mockito.Mockito.`when`
+ 
+@@ -184,4 +187,45 @@ class PackageManagerUtilTest {
+             .thenThrow(RuntimeException("binder transaction too large"))
+         assertFalse(PackageManagerUtil.isGooglePhotosShim(pm))
+     }
++
++    // -------------------------------------------------------------------------
++    // isSystemApp: "came with the phone" for the v1.6 hard rule
++    // -------------------------------------------------------------------------
++
++    private fun packageManagerWithFlags(pkg: String, appFlags: Int): PackageManager {
++        val appInfo = mock(ApplicationInfo::class.java).apply { flags = appFlags }
++        val pm = mock(PackageManager::class.java)
++        `when`(pm.getApplicationInfo(pkg, 0)).thenReturn(appInfo)
++        return pm
++    }
++
++    @Test
++    fun `app on the system image came with the phone`() {
++        val pm = packageManagerWithFlags("com.android.chrome", ApplicationInfo.FLAG_SYSTEM)
++        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.android.chrome"))
++    }
++
++    @Test
++    fun `system app updated from the Play Store still came with the phone`() {
++        // Android keeps FLAG_SYSTEM on an updated system app and adds FLAG_UPDATED_SYSTEM_APP.
++        val pm = packageManagerWithFlags(
++            "com.google.android.gm",
++            ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
++        )
++        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.google.android.gm"))
++    }
++
++    @Test
++    fun `user-installed app did not come with the phone`() {
++        val pm = packageManagerWithFlags("com.facebook.katana", 0)
++        assertFalse(PackageManagerUtil.isSystemApp(pm, "com.facebook.katana"))
++    }
++
++    @Test
++    fun `unresolvable package counts as system so no removal advice is given`() {
++        val pm = mock(PackageManager::class.java)
++        `when`(pm.getApplicationInfo(anyString(), anyInt()))
++            .thenThrow(PackageManager.NameNotFoundException::class.java)
++        assertTrue(PackageManagerUtil.isSystemApp(pm, "com.example.gone"))
++    }
+ }
+diff --git a/docs/decisions/v1.6-fix-to-result.md b/docs/decisions/v1.6-fix-to-result.md
+index 928776a..0cdddd7 100644
+--- a/docs/decisions/v1.6-fix-to-result.md
++++ b/docs/decisions/v1.6-fix-to-result.md
+@@ -155,7 +155,7 @@ Found while checking (not audit items, recorded for Oliver):
+ **Tests**
+ - Unit (new `ScanFeedbackTest`): one fix, several fixes, partial improvement (−6 → −3), loss with one/several worse checks, mixed net 0, no change, unknown → fail and fail → unknown, manual review gain (manual points only), clamp at 0, plurals 1/other.
+ - Unit: `before` survives a cancelled scan (pure helper that merges pending requests).
+-- Device gate (Pixel 8): Wi-Fi scanning on (`settings put global wifi_scan_always_enabled 1` is allowed on the test phone), Quick Win → Open → switch off → back: Dashboard never blank, progress bar visible, page closes, snackbar "Background Wi-Fi Scanning fixed · +2 pts · Score N"; repeat without changing anything → "Not fixed yet"; top-bar rescan → "No change"; Mark as done → "+5 pts"; M3 check: Breakdown → tap a row → row opens expanded.
++- Device gate (Pixel 8): Wi-Fi scanning on (`settings put global wifi_scan_always_enabled 1` is allowed on the test phone), Quick Win → Open → switch off → back: Dashboard never blank, progress bar visible, page closes, snackbar "Background Wi-Fi Scanning fixed · +2 pts · Score N"; repeat without changing anything → "Not fixed yet"; top-bar rescan → "No change"; Mark as done → "+5 pts"; M3 check: Breakdown → tap a row → row opens expanded; **run 1 carry-over:** Checks → Google Camera row (preinstalled on the Pixel 8) expanded: "Google Camera came with your phone and can't be removed. If you'd rather use an open-source camera, install Open Camera and use that instead. Keep Google Camera as it is: it is your phone's built-in camera.", no button, still −1 pt (run 1 had only the S8, which has no Google Camera; covered there by `PrivacyIssueTest` only).
+ 
+ ### 4.3 Private DNS partial deduction and its Quick Win — S
+ 
+diff --git a/docs/state-archive/2026-11.md b/docs/state-archive/2026-11.md
+index 6e5f21b..b83395f 100644
+--- a/docs/state-archive/2026-11.md
++++ b/docs/state-archive/2026-11.md
+@@ -2,6 +2,15 @@
+ 
+ Newest first. Moved unedited from `STATE.md`.
+ 
++### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
++
++- [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
++- [x] 1. Readout before any app start (phone 09:14:49): `Alarm Stats` snapshot "1 alarms, last -11h14m23s616ms" → **delivered 2026-11-21 22:00:26**, via the allow-while-idle path; pending snapshot alarm now `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20` (re-armed on delivery). Widget alarm: 2 deliveries overnight, last 09:09:42.
++- [x] 2. History (1W, screenshot `docs/screens/2026-11-22-overnight-readout/history-21nov.png`): 21 Nov point **22:00, score 53** (was 19:40 last night) → the alarm's scan recorded it (to the minute; the screen shows no seconds). 22 Nov point 09:09, score 53 = the widget alarm's scan. Crash buffer empty. Outcome: **alarm's scan recorded**.
++- [x] 3. Widget push-back (Next item): code reading, then the same `am kill` start check on the branch and the `master` build (both in the Next item). Not this branch's; left in Next. The `master` APK had to be built in place: an `install -r` from the scratchpad runs inside the sandbox and can't reach the phone.
++- [x] 4. Final state (09:30): branch build reinstalled (`install -r`, APK `00998bd6…`), force-stop + cold start; exactly one snapshot alarm `origWhen=2026-11-22 22:00:00`, `window=+1h`, no repeat, `flags=0x20`, and one widget alarm. Crash buffer empty. Home screen, widget 53 Fair (`docs/screens/2026-11-22-overnight-readout/home-final.png`). After the `install -r` over `master`, the update left master's 23:00 repeating alarm pending ("already pending, left alone"); by design its first delivery re-arms the 22:00 one-shot (`SnapshotReceiver.onReceive`), so users updating from 1.5.2 get one last late-window night. Not device-tested; the force-stop replaced it here.
++- [x] Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
++
+ ### 2026-11-22 — BootReceiver re-arms only a missing widget alarm (`fix/boot-receiver-rearm`, device-verify)
+ 
+ - [x] Inbox empty; Oliver: no roadmap decisions from chat.
