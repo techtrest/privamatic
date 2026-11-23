@@ -6,7 +6,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
 ## Current
 
 Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
-v1.5.3 (versionCode 11) is prepared on `master` (2026-11-23 release run); Oliver pushes and tags it.
+v1.5.3 (versionCode 11) is pushed and tagged `v1.5.3` on `00e9d4d` (Oliver, 2026-11-23); not yet confirmed live on F-Droid.
 The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
@@ -25,6 +25,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Next: run 1 `fix/stock-safe-advice`.
+- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
@@ -99,6 +101,22 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
+
+- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
+- [x] Crash check, code reading of `master` `00e9d4d` (v1.5.3), not proven on a phone: every settings button goes through `IntentHelper.launchActionIntent` or `launchAdSettings` (`AdIdVerificationScreen.kt:418`); both catch `ActivityNotFoundException` on every step, neither `SecurityException`. No intent in use is known to throw it; the October audit (Pixel 8, Android 17) opened the four manual-check targets, the Wi-Fi scanning Quick Win and the Ad ID Ads page, and those intents are unchanged since. Plausible risk only: the Ad ID screen's explicit Play services component, if a Play services update stops exporting it. No hotfix; runs 4 and 6 add the catch.
+- [x] Call 8 check: AI-app rows are not unknown. Installed → `isSecure = false`, "Installed", 0 pts (`InstalledAppsChecker.kt:272-277`), INFO because `isInformational` (`IssueItem.kt:49`). Spec says no, pending Oliver.
+- [x] Spec updated: calls 1–16 decided, VPN copy, F1 +15 test in run 4, release split (v1.6 12.25, v1.6.1 8.0, M4 Later), What's new / change label / unknown-row wording per release, run 9 no longer depends on run 7, 2+3 before 5 and 9.
+- [x] Own diff review: no blocking problems. No external review (spec only, no app code). Merged into `master` with `--no-ff`, not pushed.
+
+### 2026-11-23 — v1.6 "fix → result" spec (`docs/v1.6-spec`, design run, no phone)
+
+- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (3 DONE, 2 CHANGE, 3 ADD Later) applied to ROADMAP.md.
+- [x] Spec written: `docs/decisions/v1.6-fix-to-result.md`. Every in-scope audit finding checked against `master` `00e9d4d` by reading code (section 1): H1, H3, H4, M4 partly fixed; M3 fixed in code (needs a phone); M2, M5, M6, M7, M11 half, M12, L10 still hold.
+- [x] Found (code reading, not proven): Quick Win points use the enum value, so multi-app checks understate the gain (3 listener apps cost 15, tile says +5); the preinstalled-app advice and the Google Camera text still suggest disabling a system app (fails the v1.6 hard rule); the keyboard Quick Win opens Default apps; on Android 9 `ACTION_PRIVACY_SETTINGS` opens Backup in AOSP; `IntentHelper` doesn't catch `SecurityException`.
+- [x] Settings intents researched from AOSP sources (section 5); no phone used, every Samsung target unconfirmed.
+- [x] Estimate: about 22 evenings with everything, 20 without M4, against two weeks (10–14). Cut line and 17 Oliver's calls in sections 7–8. No code changed.
+
 ### 2026-11-23 — v1.5.3 release (`release/v1.5.3`, no phone)
 
 - [x] Inbox: Oliver's pasted block (1 STATE:) and the inbox block (1 CHANGE, 1 ADD Next, 1 STATE:) applied; inbox cleared.
@@ -120,16 +138,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
 
 
-### 2026-11-22 — BootReceiver re-arms only a missing widget alarm (`fix/boot-receiver-rearm`, device-verify)
-
-- [x] Inbox empty; Oliver: no roadmap decisions from chat.
-- [x] Change: `BootReceiver` calls `rearmPeriodicUpdatesIfPlaced` (now returns whether it re-armed) and sends the immediate refresh only then. Snapshot path unchanged. `compileDebugKotlin`, `testDebugUnitTest --rerun` (216 tests, 0 failures), `assembleDebug` pass; APK `7ffb774f…`. No new test: the decision is `needsRearm`, already unit-tested.
-- [x] Gate 1 (Pixel 8, `install -r`, force-stop, cold start): one widget alarm `471f08c` whenElapsed 280356102 (6 h), one snapshot alarm 22:00. App start armed both; `BootReceiver` ran 0.3 s later and logged "left alone".
-- [x] Gate 2 (two `am kill` cold starts, `stopped=false`): widget alarm still `471f08c`, whenElapsed 280356102, only one; no "Periodic widget updates scheduled"; `BootReceiver` "left alone" each time. The one scan per start is the app's own refresh (`PrivacyViewModel`; read in code, not proven).
-- [x] Gate 3 (real reboot, done twice; the first one's log lines rotated out): one widget alarm ~6 h after boot (`e807e4f`, armed 19:36:54), one scan, snapshot alarm still 2026-11-22 22:00. Broadcast history: `BootReceiver` got `BOOT_COMPLETED` ~3 s after the alarm was armed, and no `ACTION_UPDATE_WIDGET` was sent. Its own log lines: could not verify (rotated out).
-- [x] Gate 4: crash buffer has no app entries (one system `init` SIGABRT per reboot). Home screen, widget 53 Fair (`docs/screens/2026-11-22-boot-receiver-rearm/home-widget-after-reboot.png`); 22:00 alarm armed.
-- [x] Found: after a reboot the widget's enabled step (`APPWIDGET_ENABLED` → `onEnabled`) armed the alarm before `BootReceiver` ran, so `BootReceiver`'s own re-arm branch was not exercised on the device; that path is covered only by the `needsRearm` unit tests.
-- [x] No external review (small receiver fix reusing the reviewed re-arm pattern). Own diff review against `master`: no blocking problems. Merged with `--no-ff`, branch deleted, not pushed.
-
-The 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

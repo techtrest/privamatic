@@ -2,26 +2,31 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 13
-- Branch: release/v1.5.3
-- Commit: 985a861
-- Time: 2026-11-23T18:18:38+01:00
-- Deviations: none
+- Run: 15
+- Branch: docs/v1.6-spec
+- Commit: b70c3a4
+- Time: 2026-11-23T19:28:53+01:00
+- Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-v1.5.3 (versionCode 11) is ready on release/v1.5.3 and is being merged into master locally. It holds master's four reliability fixes, which were device-tested earlier: widget hardening, the 48 h change cap edge, the snapshot fix and the BootReceiver re-arm. The changelog (changelogs/11.txt, 374 bytes) uses the text Oliver agreed. Gate: compileDebugKotlin, testDebugUnitTest --rerun (216 tests, 0 failures) and assembleRelease all pass; R8 minification and resource shrinking are on for release. The in-app What's new card is unchanged and still shows the v1.5.2 notes, as designed for releases that add no notes of their own.
+Oliver's v1.6 spec decisions of 23 Nov are recorded in `docs/decisions/v1.6-fix-to-result.md`, and `docs/v1.6-spec` is merged into master. It is not pushed.
+v1.6 "the loop" is runs 1, 2+3 as one branch, 4, 5, 6, 9 and a release with today's single What's new card, including the Private DNS line: about 12.25 evenings.
+v1.6.1 "explaining" is runs 7, 8, 10, 11 and a release: about 8 evenings. The Ad ID item (run 12) moved to Later.
+Crash check of v1.5.3's settings buttons, from reading code only: no button is known to crash. The Ad ID screen's "Open settings" is the one plausible risk: it would crash only if a Google Play services update stops exporting the page it opens. Runs 4 and 6 add the missing catch. No hotfix needed.
+Spec only: no app code changed, no phone used.
 
 ## Blocked on you
-Tag v1.5.3 on the release merge commit and push the tag, after pushing master.
+Push master (the v1.6 spec merge).
+Before v1.6.1 run 10: decide call 8, whether AI-app rows get "I've checked this".
 
 ## Red flags
 None
 
 ## Pending decisions
-None
+Call 8: AI-app rows aren't unknown. The scan reads them fine: the app is installed, costs 0 pts and is shown for awareness. So the spec says no until you decide.
 
 ## Next step for chat
-Push master, then tag v1.5.3 and push the tag.
+Start v1.6 run 1 (stock-safe advice).
 
 ## Unapplied ROADMAP UPDATE blocks
 None
