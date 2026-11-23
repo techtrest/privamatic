@@ -2,30 +2,31 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 14
+- Run: 15
 - Branch: docs/v1.6-spec
-- Commit: 746ec2f
-- Time: 2026-11-23T18:46:24+01:00
-- Deviations: none
+- Commit: b70c3a4
+- Time: 2026-11-23T19:28:53+01:00
+- Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-The v1.6 "fix → result" spec is written and committed on `docs/v1.6-spec` (`docs/decisions/v1.6-fix-to-result.md`). It is not merged. It checks each in-scope finding from the October UX audit against master: H1, H3, H4 and M4 are partly fixed; M3 is fixed in code but not yet seen on a phone; M2, M5, M6, M7, half of M11, M12 and L10 still hold.
-For each open item it gives what the user sees, the data and scoring changes, edge cases, tests, a table of settings pages by phone, a build order of 12 implementation runs and a cut line.
-Read-only design run: no app code changed, no phone used.
-Found: Quick Win point values understate fixes that cover several apps. The advice for apps that came with the phone still suggests disabling them. The keyboard Quick Win opens the wrong page. These are from reading code only.
+Oliver's v1.6 spec decisions of 23 Nov are recorded in `docs/decisions/v1.6-fix-to-result.md`, and `docs/v1.6-spec` is merged into master. It is not pushed.
+v1.6 "the loop" is runs 1, 2+3 as one branch, 4, 5, 6, 9 and a release with today's single What's new card, including the Private DNS line: about 12.25 evenings.
+v1.6.1 "explaining" is runs 7, 8, 10, 11 and a release: about 8 evenings. The Ad ID item (run 12) moved to Later.
+Crash check of v1.5.3's settings buttons, from reading code only: no button is known to crash. The Ad ID screen's "Open settings" is the one plausible risk: it would crash only if a Google Play services update stops exporting the page it opens. Runs 4 and 6 add the missing catch. No hotfix needed.
+Spec only: no app code changed, no phone used.
 
 ## Blocked on you
-Review the v1.6 spec in docs/decisions/v1.6-fix-to-result.md, decide the 17 open questions in section 8 and the cut line in section 7.
+Push master (the v1.6 spec merge).
+Before v1.6.1 run 10: decide call 8, whether AI-app rows get "I've checked this".
 
 ## Red flags
 None
 
 ## Pending decisions
-The 17 Oliver's calls in section 8 of the spec, each with a recommended default.
-The cut line: everything is about 22 evenings, 20 without the Ad ID merge, against two weeks (10–14 evenings).
+Call 8: AI-app rows aren't unknown. The scan reads them fine: the app is installed, costs 0 pts and is shown for awareness. So the spec says no until you decide.
 
 ## Next step for chat
-Once the spec is agreed, the first implementation run is `fix/stock-safe-advice` (run 1 in section 6).
+Start v1.6 run 1 (stock-safe advice).
 
 ## Unapplied ROADMAP UPDATE blocks
 None

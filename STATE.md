@@ -6,7 +6,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
 ## Current
 
 Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
-v1.5.3 (versionCode 11) is prepared on `master` (2026-11-23 release run); Oliver pushes and tags it.
+v1.5.3 (versionCode 11) is pushed and tagged `v1.5.3` on `00e9d4d` (Oliver, 2026-11-23); not yet confirmed live on F-Droid.
 The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
