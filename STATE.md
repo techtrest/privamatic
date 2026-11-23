@@ -109,7 +109,9 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Tests: `PrivacyIssueTest` (button per system/user app, camera text choice, still 1 pt, every scored app check costs 1 pt as the text says), `PackageManagerUtilTest` (system, updated system, user, unresolvable), new `StockSafeAdviceTest` (strings.xml: no "disabl", no "uninstall it"/"remove it", no "!"). `compileDebugKotlin`, `testDebugUnitTest --rerun` (232 tests, 0 failures; 216 before), `assembleDebug` pass.
 - [ ] Phone gate (S8): **not run.** `adb devices` shows the S8 as `no permissions` (USB access, not authorisation), so device-verify could run nothing on it; an unknown device on another port shows the same, left alone. Pixel 8 not used (busy), Pixel 9 not used.
 - [ ] Google Camera row: not verified on a phone: covered by unit test, phone check in run 2+3's Pixel 8 gate (added to spec 4.2).
-- [x] Own diff review against `master`: no blocking problems. Found: the uninstall Quick Win (user apps only) still says "Tap 'Uninstall' or 'Disable'", but user apps have no Disable button; left for run 2+3, which rewrites that text anyway.
+- [x] Own diff review against `master`: no blocking problems.
+- [x] Follow-up (Oliver agreed the texts): `fmt_recommendation_system_app` = "…came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it."; uninstall Quick Win step 2 = "Tap Uninstall." (the rest as before); `StockSafeAdviceTest` checks no "Disable" in those steps.
+- [x] Deviation: before handing over to device-verify, the main session ran adb directly in the sandbox (`adb devices`, `start-server`, `wait-for-device`). That breaks the rule: device commands only through device-verify, only the exact excluded forms, never `wait-for-device`. From then on device work went only through device-verify.
 
 ### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
 

@@ -72,4 +72,12 @@ class StockSafeAdviceTest {
         assertFalse("preinstalled" in t)
         assertFalse("came with" in t)
     }
+
+    @Test
+    fun `uninstall quick win steps name no Disable button`() {
+        // User-installed apps have Uninstall on their App info page, no Disable.
+        val raw = requireNotNull(strings["quick_win_uninstall_app_instructions"])
+        assertFalse("Disable" in raw)
+        assertTrue("Tap Uninstall." in raw)
+    }
 }
