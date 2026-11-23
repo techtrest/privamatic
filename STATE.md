@@ -25,7 +25,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` built and checked on the S8, waits for the external review; next: run 2+3 `feat/rescan-in-place`.
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` done: reviewed, merged into `master` 23 Nov, not pushed; next: run 2+3 `feat/rescan-in-place`.
 - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
@@ -114,6 +114,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Deviation: before handing over to device-verify, the main session ran adb directly in the sandbox (`adb devices`, `start-server`, `wait-for-device`). That breaks the rule: device commands only through device-verify, only the exact excluded forms, never `wait-for-device`. From then on device work went only through device-verify.
 - [x] Follow-up 2 (Oliver): uninstall Quick Win first line = "You can improve your privacy by uninstalling this app."; `StockSafeAdviceTest` checks no "disabl" in it, case-insensitive. `testDebugUnitTest --rerun` (233, 0 failures), `assembleDebug` pass. No phone check: same screen path the S8 check covered (Oliver).
 - [x] External review round 1: no High or Medium, four Lows; Oliver: fix all four, no round 2. Each test proven first by mutating the string (then restored): 1. `PrivacyIssueTest` checks the text says "costs 1 pt" (mutation "costs 2 pts" → failed); 2. camera text keeps "Keep", "Open Camera", "built-in camera" (keep sentence dropped → failed); 3. spec 4.1 quotes the shipped sentence; 4. system-app texts reject any "uninstall"/"remov" except "can't be removed" (old "can't be uninstalled" → failed). All pass restored: `testDebugUnitTest --rerun` 234, 0 failures; `assembleDebug` pass. No phone (tests and docs only).
+- [x] Proofs repeated with the reviewer's own mutations once Oliver saved the findings file ("costs 2 pt"; camera text = the generic sentence; "Consider uninstalling it."; "remove this app"): each FAILED, restored → 234 pass. Resolutions in `docs/reviews/fix-stock-safe-advice-findings-1.md`. Own diff review against `master`: no blocking problems. Merged into `master` with `--no-ff`, not pushed.
 - [x] Found: device-verify's first S8 try put a `cd` in front of the install command, so it ran inside the sandbox (its own adb server, "device not found"); rerun once with the bare command, which passed. On the S8, `am start -W` timed out because the screen was off (Dozing); a wake keyevent fixed it.
 
 ### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
