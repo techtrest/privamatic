@@ -3,18 +3,17 @@
 - Format: 3
 - Project: Privamatic
 - Run: 16
-- Branch: fix/stock-safe-advice
-- Commit: 559995e
-- Time: 2026-11-23T20:25:53+01:00
-- Deviations: 4 (the words are in status.json, not in this public file)
+- Branch: chore/wrap-up-2026-11-23
+- Commit: 6906571
+- Time: 2026-11-23T20:27:37+01:00
+- Deviations: none
 
 ## Where we are
-v1.6 run 1 (`fix/stock-safe-advice`) is done and merged into master. It is not pushed.
-On stock Android, rows for apps that came with the phone now say "<App> came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it." They have no App settings button. Google Camera's text says to keep it. User-installed apps keep their advice and button. The uninstall Quick Win only says uninstall. Scores are unchanged.
-The S8 check passed (Chrome, Gmail and YouTube: new text, −1, no button; a user-installed Google Photos keeps its button). Screens are in `docs/screens/stock-safe-advice/`.
-External review round 1 found no High or Medium and four Lows; all four are fixed, each proven first by a test that failed on the reviewer's mutation. 234 unit tests pass. Resolutions are in `docs/reviews/fix-stock-safe-advice-findings-1.md`.
-The Google Camera row is checked only by a unit test so far; its phone check is in run 2+3's Pixel 8 gate.
-Found: preinstalled AI-app rows (for example Gemini on a Pixel) lose their App settings button too, because the same rule covers every app that came with the phone.
+v1.6 run 1 (`fix/stock-safe-advice`) is done and merged into master. Master waits for Oliver's push.
+On stock Android, rows for apps that came with the phone have no disable advice and no App settings button. Scores are unchanged. The S8 check passed, the external review's four Lows are fixed, and 234 unit tests pass.
+Next is v1.6 run 2+3, `feat/rescan-in-place`. It needs the Pixel 8, which a Calluna session was using on 23 Nov. Its gate also checks the Google Camera row on the Pixel 8.
+Open items for run 2+3: the uninstall Quick Win's steps need to be made consistent when its trailing rescan sentence goes (step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps), and the roadmap line on device-verify's `cd` prefix (the agent file must say adb commands start with adb itself) is still open.
+Call 8 (AI-app rows and "I've checked this") is still open and has to be decided before v1.6.1 run 10.
 
 ## Blocked on you
 None
@@ -23,10 +22,10 @@ None
 None
 
 ## Pending decisions
-None
+1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
 
 ## Next step for chat
-Start v1.6 run 2+3 (rescan in place).
+Start v1.6 run 2+3 (rescan in place) once the Pixel 8 is free.
 
 ## Unapplied ROADMAP UPDATE blocks
 None
