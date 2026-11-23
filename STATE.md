@@ -25,7 +25,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "fix → result": 12 implementation runs in `docs/decisions/v1.6-fix-to-result.md` section 6, starting with `fix/stock-safe-advice`; waits for Oliver's review of the spec.
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Next: run 1 `fix/stock-safe-advice`.
+- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
@@ -99,6 +100,14 @@ It is the real guard. The allow and deny lists are a convenience.
 - None open. (Device name at large text: Oliver accepted the ellipsis; added to the spec 2026-10-24.)
 
 ## Runs
+
+### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
+
+- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
+- [x] Crash check, code reading of `master` `00e9d4d` (v1.5.3), not proven on a phone: every settings button goes through `IntentHelper.launchActionIntent` or `launchAdSettings` (`AdIdVerificationScreen.kt:418`); both catch `ActivityNotFoundException` on every step, neither `SecurityException`. No intent in use is known to throw it; the October audit (Pixel 8, Android 17) opened the four manual-check targets, the Wi-Fi scanning Quick Win and the Ad ID Ads page, and those intents are unchanged since. Plausible risk only: the Ad ID screen's explicit Play services component, if a Play services update stops exporting it. No hotfix; runs 4 and 6 add the catch.
+- [x] Call 8 check: AI-app rows are not unknown. Installed → `isSecure = false`, "Installed", 0 pts (`InstalledAppsChecker.kt:272-277`), INFO because `isInformational` (`IssueItem.kt:49`). Spec says no, pending Oliver.
+- [x] Spec updated: calls 1–16 decided, VPN copy, F1 +15 test in run 4, release split (v1.6 12.25, v1.6.1 8.0, M4 Later), What's new / change label / unknown-row wording per release, run 9 no longer depends on run 7, 2+3 before 5 and 9.
+- [x] Own diff review: no blocking problems. No external review (spec only, no app code). Merged into `master` with `--no-ff`, not pushed.
 
 ### 2026-11-23 — v1.6 "fix → result" spec (`docs/v1.6-spec`, design run, no phone)
 
