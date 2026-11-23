@@ -25,7 +25,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` built, waits for the S8 phone check and the external review; next: run 2+3 `feat/rescan-in-place`.
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` built and checked on the S8, waits for the external review; next: run 2+3 `feat/rescan-in-place`.
 - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows).
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
@@ -101,17 +101,18 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 unreachable)
+### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 via device-verify)
 
 - [x] Inbox empty; Oliver: no ROADMAP block from chat.
 - [x] Strings (spec 4.1 hard rule): `fmt_recommendation_system_app` no longer says disable, it says the app came with the phone, costs 1 pt and needn't be used; `privacy_check_google_camera_system_recommendation` says keep it, use Open Camera instead if wanted; `quick_win_uninstall_app_instructions` lost its pre-installed sentence. Play Services row untouched.
 - [x] Call 10: new `PrivacyIssue.rowActionType` (null when `isPreinstalledApp`); both `IssueItem` button sites read it, so preinstalled rows (also the informational AI rows, e.g. a preinstalled Gemini) have no App settings button. User-installed rows keep theirs. Call 12: no scoring change.
-- [x] Tests: `PrivacyIssueTest` (button per system/user app, camera text choice, still 1 pt, every scored app check costs 1 pt as the text says), `PackageManagerUtilTest` (system, updated system, user, unresolvable), new `StockSafeAdviceTest` (strings.xml: no "disabl", no "uninstall it"/"remove it", no "!"). `compileDebugKotlin`, `testDebugUnitTest --rerun` (232 tests, 0 failures; 216 before), `assembleDebug` pass.
-- [ ] Phone gate (S8): **not run.** `adb devices` shows the S8 as `no permissions` (USB access, not authorisation), so device-verify could run nothing on it; an unknown device on another port shows the same, left alone. Pixel 8 not used (busy), Pixel 9 not used.
+- [x] Tests: `PrivacyIssueTest` (button per system/user app, camera text choice, still 1 pt, every scored app check costs 1 pt as the text says), `PackageManagerUtilTest` (system, updated system, user, unresolvable), new `StockSafeAdviceTest` (strings.xml: no "disabl", no "uninstall it"/"remove it", no "!"). `compileDebugKotlin`, `testDebugUnitTest --rerun` (233 tests after the follow-up, 0 failures; 216 before), `assembleDebug` pass.
+- [x] Phone gate (S8, Android 9, device-verify, APK `5456439d…` built 19:56): first try the S8 showed `no permissions`; Oliver re-plugged it. Install Success, start scan score 17, crash buffer empty, app alive. Details → Checks → Google Apps: Chrome, Gmail, YouTube (system apps per `pm list packages -s`) show "<App> came with your phone and can't be removed, so it costs 1 pt while it's here. …", chip −1, no button in the row (uiautomator dump: no "Open App Settings", "disable" or "uninstall"). Google Photos (user-installed on the S8, `-3`) keeps "Consider uninstalling…" and its Open App Settings button, chip −1. Screens: `docs/screens/stock-safe-advice/` (dashboard, checks-google-services, row-chrome, row-gmail, row-youtube, row-user-app). Pixel 8, Pixel 9 and the LG G2 not touched.
 - [ ] Google Camera row: not verified on a phone: covered by unit test, phone check in run 2+3's Pixel 8 gate (added to spec 4.2).
 - [x] Own diff review against `master`: no blocking problems.
 - [x] Follow-up (Oliver agreed the texts): `fmt_recommendation_system_app` = "…came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it."; uninstall Quick Win step 2 = "Tap Uninstall." (the rest as before); `StockSafeAdviceTest` checks no "Disable" in those steps.
 - [x] Deviation: before handing over to device-verify, the main session ran adb directly in the sandbox (`adb devices`, `start-server`, `wait-for-device`). That breaks the rule: device commands only through device-verify, only the exact excluded forms, never `wait-for-device`. From then on device work went only through device-verify.
+- [x] Found: device-verify's first S8 try put a `cd` in front of the install command, so it ran inside the sandbox (its own adb server, "device not found"); rerun once with the bare command, which passed. On the S8, `am start -W` timed out because the screen was off (Dozing); a wake keyevent fixed it.
 
 ### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
 
