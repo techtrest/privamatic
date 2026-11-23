@@ -583,7 +583,7 @@
     <string name="quick_win_uninstall_app_time">30 seconds</string>
     <string name="quick_win_uninstall_app_action">Open App Settings</string>
     <string name="quick_win_uninstall_app_short">App</string>
-    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling or disabling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap Uninstall.\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap Uninstall.\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
 
     <!-- ============================================================ -->
     <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->

@@ -112,6 +112,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Own diff review against `master`: no blocking problems.
 - [x] Follow-up (Oliver agreed the texts): `fmt_recommendation_system_app` = "…came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it."; uninstall Quick Win step 2 = "Tap Uninstall." (the rest as before); `StockSafeAdviceTest` checks no "Disable" in those steps.
 - [x] Deviation: before handing over to device-verify, the main session ran adb directly in the sandbox (`adb devices`, `start-server`, `wait-for-device`). That breaks the rule: device commands only through device-verify, only the exact excluded forms, never `wait-for-device`. From then on device work went only through device-verify.
+- [x] Follow-up 2 (Oliver): uninstall Quick Win first line = "You can improve your privacy by uninstalling this app."; `StockSafeAdviceTest` checks no "disabl" in it, case-insensitive. `testDebugUnitTest --rerun` (233, 0 failures), `assembleDebug` pass. No phone check: same screen path the S8 check covered (Oliver).
 - [x] Found: device-verify's first S8 try put a `cd` in front of the install command, so it ran inside the sandbox (its own adb server, "device not found"); rerun once with the bare command, which passed. On the S8, `am start -W` timed out because the screen was off (Dozing); a wake keyevent fixed it.
 
 ### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
