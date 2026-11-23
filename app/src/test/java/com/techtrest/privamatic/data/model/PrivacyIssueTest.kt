@@ -29,15 +29,16 @@ class PrivacyIssueTest {
     }
 
     @Test
-    fun `preinstalled app gets the generic disable advice`() {
+    fun `preinstalled app gets the generic came-with-your-phone advice`() {
         val issue = installed(PrivacyCheck.GOOGLE_MAPS, isSystemApp = true)
         assertTrue(issue.isPreinstalledApp)
         assertEquals(R.string.fmt_recommendation_system_app, issue.systemAppRecommendation)
     }
 
     @Test
-    fun `preinstalled camera warns that disabling leaves no camera`() {
+    fun `preinstalled camera gets its own keep-it advice`() {
         val issue = installed(PrivacyCheck.GOOGLE_CAMERA, isSystemApp = true)
+        assertTrue(issue.isPreinstalledApp)
         assertEquals(
             R.string.privacy_check_google_camera_system_recommendation,
             issue.systemAppRecommendation
@@ -45,9 +46,69 @@ class PrivacyIssueTest {
     }
 
     @Test
+    fun `user-installed camera keeps its uninstall recommendation`() {
+        // GrapheneOS and other ROMs: Google Camera is a user app and may be removed.
+        val issue = installed(PrivacyCheck.GOOGLE_CAMERA, isSystemApp = false)
+        assertFalse(issue.isPreinstalledApp)
+        assertEquals(PrivacyCheck.GOOGLE_CAMERA.recommendation, issue.recommendation)
+    }
+
+    @Test
     fun `user-installed app keeps its uninstall recommendation`() {
         val issue = installed(PrivacyCheck.GOOGLE_KEEP, isSystemApp = false)
         assertFalse(issue.isPreinstalledApp)
         assertEquals(PrivacyCheck.GOOGLE_KEEP.recommendation, issue.recommendation)
+    }
+
+    // ----- Row button (Oliver's call 10) -----
+
+    @Test
+    fun `preinstalled flagged app row has no settings button`() {
+        for (check in listOf(PrivacyCheck.GOOGLE_CHROME, PrivacyCheck.GMAIL_APP,
+            PrivacyCheck.YOUTUBE, PrivacyCheck.GOOGLE_CAMERA)) {
+            assertNull(check.name, installed(check, isSystemApp = true).rowActionType)
+        }
+    }
+
+    @Test
+    fun `user-installed flagged app row keeps its app settings button`() {
+        val issue = installed(PrivacyCheck.FACEBOOK_APP, isSystemApp = false)
+        assertEquals(ActionType.OPEN_APP_SETTINGS, issue.rowActionType)
+    }
+
+    @Test
+    fun `preinstalled informational app row has no settings button either`() {
+        // Gemini ships with stock Pixels; its App info page has the same Disable button.
+        val issue = installed(PrivacyCheck.GOOGLE_GEMINI, isSystemApp = true)
+        assertNull(issue.rowActionType)
+    }
+
+    @Test
+    fun `rows without an app keep their check's button`() {
+        // isSystemApp only means something for app rows; a settings row is never preinstalled.
+        val issue = installed(PrivacyCheck.NOTIFICATION_LISTENER, isSystemApp = true)
+        assertEquals(ActionType.NOTIFICATION_LISTENER, issue.rowActionType)
+    }
+
+    // ----- Scoring unchanged (Oliver's call 12) -----
+
+    @Test
+    fun `preinstalled flagged app still costs its points`() {
+        val issue = installed(PrivacyCheck.GOOGLE_CHROME, isSystemApp = true)
+        assertEquals(PrivacyCheck.GOOGLE_CHROME.pointDeduction, issue.pointDeduction)
+        assertEquals(1, issue.pointDeduction)
+    }
+
+    @Test
+    fun `every scored app check costs 1 pt as the preinstalled advice says`() {
+        // fmt_recommendation_system_app says "It costs 1 pt". If an app check's value
+        // changes, the copy must change with it.
+        val scoredAppChecks = PrivacyCheck.entries.filter {
+            it.packageName != null && !it.isInformational
+        }
+        assertTrue(scoredAppChecks.isNotEmpty())
+        for (check in scoredAppChecks) {
+            assertEquals(check.name, 1, check.pointDeduction)
+        }
     }
 }
