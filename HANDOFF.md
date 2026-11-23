@@ -4,21 +4,21 @@
 - Project: Privamatic
 - Run: 16
 - Branch: fix/stock-safe-advice
-- Commit: a46fc33
-- Time: 2026-11-23T19:48:43+01:00
-- Deviations: 2 (the words are in status.json, not in this public file)
+- Commit: d1e56f0
+- Time: 2026-11-23T20:03:00+01:00
+- Deviations: 3 (the words are in status.json, not in this public file)
 
 ## Where we are
-v1.6 run 1 (`fix/stock-safe-advice`) is built and committed. On stock Android, rows for apps that came with the phone (Chrome, Gmail, YouTube and the like) no longer say they can be disabled and no longer show an App settings button. Google Camera's text now says to keep it. User-installed apps keep their advice and button. Scores are unchanged.
-The build, the unit tests (232, 0 failures) and the debug APK all pass. The phone check has not run: the S8 shows as "no permissions" in `adb devices`, so nothing could be installed on it. The Pixel 8 was busy and the Pixel 9 wasn't used.
-The review files are written (`docs/reviews/fix-stock-safe-advice.diff`, `-prompt-1.md`), and the branch stays checked out for Cursor.
-The Google Camera row can't be checked on the S8 (it has no Google Camera); that check is now part of run 2+3's Pixel 8 gate in the spec.
-Found: the uninstall Quick Win, shown for user-installed apps only, still says "Tap 'Uninstall' or 'Disable'", and user apps have no Disable button. Left for run 2+3, which rewrites that text.
+v1.6 run 1 (`fix/stock-safe-advice`) is built, checked on the S8 and waiting for the external review. The branch stays checked out for Cursor.
+On stock Android, rows for apps that came with the phone now say "<App> came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it." They have no App settings button. Google Camera's text says to keep it. User-installed apps keep their advice and button. Scores are unchanged. The uninstall Quick Win's step now says "Tap Uninstall."
+The build and the unit tests pass: 233 tests, 0 failures.
+On the S8 (Android 9), Chrome, Gmail and YouTube showed the new text, −1 and no button. Google Photos, which is user-installed on that phone, kept its Open App Settings button. The crash buffer was empty. Screens are in `docs/screens/stock-safe-advice/`.
+The Google Camera row can't be checked on the S8 (no Google Camera); its check is in run 2+3's Pixel 8 gate.
 Found: preinstalled AI-app rows (for example Gemini on a Pixel) lose their App settings button too, because the same rule covers every app that came with the phone.
+Found: the uninstall Quick Win's first line still says "by uninstalling or disabling this app"; it was left as it is on Oliver's instruction.
 
 ## Blocked on you
-1. Make the S8 reachable over USB, then tell this session so it can run the phone check. Right now `adb devices` lists it as "no permissions", which usually means USB mode or computer access, not the debugging prompt. A second, unknown device on another USB port shows the same and was left alone.
-2. Run the external review of fix/stock-safe-advice in Cursor and save `docs/reviews/fix-stock-safe-advice-findings-1.md`.
+1. Run the external review of fix/stock-safe-advice in Cursor and save `docs/reviews/fix-stock-safe-advice-findings-1.md`.
 
 ## Red flags
 None
@@ -27,7 +27,7 @@ None
 None
 
 ## Next step for chat
-Once the S8 is reachable: install the debug build, scan, and check that the Chrome, Gmail and YouTube rows show the new text and no button. Then apply the review findings, merge, and start run 2+3 `feat/rescan-in-place`.
+After the review: prove or reject each finding, fix what holds, re-run the gate, merge into master with --no-ff, then start run 2+3 `feat/rescan-in-place`.
 
 ## Unapplied ROADMAP UPDATE blocks
 None

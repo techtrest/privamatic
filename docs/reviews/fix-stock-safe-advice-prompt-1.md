@@ -21,9 +21,21 @@ both button sites in `IssueItem` read it. It also applies to the informational A
 (e.g. a preinstalled Gemini), on purpose: same App info page, same Disable button. The Play
 Services row was already compliant (no actionType, `isPreinstalledApp` false) and is untouched.
 The uninstall Quick Win only exists for user-installed apps (`QuickWinsDetector.checkInstalledApps`,
-`!issue.isSystemApp`); its text only loses the pre-installed sentence.
-Unit tests pass (232, 0 failures). The phone check hasn't run yet: the test phone wasn't
-reachable over USB in this run, so nothing here is proven on a device.
+`!issue.isSystemApp`); its text loses the pre-installed sentence, and its step 2 now says
+"Tap Uninstall." (a user app's App info page has no Disable button). Its first line,
+"…by uninstalling or disabling this app.", is left as it is on purpose (Oliver).
+The texts, as Oliver agreed them:
+- `fmt_recommendation_system_app`: "%1$s came with your phone and can't be removed, so it costs
+  1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and
+  data out of it."
+- `privacy_check_google_camera_system_recommendation`: "%1$s came with your phone and can't be
+  removed. If you'd rather use an open-source camera, install Open Camera and use that instead.
+  Keep %1$s as it is: it is your phone's built-in camera."
+Unit tests pass (233, 0 failures).
+Phone check passed on the S8 (Android 9): Chrome, Gmail and YouTube (system apps there) show
+the new text with their own name, cost −1 and have no button; Google Photos (user-installed there)
+keeps its uninstall text and Open App Settings button. Google Camera isn't on the S8: its text is
+covered only by PrivacyIssueTest, and the Pixel 8 check is in run 2+3's gate.
 
 Standing invariants — check that each holds on every path this diff touches:
 1. Offline: no INTERNET permission, no network calls, no new dependency that
