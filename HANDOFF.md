@@ -2,26 +2,30 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 13
-- Branch: release/v1.5.3
-- Commit: 985a861
-- Time: 2026-11-23T18:18:38+01:00
+- Run: 14
+- Branch: docs/v1.6-spec
+- Commit: 746ec2f
+- Time: 2026-11-23T18:46:24+01:00
 - Deviations: none
 
 ## Where we are
-v1.5.3 (versionCode 11) is ready on release/v1.5.3 and is being merged into master locally. It holds master's four reliability fixes, which were device-tested earlier: widget hardening, the 48 h change cap edge, the snapshot fix and the BootReceiver re-arm. The changelog (changelogs/11.txt, 374 bytes) uses the text Oliver agreed. Gate: compileDebugKotlin, testDebugUnitTest --rerun (216 tests, 0 failures) and assembleRelease all pass; R8 minification and resource shrinking are on for release. The in-app What's new card is unchanged and still shows the v1.5.2 notes, as designed for releases that add no notes of their own.
+The v1.6 "fix → result" spec is written and committed on `docs/v1.6-spec` (`docs/decisions/v1.6-fix-to-result.md`). It is not merged. It checks each in-scope finding from the October UX audit against master: H1, H3, H4 and M4 are partly fixed; M3 is fixed in code but not yet seen on a phone; M2, M5, M6, M7, half of M11, M12 and L10 still hold.
+For each open item it gives what the user sees, the data and scoring changes, edge cases, tests, a table of settings pages by phone, a build order of 12 implementation runs and a cut line.
+Read-only design run: no app code changed, no phone used.
+Found: Quick Win point values understate fixes that cover several apps. The advice for apps that came with the phone still suggests disabling them. The keyboard Quick Win opens the wrong page. These are from reading code only.
 
 ## Blocked on you
-Tag v1.5.3 on the release merge commit and push the tag, after pushing master.
+Review the v1.6 spec in docs/decisions/v1.6-fix-to-result.md, decide the 17 open questions in section 8 and the cut line in section 7.
 
 ## Red flags
 None
 
 ## Pending decisions
-None
+The 17 Oliver's calls in section 8 of the spec, each with a recommended default.
+The cut line: everything is about 22 evenings, 20 without the Ad ID merge, against two weeks (10–14 evenings).
 
 ## Next step for chat
-Push master, then tag v1.5.3 and push the tag.
+Once the spec is agreed, the first implementation run is `fix/stock-safe-advice` (run 1 in section 6).
 
 ## Unapplied ROADMAP UPDATE blocks
 None
