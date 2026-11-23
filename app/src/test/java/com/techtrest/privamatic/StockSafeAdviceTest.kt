@@ -9,7 +9,8 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * v1.6 hard rule (docs/decisions/v1.6-fix-to-result.md, section 2): nothing tells the user
- * to disable or uninstall an app that came with the phone. Reads strings.xml as text.
+ * to disable, uninstall or remove an app that came with the phone; its texts only say that
+ * it can't be removed. Reads strings.xml as text.
  * Unit tests run with the module directory as working directory.
  */
 class StockSafeAdviceTest {
@@ -42,12 +43,21 @@ class StockSafeAdviceTest {
     }
 
     @Test
-    fun `system-app advice never says uninstall or remove it`() {
+    fun `system-app advice never mentions uninstalling or removing, except that it can't be removed`() {
         for (name in systemAppStrings) {
-            val t = text(name)
-            assertFalse(name, "uninstall it" in t)
-            assertFalse(name, "remove it" in t)
+            // aapt's \' escape reaches the DOM as is; compare with a plain apostrophe.
+            val t = text(name).replace("\\'", "'").replace("can't be removed", "")
+            assertFalse(name, "uninstall" in t)
+            assertFalse(name, "remov" in t)
         }
+    }
+
+    @Test
+    fun `camera advice says keep it and points to Open Camera`() {
+        val raw = requireNotNull(strings["privacy_check_google_camera_system_recommendation"])
+        assertTrue("Keep" in raw)
+        assertTrue("Open Camera" in raw)
+        assertTrue("built-in camera" in raw)
     }
 
     @Test

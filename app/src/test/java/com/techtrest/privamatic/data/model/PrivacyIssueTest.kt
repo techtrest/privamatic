@@ -6,8 +6,20 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.w3c.dom.Element
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 class PrivacyIssueTest {
+
+    /** Reads strings.xml as text, like StockSafeAdviceTest (module dir is the working dir). */
+    private fun stringResource(name: String): String {
+        val nodes = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            .parse(File("src/main/res/values/strings.xml"))
+            .documentElement.getElementsByTagName("string")
+        return (0 until nodes.length).map { nodes.item(it) as Element }
+            .single { it.getAttribute("name") == name }.textContent
+    }
 
     private fun installed(check: PrivacyCheck, isSystemApp: Boolean) = PrivacyIssue(
         check = check,
@@ -101,8 +113,9 @@ class PrivacyIssueTest {
 
     @Test
     fun `every scored app check costs 1 pt as the preinstalled advice says`() {
-        // fmt_recommendation_system_app says "It costs 1 pt". If an app check's value
-        // changes, the copy must change with it.
+        // fmt_recommendation_system_app says "so it costs 1 pt while it's here". If an app
+        // check's value or that text changes, the other must change with it.
+        assertTrue("costs 1 pt" in stringResource("fmt_recommendation_system_app"))
         val scoredAppChecks = PrivacyCheck.entries.filter {
             it.packageName != null && !it.isInformational
         }
