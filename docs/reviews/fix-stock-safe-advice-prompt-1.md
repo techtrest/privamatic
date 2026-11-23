@@ -22,8 +22,9 @@ both button sites in `IssueItem` read it. It also applies to the informational A
 Services row was already compliant (no actionType, `isPreinstalledApp` false) and is untouched.
 The uninstall Quick Win only exists for user-installed apps (`QuickWinsDetector.checkInstalledApps`,
 `!issue.isSystemApp`); its text loses the pre-installed sentence, and its step 2 now says
-"Tap Uninstall." (a user app's App info page has no Disable button). Its first line,
-"…by uninstalling or disabling this app.", is left as it is on purpose (Oliver).
+"Tap Uninstall." (a user app's App info page has no Disable button), and its first line is now
+"You can improve your privacy by uninstalling this app." Its trailing "rescan" sentence stays
+until run 2+3, on purpose (Oliver).
 The texts, as Oliver agreed them:
 - `fmt_recommendation_system_app`: "%1$s came with your phone and can't be removed, so it costs
   1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and

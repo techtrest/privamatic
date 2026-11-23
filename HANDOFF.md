@@ -4,8 +4,8 @@
 - Project: Privamatic
 - Run: 16
 - Branch: fix/stock-safe-advice
-- Commit: d1e56f0
-- Time: 2026-11-23T20:03:00+01:00
+- Commit: 97f5c6f
+- Time: 2026-11-23T20:07:27+01:00
 - Deviations: 3 (the words are in status.json, not in this public file)
 
 ## Where we are
@@ -15,7 +15,7 @@ The build and the unit tests pass: 233 tests, 0 failures.
 On the S8 (Android 9), Chrome, Gmail and YouTube showed the new text, −1 and no button. Google Photos, which is user-installed on that phone, kept its Open App Settings button. The crash buffer was empty. Screens are in `docs/screens/stock-safe-advice/`.
 The Google Camera row can't be checked on the S8 (no Google Camera); its check is in run 2+3's Pixel 8 gate.
 Found: preinstalled AI-app rows (for example Gemini on a Pixel) lose their App settings button too, because the same rule covers every app that came with the phone.
-Found: the uninstall Quick Win's first line still says "by uninstalling or disabling this app"; it was left as it is on Oliver's instruction.
+The uninstall Quick Win's first line now says "You can improve your privacy by uninstalling this app." (Oliver); no phone check for that, same screen path the S8 check covered.
 
 ## Blocked on you
 1. Run the external review of fix/stock-safe-advice in Cursor and save `docs/reviews/fix-stock-safe-advice-findings-1.md`.
