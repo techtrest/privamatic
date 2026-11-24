@@ -25,7 +25,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` is done and merged into `master` (23 Nov, not pushed). Run 2+3 `feat/rescan-in-place` is built and passed its Pixel 8 gate (24 Nov). Next: external review round 1, then merge.
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov). In order: Oliver's external review in Cursor, the snackbar item below and any findings, merge, then run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
+- [ ] [S] Run 2+3: on long Quick Win pages the result snackbar covers Check again (below the fold) for up to 10 s; fix in the review round, e.g. keep Check again in view after a result or lift the snackbar above it (Oliver, 24 Nov)
 - [x] [S] (24 Nov, b18) Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
 - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open.
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
@@ -124,7 +125,7 @@ It is the real guard. The allow and deny lists are a convenience.
   - [x] Final state: Wi-Fi scanning 0, night mode no, accessibility null / 0 (all as before), Checks list view, score 53, final build installed (versionCode 11), no leftover files. Today's scans stay in its history.
 - [x] Gate again after the fixes: `compileDebugKotlin`, `testDebugUnitTest --rerun` 280, 0 failures, `assembleDebug` pass. The text test checks the no-break space.
 - [x] Found: the agent's "delete the old APK first" step was refused by the permission check; not worked around. Freshness shown by mtime after the last source change and equal hash on the phone. One of the agent's adb calls held a `$(echo)`, ran inside the sandbox and started its own adb server there (device list outside unchanged). The first start of part b was `UNKNOWN`, not cold (known: BootReceiver after a force-stop); redone cold.
-- [x] Found, kept: on a long Quick Win page Check again is below the fold, and a snackbar covers part of it for up to 10 s.
+- [x] Found: on a long Quick Win page Check again is below the fold, and a snackbar covers it for up to 10 s. Oliver: fix in the review round (Next).
 - [ ] External review round 1: files written, waits for Oliver.
 
 ### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 via device-verify)

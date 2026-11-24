@@ -4,15 +4,15 @@
 - Project: Privamatic
 - Run: 17
 - Branch: feat/rescan-in-place
-- Commit: 681d922
-- Time: 2026-11-24T20:24:05+01:00
-- Deviations: 5 (the words are in status.json, not in this public file)
+- Commit: 5efdfb6
+- Time: 2026-11-24T20:28:27+01:00
+- Deviations: none
 
 ## Where we are
 v1.6 run 2+3 (`feat/rescan-in-place`) is built and passed its Pixel 8 gate. 280 unit tests pass and the debug build assembles. The review files are written; the branch is checked out.
 The phone check found two looks problems, both fixed and checked again on the phone: the scan bar vanished against the light Dashboard, and the score's number could wrap alone in the snackbar.
 Not verified on a phone: trusting an app during a scan (no app to trust on the Pixel 8) and TalkBack (its speech can't be read from the computer).
-Found: on a long Quick Win page, Check again is below the fold, and the snackbar covers part of it for a few seconds. Kept as it is.
+Found: on a long Quick Win page, Check again is below the fold, and the snackbar covers it for up to 10 s. Oliver wants it fixed in the review round.
 Found: the phone agent's step that deletes the old APK first was refused and not worked around; the APK's time and its checksum on the phone show the right build was tested.
 The Pixel 8 is as it was before, with the new debug build installed and today's scans in its history.
 
@@ -26,7 +26,7 @@ None
 1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
 
 ## Next step for chat
-After the review: prove or reject the findings, then merge. Next run after that is run 4.
+Review findings for run 2+3, then merge. The snackbar item is fixed in the same round. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
 
 ## Unapplied ROADMAP UPDATE blocks
 None
