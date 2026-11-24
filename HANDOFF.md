@@ -4,9 +4,9 @@
 - Project: Privamatic
 - Run: 17
 - Branch: feat/rescan-in-place
-- Commit: 5efdfb6
-- Time: 2026-11-24T20:28:27+01:00
-- Deviations: none
+- Commit: f45f9b6
+- Time: 2026-11-24T20:28:34+01:00
+- Deviations: 5 (the words are in status.json, not in this public file)
 
 ## Where we are
 v1.6 run 2+3 (`feat/rescan-in-place`) is built and passed its Pixel 8 gate. 280 unit tests pass and the debug build assembles. The review files are written; the branch is checked out.
