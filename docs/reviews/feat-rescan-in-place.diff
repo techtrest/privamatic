@@ -1,0 +1,2042 @@
+diff --git a/CONVENTIONS.md b/CONVENTIONS.md
+index 9c36349..0ab120f 100644
+--- a/CONVENTIONS.md
++++ b/CONVENTIONS.md
+@@ -95,10 +95,16 @@ install (`firstInstallTime == lastUpdateTime`) is marked seen silently. The card
+ so notes never repeat for someone who dismissed them on any version since. v1.6 plan: notes
+ kept per version, showing every version newer than the last one seen.
+ 
+-**Rescan after a fix deep link** — Settings intents that let the user fix a check (Quick Win
+-detail, check-row "Open settings") call `IntentHelper.launchActionIntent(…, rescanOnReturn = true)`;
+-`MainScreen` rescans once on the next resume. Manual-check links don't (they change no scan
+-result). The flag is in memory only.
++**Rescan after a fix deep link** — Settings buttons that let the user fix a check (Quick Win
++detail, check-row "Open settings", manual-check Open Settings) call
++`IntentHelper.launchActionIntent(…, onReturn = UserScan.FixReturn(check))` (null check for a manual
++review); `MainScreen` rescans once on the next resume. The flag is in memory only.
++
++**Rescan in place and its result** — only the first scan shows `PrivacyScanState.Scanning`; later
++ones keep `Success` and set `isRefreshing`. A scan the user asked for passes a `UserScan` to
++`performScan`; `ScanFeedback.between` compares the two in-memory scores (never `score_history`, the
++widget writes it too) and `MainScreen` shows one snackbar. A newer scan cancels a running one but
++keeps the earliest `before`. `onScanSuccess` publishes everything after its last suspension.
+ 
+ **View toggles vs tabs** — a tab is for different data; a toggle is for the same data viewed
+ differently. Toggles are an `IconButton` in the tab's fixed header row (never a segmented
+diff --git a/HANDOFF.md b/HANDOFF.md
+index 2718c43..e280513 100644
+--- a/HANDOFF.md
++++ b/HANDOFF.md
+@@ -2,21 +2,21 @@
+ 
+ - Format: 3
+ - Project: Privamatic
+-- Run: 16
+-- Branch: chore/wrap-up-2026-11-23
+-- Commit: 6906571
+-- Time: 2026-11-23T20:27:37+01:00
+-- Deviations: none
++- Run: 17
++- Branch: feat/rescan-in-place
++- Commit: b69f076
++- Time: 2026-11-24T20:01:36+01:00
++- Deviations: 2 (the words are in status.json, not in this public file)
+ 
+ ## Where we are
+-v1.6 run 1 (`fix/stock-safe-advice`) is done and merged into master. Master waits for Oliver's push.
+-On stock Android, rows for apps that came with the phone have no disable advice and no App settings button. Scores are unchanged. The S8 check passed, the external review's four Lows are fixed, and 234 unit tests pass.
+-Next is v1.6 run 2+3, `feat/rescan-in-place`. It needs the Pixel 8, which a Calluna session was using on 23 Nov. Its gate also checks the Google Camera row on the Pixel 8.
+-Open items for run 2+3: the uninstall Quick Win's steps need to be made consistent when its trailing rescan sentence goes (step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps), and the roadmap line on device-verify's `cd` prefix (the agent file must say adb commands start with adb itself) is still open.
+-Call 8 (AI-app rows and "I've checked this") is still open and has to be decided before v1.6.1 run 10.
++v1.6 run 2+3 (`feat/rescan-in-place`) is built, self-reviewed and committed on its branch. Nothing has been checked on a phone; the Pixel 8 was not confirmed free.
++A rescan keeps the current screen, and every scan the user asks for shows one snackbar with the points and the score. 280 unit tests pass (234 before), and the debug build assembles.
++Found: before this branch, a scan that failed would have crashed the app (shown by a unit test on the same code pattern). Fixed here.
++The self-review fixed four things on the rescan path. STATE.md lists them, the choices made where the spec is silent, and everything the Pixel 8 gate has to check, including the Google Camera row from run 1 and the Breakdown jump.
++After the phone gate come the external review files, then the review.
+ 
+ ## Blocked on you
+-None
++Tell the session when the Pixel 8 is free for the run 2+3 phone check. The gate needs it, and other projects share it.
+ 
+ ## Red flags
+ None
+@@ -25,7 +25,7 @@ None
+ 1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
+ 
+ ## Next step for chat
+-Start v1.6 run 2+3 (rescan in place) once the Pixel 8 is free.
++Confirm the Pixel 8 is free, then start the device gate on `feat/rescan-in-place`.
+ 
+ ## Unapplied ROADMAP UPDATE blocks
+ None
+diff --git a/STATE.md b/STATE.md
+index ec84718..62d8cb2 100644
+--- a/STATE.md
++++ b/STATE.md
+@@ -7,7 +7,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
+ 
+ Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
+ v1.5.3 (versionCode 11) is pushed and tagged `v1.5.3` on `00e9d4d` (Oliver, 2026-11-23); not yet confirmed live on F-Droid.
+-The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
++The Pixel 8 runs the run 2+3 debug build (versionCode 11, `c7d944df…`).
+ The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
+ - CLAUDE.md and STATE.md;
+ - the narrowed `.claude/settings.local.json` (untracked; the allow list, plus the Pixel 9 adb deny rules since 2026-11-05);
+@@ -25,8 +25,8 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
+ 
+ ## Next
+ 
+-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` is done and merged into `master` (23 Nov, not pushed). Next: run 2+3 `feat/rescan-in-place`. It needs the Pixel 8, which a Calluna session was using on 23 Nov: ask Oliver that it is free before any device step. Its gate also checks the Google Camera row on the Pixel 8.
+-- [ ] [S] Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
++- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` is done and merged into `master` (23 Nov, not pushed). Run 2+3 `feat/rescan-in-place` is built and passed its Pixel 8 gate (24 Nov). Next: external review round 1, then merge.
++- [x] [S] (24 Nov, b18) Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
+ - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open.
+ - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
+ - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
+@@ -102,6 +102,31 @@ It is the real guard. The allow and deny lists are a convenience.
+ 
+ ## Runs
+ 
++### 2026-11-24 — v1.6 run 2+3: rescan in place (`feat/rescan-in-place`, Pixel 8 via device-verify)
++
++- [x] Inbox empty; Oliver: no ROADMAP block from chat.
++- [x] Findings on `master` before the change (code reading plus the unit tests below): a failing app scan crashed instead of showing its error (the scan's `async` failed the whole job); a trust change made while a scan ran was skipped and never applied; "Not fixed yet" as literally specified would be false for a 0-point row or a manual review.
++- [x] Built: `ScanFeedback` (outcome, merge of pending scans), `ScanFeedbackText`, `UserScan` triggers, `isRefreshing`, scan events, snackbar host above the overlays, progress bar, Check again, page closes or updates on return, manual Open Settings flag, Details → Breakdown, 13 rescan sentences gone, uninstall steps consistent. CONVENTIONS updated.
++- [x] Fail-first: against a stub 26 of 32 `ScanFeedbackTest` cases failed, then `ScanFeedbackTextTest` 9 of 10; the uninstall and "rescan to see" tests failed on `master`'s uninstall text. `StockSafeAdviceTest`'s pinned "Tap Uninstall." changed with the text.
++- [x] Own diff review against `master`, 4 fixed: 1. a cancelled scan failing on its way out reported "Couldn't check" and dropped `before` (`RunScanTest` failed without the fix); 2. a failed rescan asked the widget to refresh; 3. a quick second scan could skip the widget refresh; 4. or skip the 800 ms minimum once. `RunScanTest` also fails on `master`'s scan pattern (the crash). 2–4: code reading only.
++- [x] Widget scan, today's history point, change cap: `recordScore`, `recordScan` and the widget code unchanged; same order, once per finished scan (code reading; existing tests pass).
++- [x] Gate: `compileDebugKotlin`, `testDebugUnitTest --rerun` 280 tests, 0 failures (234 before), `assembleDebug` pass.
++- [x] Choices where 4.2 is silent: partial or fail → unknown shows "Private DNS · +3 pts" (not "fixed"); gain with a loss shows only "+N pts" with Details; mixed that isn't exactly fixed/new shows "1 better, 1 worse"; a review that wasn't due shows "… review done · Score N"; "Not fixed yet" only when the check cost points, otherwise "No change"; the trusted apps of the new result apply to both sides, so trusting during a scan is not reported as a fix.
++- [x] Pixel 8 gate (device-verify, 20:05–20:23, two parts; screens `docs/screens/rescan-in-place/`, a = first build `9fa9bcc1…`, b = final build `c7d944df…`). Crash buffer empty in both. Main session looked at the key screens itself.
++  - [x] Fix loop (a06–a13): page stays "Not fixed yet · Score 51", both Check again buttons work ("Checking…"), then page closes, "Background Wi-Fi Scanning fixed · +2 pts · Score 53", never blank. Switched with `settings put` while Settings was in front, not by its toggle.
++  - [x] Other scans: rescan "No change" (a05), pull (b10, b11), a double tap gives one snackbar (dumps 3 s apart), manual Open Settings and back (b12), Mark as done +5 for all three reviews, 0-point redo, Ad ID confirm ±points and reset −5 (b14–b16). "Icon disabled" judged by its look.
++  - [x] Loss (a03, a04): "Background Wi-Fi Scanning · −2 pts · Score 51", Details → Breakdown; from an overlay starting in the list view (b05).
++  - [x] Looks: two problems found and fixed (round 1), re-checked on the final build: the white bar vanished against the Dashboard (a02) → Cream on the header colour, light and dark on all three tabs (b01–b03, b06–b08); "51" wrapped alone (a03) → no-break space (b04). Snackbar dark (b09).
++  - [x] Data: after scans at 38–53 today, History shows one point for 24 Nov, 53, 20:21 (b17, read from the chart); widget text 53 (dump).
++  - [x] M3: Breakdown → Default Browser opens expanded (a17). Run 1 carry-over: Google Camera row, exact text, no button, −1 (a18). Uninstall steps (b18).
++  - [ ] Not verified on a phone: a trust change during a scan (Trusted is empty on the Pixel 8; code reading only); TalkBack (speech can't be read over adb, so it was not switched on).
++  - [x] Reviews and Ad ID needed due state: the debug app's own `maintenance_prefs`, `ad_id_prefs` and onboarding prefs were copied inside the app's folder, changed, put back; hashes equal, 8 / 38 / 68 days again.
++  - [x] Final state: Wi-Fi scanning 0, night mode no, accessibility null / 0 (all as before), Checks list view, score 53, final build installed (versionCode 11), no leftover files. Today's scans stay in its history.
++- [x] Gate again after the fixes: `compileDebugKotlin`, `testDebugUnitTest --rerun` 280, 0 failures, `assembleDebug` pass. The text test checks the no-break space.
++- [x] Found: the agent's "delete the old APK first" step was refused by the permission check; not worked around. Freshness shown by mtime after the last source change and equal hash on the phone. One of the agent's adb calls held a `$(echo)`, ran inside the sandbox and started its own adb server there (device list outside unchanged). The first start of part b was `UNKNOWN`, not cold (known: BootReceiver after a force-stop); redone cold.
++- [x] Found, kept: on a long Quick Win page Check again is below the fold, and a snackbar covers part of it for up to 10 s.
++- [ ] External review round 1: files written, waits for Oliver.
++
+ ### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 via device-verify)
+ 
+ - [x] Inbox empty; Oliver: no ROADMAP block from chat.
+@@ -118,13 +143,5 @@ It is the real guard. The allow and deny lists are a convenience.
+ - [x] Proofs repeated with the reviewer's own mutations once Oliver saved the findings file ("costs 2 pt"; camera text = the generic sentence; "Consider uninstalling it."; "remove this app"): each FAILED, restored → 234 pass. Resolutions in `docs/reviews/fix-stock-safe-advice-findings-1.md`. Own diff review against `master`: no blocking problems. Merged into `master` with `--no-ff`, not pushed.
+ - [x] Found: device-verify's first S8 try put a `cd` in front of the install command, so it ran inside the sandbox (its own adb server, "device not found"); rerun once with the bare command, which passed. On the S8, `am start -W` timed out because the screen was off (Dozing); a wake keyevent fixed it.
+ 
+-### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
+-
+-- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
+-- [x] Crash check, code reading of `master` `00e9d4d` (v1.5.3), not proven on a phone: every settings button goes through `IntentHelper.launchActionIntent` or `launchAdSettings` (`AdIdVerificationScreen.kt:418`); both catch `ActivityNotFoundException` on every step, neither `SecurityException`. No intent in use is known to throw it; the October audit (Pixel 8, Android 17) opened the four manual-check targets, the Wi-Fi scanning Quick Win and the Ad ID Ads page, and those intents are unchanged since. Plausible risk only: the Ad ID screen's explicit Play services component, if a Play services update stops exporting it. No hotfix; runs 4 and 6 add the catch.
+-- [x] Call 8 check: AI-app rows are not unknown. Installed → `isSecure = false`, "Installed", 0 pts (`InstalledAppsChecker.kt:272-277`), INFO because `isInformational` (`IssueItem.kt:49`). Spec says no, pending Oliver.
+-- [x] Spec updated: calls 1–16 decided, VPN copy, F1 +15 test in run 4, release split (v1.6 12.25, v1.6.1 8.0, M4 Later), What's new / change label / unknown-row wording per release, run 9 no longer depends on run 7, 2+3 before 5 and 9.
+-- [x] Own diff review: no blocking problems. No external review (spec only, no app code). Merged into `master` with `--no-ff`, not pushed.
+-
+-The 2026-11-23 v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
++The 2026-11-23 v1.6 spec decisions run, v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+ Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
+diff --git a/app/src/main/java/com/techtrest/privamatic/data/ScanFeedback.kt b/app/src/main/java/com/techtrest/privamatic/data/ScanFeedback.kt
+new file mode 100644
+index 0000000..3e3731b
+--- /dev/null
++++ b/app/src/main/java/com/techtrest/privamatic/data/ScanFeedback.kt
+@@ -0,0 +1,153 @@
++package com.techtrest.privamatic.data
++
++import com.techtrest.privamatic.data.model.ManualCheckType
++import com.techtrest.privamatic.data.model.PrivacyCheck
++import com.techtrest.privamatic.data.model.PrivacyIssue
++import com.techtrest.privamatic.data.model.PrivacyScore
++
++/** A scan the user asked for; its result is reported in a snackbar. App-start scans have none. */
++sealed interface UserScan {
++    /** Back from a settings page. [check] is the check its button fixes; null for a manual review. */
++    data class FixReturn(val check: PrivacyCheck?) : UserScan
++    data class CheckAgain(val check: PrivacyCheck) : UserScan
++    data object Rescan : UserScan
++    data class ManualDone(val type: ManualCheckType) : UserScan
++    data object AdIdConfirmed : UserScan
++    data object AdIdReset : UserScan
++}
++
++/** What a user scan changed. Every [score] is the shown (clamped) score; points are never 0. */
++sealed interface ScanOutcome {
++    val score: Int
++
++    /** One check no longer costs anything. */
++    data class CheckFixed(val check: PrivacyCheck, val points: Int, override val score: Int) : ScanOutcome
++    data class ChecksFixed(val count: Int, val points: Int, override val score: Int) : ScanOutcome
++
++    /** One check costs less but isn't fixed (partial, or it can't be read any more). */
++    data class CheckImproved(val check: PrivacyCheck, val points: Int, override val score: Int) : ScanOutcome
++
++    /** [points] is null when the review earned nothing (it wasn't due). */
++    data class ReviewDone(val type: ManualCheckType, val points: Int?, override val score: Int) : ScanOutcome
++    data class AdIdConfirmed(val points: Int?, override val score: Int) : ScanOutcome
++
++    /** The score rose, but no single name fits. [hasLosses]: something also got worse. */
++    data class Gain(val points: Int, override val score: Int, val hasLosses: Boolean) : ScanOutcome
++
++    /** [check] is set when it is the only thing that changed. */
++    data class Loss(val check: PrivacyCheck?, val points: Int, override val score: Int) : ScanOutcome
++
++    /** Changes that cancel out. [exact]: every better check is fixed, every worse one is new. */
++    data class Mixed(val better: Int, val worse: Int, val exact: Boolean, override val score: Int) : ScanOutcome
++    data class NotFixedYet(val check: PrivacyCheck, override val score: Int) : ScanOutcome
++    data class NoChange(override val score: Int) : ScanOutcome
++}
++
++/**
++ * A user scan that hasn't finished. [before] is the raw score of the result on screen when it
++ * was asked for. It is trust-adjusted only when compared, with the same trusted apps as the new
++ * result, so trusting an app while a scan runs is never reported as a fix.
++ */
++data class PendingUserScan(val before: PrivacyScore, val trigger: UserScan)
++
++object ScanFeedback {
++
++    /**
++     * Compares two trust-adjusted scores held in memory. Never reads score_history: the widget
++     * writes that file too. A check is better when its deduction went down, worse when it went up.
++     */
++    fun between(before: PrivacyScore, after: PrivacyScore, trigger: UserScan): ScanOutcome {
++        val points = after.score - before.score
++        val beforeIssues = before.issues.associateBy { it.check }
++        val changes = after.issues.mapNotNull { new ->
++            val old = beforeIssues[new.check] ?: return@mapNotNull null
++            Change(new.check, old.pointDeduction, new.pointDeduction, new.isUnknown)
++        }
++        val better = changes.filter { it.after < it.before }
++        val worse = changes.filter { it.after > it.before }
++        val manual = after.manualCheckPoints - before.manualCheckPoints
++        val betterCount = better.size + if (manual > 0) 1 else 0
++        val worseCount = worse.size + if (manual < 0) 1 else 0
++
++        return when {
++            points > 0 -> gain(better, worseCount, manual, points, after.score, trigger)
++            points < 0 -> ScanOutcome.Loss(
++                check = worse.singleOrNull()?.check?.takeIf { betterCount == 0 && worseCount == 1 },
++                points = -points,
++                score = after.score
++            )
++            betterCount > 0 && worseCount > 0 -> ScanOutcome.Mixed(
++                better = betterCount,
++                worse = worseCount,
++                exact = manual == 0 && better.all { it.isFixed } && worse.all { it.before == 0 },
++                score = after.score
++            )
++            // Only one side changed but the shown score didn't move: both are clamped at 0.
++            betterCount > 0 || worseCount > 0 -> ScanOutcome.NoChange(after.score)
++            else -> unchanged(beforeIssues, after.score, trigger)
++        }
++    }
++
++    private fun gain(
++        better: List<Change>,
++        worseCount: Int,
++        manual: Int,
++        points: Int,
++        score: Int,
++        trigger: UserScan
++    ): ScanOutcome {
++        val single = better.singleOrNull()
++        return when {
++            worseCount > 0 -> ScanOutcome.Gain(points, score, hasLosses = true)
++            manual > 0 ->
++                if (better.isEmpty() && trigger is UserScan.ManualDone && manual == trigger.type.pointValue) {
++                    ScanOutcome.ReviewDone(trigger.type, points, score)
++                } else {
++                    ScanOutcome.Gain(points, score, hasLosses = false)
++                }
++            trigger == UserScan.AdIdConfirmed && single?.check == PrivacyCheck.ADVERTISING_ID ->
++                ScanOutcome.AdIdConfirmed(points, score)
++            single != null && single.isFixed -> ScanOutcome.CheckFixed(single.check, points, score)
++            single != null -> ScanOutcome.CheckImproved(single.check, points, score)
++            better.all { it.isFixed } -> ScanOutcome.ChecksFixed(better.size, points, score)
++            else -> ScanOutcome.Gain(points, score, hasLosses = false)
++        }
++    }
++
++    /** "Not fixed yet" only for a check that costs points: a 0-point row has nothing to earn. */
++    private fun unchanged(
++        issues: Map<PrivacyCheck, PrivacyIssue>,
++        score: Int,
++        trigger: UserScan
++    ): ScanOutcome {
++        fun notFixedOrNoChange(check: PrivacyCheck?): ScanOutcome =
++            if (check != null && (issues[check]?.pointDeduction ?: 0) > 0) {
++                ScanOutcome.NotFixedYet(check, score)
++            } else {
++                ScanOutcome.NoChange(score)
++            }
++        return when (trigger) {
++            is UserScan.FixReturn -> notFixedOrNoChange(trigger.check)
++            is UserScan.CheckAgain -> notFixedOrNoChange(trigger.check)
++            is UserScan.ManualDone -> ScanOutcome.ReviewDone(trigger.type, null, score)
++            UserScan.AdIdConfirmed -> ScanOutcome.AdIdConfirmed(null, score)
++            UserScan.Rescan, UserScan.AdIdReset -> ScanOutcome.NoChange(score)
++        }
++    }
++
++    /**
++     * A new scan cancels a running one. The earliest [PendingUserScan.before] is kept, so a
++     * double tap can't lose the gain; a plain rescan doesn't replace a more telling trigger.
++     */
++    fun merge(pending: PendingUserScan?, trigger: UserScan?, current: PrivacyScore?): PendingUserScan? =
++        when {
++            trigger == null -> pending
++            pending == null -> current?.let { PendingUserScan(it, trigger) }
++            trigger == UserScan.Rescan -> pending
++            else -> pending.copy(trigger = trigger)
++        }
++
++    private class Change(val check: PrivacyCheck, val before: Int, val after: Int, isUnknown: Boolean) {
++        val isFixed = after == 0 && !isUnknown
++    }
++}
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt b/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
+index 2356b41..ed5eac4 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/components/IssueItem.kt
+@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
+ import com.techtrest.privamatic.R
+ import com.techtrest.privamatic.accentOnSurface
+ import com.techtrest.privamatic.accentOutlinedButtonColors
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.PrivacyIssue
+ import com.techtrest.privamatic.data.model.PrivacyCheck
+ import com.techtrest.privamatic.data.model.isFullyTrusted
+@@ -155,7 +156,7 @@ fun IssueItem(
+                                             context = context,
+                                             actionType = actionType,
+                                             packageName = issue.check.packageName,
+-                                            rescanOnReturn = true
++                                            onReturn = UserScan.FixReturn(issue.check)
+                                         )
+                                     },
+                                     modifier = Modifier.fillMaxWidth(),
+@@ -204,7 +205,7 @@ fun IssueItem(
+                                             context = context,
+                                             actionType = actionType,
+                                             packageName = issue.check.packageName,
+-                                            rescanOnReturn = true
++                                            onReturn = UserScan.FixReturn(issue.check)
+                                         )
+                                     },
+                                     modifier = Modifier.fillMaxWidth(),
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/navigation/AppNavigationState.kt b/app/src/main/java/com/techtrest/privamatic/ui/navigation/AppNavigationState.kt
+index 44deedd..48d55ed 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/navigation/AppNavigationState.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/navigation/AppNavigationState.kt
+@@ -33,6 +33,20 @@ class AppNavigationState(
+     var showHistoryScreen by mutableStateOf(false)
+         private set
+ 
++    /** One-shot: Details > Checks switches to its Breakdown view, then clears it. */
++    var isBreakdownRequested by mutableStateOf(false)
++        private set
++
++    fun openBreakdown() {
++        isBreakdownRequested = true
++        selectDetailsTab(DetailsTab.CHECKS)
++        selectTab(NavigationTab.DETAILS)
++    }
++
++    fun onBreakdownShown() {
++        isBreakdownRequested = false
++    }
++
+     fun selectTab(tab: NavigationTab) {
+         selectedTab = tab
+     }
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/screens/DetailsScreen.kt b/app/src/main/java/com/techtrest/privamatic/ui/screens/DetailsScreen.kt
+index 44bf8cd..2d75f0f 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/screens/DetailsScreen.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/screens/DetailsScreen.kt
+@@ -98,6 +98,8 @@ fun DetailsScreen(
+     sdkScanState: SdkScanState,
+     onRunSdkScan: () -> Unit,
+     onNavigateToManualChecks: () -> Unit,
++    isBreakdownRequested: Boolean,
++    onBreakdownShown: () -> Unit,
+     modifier: Modifier = Modifier
+ ) {
+     // Dark primary is the lighter brand green (#00854A): onPrimary at 0.8 alpha only reaches
+@@ -149,7 +151,9 @@ fun DetailsScreen(
+             DetailsTab.CHECKS -> ChecksTab(
+                 privacyScore = privacyScore,
+                 trustedPackages = trustedPackages,
+-                onNavigateToManualChecks = onNavigateToManualChecks
++                onNavigateToManualChecks = onNavigateToManualChecks,
++                isBreakdownRequested = isBreakdownRequested,
++                onBreakdownShown = onBreakdownShown
+             )
+             DetailsTab.APPS -> AppsContent(
+                 flaggedApps = flaggedApps,
+@@ -177,6 +181,8 @@ private fun ChecksTab(
+     privacyScore: PrivacyScore,
+     trustedPackages: Set<String>,
+     onNavigateToManualChecks: () -> Unit,
++    isBreakdownRequested: Boolean,
++    onBreakdownShown: () -> Unit,
+     modifier: Modifier = Modifier
+ ) {
+     val context = LocalContext.current
+@@ -198,6 +204,14 @@ private fun ChecksTab(
+     var highlightedCheck by remember { mutableStateOf<PrivacyCheck?>(null) }
+     val listState = rememberLazyListState()
+ 
++    LaunchedEffect(isBreakdownRequested) {
++        if (isBreakdownRequested) {
++            highlightedCheck = null
++            showView(ChecksView.BREAKDOWN)
++            onBreakdownShown()
++        }
++    }
++
+     Column(modifier = modifier.fillMaxSize()) {
+         ChecksHeader(
+             privacyScore = privacyScore,
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/screens/MainScreen.kt b/app/src/main/java/com/techtrest/privamatic/ui/screens/MainScreen.kt
+index 74f7002..f9cd230 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/screens/MainScreen.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/screens/MainScreen.kt
+@@ -1,12 +1,16 @@
+ package com.techtrest.privamatic.ui.screens
+ 
+ import androidx.activity.compose.BackHandler
++import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.Box
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.consumeWindowInsets
+ import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.navigationBars
++import androidx.compose.foundation.layout.windowInsetsPadding
++import androidx.compose.foundation.layout.WindowInsets
+ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.pager.HorizontalPager
+@@ -21,8 +25,13 @@ import androidx.compose.material3.DrawerValue
+ import androidx.compose.material3.ExperimentalMaterial3Api
+ import androidx.compose.material3.FloatingActionButton
+ import androidx.compose.material3.Icon
++import androidx.compose.material3.LinearProgressIndicator
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Scaffold
++import androidx.compose.material3.SnackbarDuration
++import androidx.compose.material3.SnackbarHost
++import androidx.compose.material3.SnackbarHostState
++import androidx.compose.material3.SnackbarResult
+ import androidx.compose.material3.Text
+ import androidx.compose.material3.rememberDrawerState
+ import androidx.compose.material3.rememberModalBottomSheetState
+@@ -37,11 +46,14 @@ import androidx.compose.runtime.setValue
+ import androidx.compose.runtime.snapshotFlow
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.layout.onSizeChanged
+ import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import androidx.lifecycle.compose.LifecycleResumeEffect
++import com.techtrest.privamatic.Cream
+ import com.techtrest.privamatic.R
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.techtrest.privamatic.data.PrivacyTipSelector
+@@ -49,6 +61,8 @@ import com.techtrest.privamatic.data.maintenance.MaintenanceManager
+ import com.techtrest.privamatic.data.maintenance.PrivacyTipHistory
+ import com.techtrest.privamatic.data.maintenance.QuickWinDismissalManager
+ import com.techtrest.privamatic.data.HistoryFilter
++import com.techtrest.privamatic.data.ScanOutcome
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.PrivacyTip
+ import com.techtrest.privamatic.data.model.ManualCheckType
+ import com.techtrest.privamatic.data.model.QuickWinType
+@@ -62,8 +76,12 @@ import com.techtrest.privamatic.ui.components.ScoringInfoDialog
+ import com.techtrest.privamatic.ui.navigation.NavigationTab
+ import com.techtrest.privamatic.ui.navigation.rememberAppNavigationState
+ import com.techtrest.privamatic.ui.utils.IntentHelper
++import com.techtrest.privamatic.ui.utils.ResourceFeedbackStrings
++import com.techtrest.privamatic.ui.utils.ScanFeedbackText
+ import com.techtrest.privamatic.ui.viewmodel.PrivacyScanState
+ import com.techtrest.privamatic.ui.viewmodel.PrivacyViewModel
++import com.techtrest.privamatic.ui.viewmodel.ScanEvent
++import kotlinx.coroutines.Job
+ import kotlinx.coroutines.launch
+ 
+ @OptIn(ExperimentalMaterial3Api::class)
+@@ -74,13 +92,14 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+     val dismissalManager = remember { QuickWinDismissalManager(context) }
+     val tipHistory = remember { PrivacyTipHistory(context) }
+     val scanState by viewModel.scanState.collectAsState()
++    val isRefreshing by viewModel.isRefreshing.collectAsState()
+     val scoreHistory by viewModel.scoreHistory.collectAsState()
+     val historySnapshots by viewModel.historySnapshots.collectAsState()
+     val hasHistory by viewModel.hasHistory.collectAsState()
+ 
+     // Back from Settings after a fix deep link: rescan once so the score shows the fix.
+     LifecycleResumeEffect(Unit) {
+-        if (IntentHelper.consumeRescanOnReturn()) viewModel.performScan()
++        IntentHelper.consumeRescanOnReturn()?.let { viewModel.performScan(it) }
+         onPauseOrDispose { }
+     }
+     val selectedHistoryFilter by viewModel.selectedFilter.collectAsState()
+@@ -129,6 +148,13 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+     var showManualCheckDetail by remember { mutableStateOf<ManualCheckType?>(null) }
+     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
+     var showAdIdVerification by remember { mutableStateOf(false) }
++    // Pull to refresh shows its own spinner; other scans only the bar under the top bar
++    var isPullRefresh by remember { mutableStateOf(false) }
++    LaunchedEffect(isRefreshing) {
++        if (!isRefreshing) isPullRefresh = false
++    }
++    val snackbarHostState = remember { SnackbarHostState() }
++    var bottomBarHeightPx by remember { mutableStateOf(0) }
+     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+ 
+     val pagerState = rememberPagerState(pageCount = { NavigationTab.entries.size })
+@@ -149,6 +175,62 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+         }
+     }
+ 
++    // Result of a user scan: update the open Quick Win page, then one snackbar.
++    LaunchedEffect(viewModel) {
++        val strings = ResourceFeedbackStrings(context.resources)
++        var snackbarJob: Job? = null
++        viewModel.scanEvents.collect { event ->
++            if (event is ScanEvent.Finished &&
++                (event.trigger is UserScan.FixReturn || event.trigger is UserScan.CheckAgain)
++            ) {
++                // Gone from the list closes the page; otherwise its gain updates
++                showQuickWinDetail = showQuickWinDetail?.let { open ->
++                    event.quickWins.find { it.type == open.type && it.relatedCheck == open.relatedCheck }
++                }
++            }
++
++            val text = when (event) {
++                is ScanEvent.Finished -> ScanFeedbackText.text(event.outcome, strings)
++                is ScanEvent.Failed -> strings.string(R.string.copy_snackbar_scan_failed)
++            }
++            val action: Pair<Int, () -> Unit>? = when (event) {
++                is ScanEvent.Failed ->
++                    R.string.label_snackbar_try_again to { viewModel.performScan(event.trigger) }
++                is ScanEvent.Finished -> {
++                    val outcome = event.outcome
++                    when {
++                        outcome is ScanOutcome.NotFixedYet -> R.string.label_check_again to {
++                            viewModel.performScan(UserScan.CheckAgain(outcome.check))
++                        }
++                        outcome is ScanOutcome.Loss || outcome is ScanOutcome.Mixed ||
++                            (outcome is ScanOutcome.Gain && outcome.hasLosses) ->
++                            R.string.label_snackbar_details to {
++                                showManualCheckDetail = null
++                                showQuickWinDetail = null
++                                showAdIdVerification = false
++                                showScoringSystemScreen = false
++                                showSettingsScreen = false
++                                navigationState.closeHistory()
++                                scope.launch { drawerState.close() }
++                                navigationState.openBreakdown()
++                            }
++                        else -> null
++                    }
++                }
++            }
++            // The newer snackbar replaces the older
++            snackbarJob?.cancel()
++            snackbarJob = launch {
++                val result = snackbarHostState.showSnackbar(
++                    message = text,
++                    actionLabel = action?.let { strings.string(it.first) },
++                    duration = if (action == null) SnackbarDuration.Short else SnackbarDuration.Long
++                )
++                if (result == SnackbarResult.ActionPerformed) action?.second?.invoke()
++            }
++        }
++    }
++
+     // Handle back gesture with proper navigation hierarchy
+     // Note: Guide screens handle their own back gesture via BackHandler in each guide
+     BackHandler(enabled = showAdIdVerification) {
+@@ -210,23 +292,25 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                         }
+                     },
+                     onRescanClick = {
+-                        viewModel.performScan()
++                        viewModel.performScan(UserScan.Rescan)
+                     },
+                     onInfoClick = {
+                         showInfoDialog = true
+                     },
+-                    isScanning = scanState is PrivacyScanState.Scanning
++                    isScanning = isRefreshing || scanState is PrivacyScanState.Scanning
+                 )
+             },
+             bottomBar = {
+                 // Only show bottom nav when in success state
+                 if (scanState is PrivacyScanState.Success) {
+-                    BottomNavigationBar(
+-                        selectedTab = navigationState.selectedTab,
+-                        onTabSelected = { tab ->
+-                            navigationState.selectTab(tab)
+-                        }
+-                    )
++                    Box(modifier = Modifier.onSizeChanged { bottomBarHeightPx = it.height }) {
++                        BottomNavigationBar(
++                            selectedTab = navigationState.selectedTab,
++                            onTabSelected = { tab ->
++                                navigationState.selectTab(tab)
++                            }
++                        )
++                    }
+                 }
+             }
+         ) { paddingValues ->
+@@ -291,9 +375,10 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                                     allQuickWins = filteredQuickWins,
+                                     dismissedCheckNames = dismissedCheckNames,
+                                     onRefresh = {
+-                                        viewModel.performScan()
++                                        isPullRefresh = true
++                                        viewModel.performScan(UserScan.Rescan)
+                                     },
+-                                    isRefreshing = scanState is PrivacyScanState.Scanning,
++                                    isRefreshing = isRefreshing && isPullRefresh,
+                                     onNavigateToManualChecks = {
+                                         navigationState.selectTab(NavigationTab.ACTIONS)
+                                     }
+@@ -313,7 +398,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                                     onMarkCheckDone = { checkType ->
+                                         scope.launch {
+                                             maintenanceManager.markCheckCompleted(checkType)
+-                                            viewModel.performScan()
++                                            viewModel.performScan(UserScan.ManualDone(checkType))
+                                         }
+                                     },
+                                     onQuickWinSelected = { quickWin ->
+@@ -345,10 +430,25 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                                     onRunSdkScan = { viewModel.runSdkScan() },
+                                     onNavigateToManualChecks = {
+                                         navigationState.selectTab(NavigationTab.ACTIONS)
+-                                    }
++                                    },
++                                    isBreakdownRequested = navigationState.isBreakdownRequested,
++                                    onBreakdownShown = { navigationState.onBreakdownShown() }
+                                 )
+                             }
+                         }
++                        // On top of the content, so it never shifts the layout. Header colour behind
++                        // the whole bar (its track has gaps), Cream like the tab indicator: onPrimary
++                        // white vanishes against the light content below.
++                        if (isRefreshing) {
++                            LinearProgressIndicator(
++                                modifier = Modifier
++                                    .fillMaxWidth()
++                                    .align(Alignment.TopCenter)
++                                    .background(MaterialTheme.colorScheme.primary),
++                                color = Cream,
++                                trackColor = MaterialTheme.colorScheme.primary
++                            )
++                        }
+                     }
+ 
+                     is PrivacyScanState.Error -> {
+@@ -449,7 +549,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                 onMarkDone = {
+                     scope.launch {
+                         maintenanceManager.markCheckCompleted(checkType)
+-                        viewModel.performScan()
++                        viewModel.performScan(UserScan.ManualDone(checkType))
+                         showManualCheckDetail = null
+                     }
+                 }
+@@ -467,7 +567,11 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+                     dismissalManager.dismiss(quickWin)
+                     showQuickWinDetail = null
+                 }
+-            }
++            },
++            onCheckAgain = {
++                quickWin.relatedCheck?.let { viewModel.performScan(UserScan.CheckAgain(it)) }
++            },
++            isChecking = isRefreshing
+         )
+     }
+ 
+@@ -479,16 +583,36 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
+             onConfirmed = {
+                 scope.launch {
+                     maintenanceManager.markCheckCompleted(ManualCheckType.ADVERTISING_ID_CHECK)
+-                    viewModel.performScan()
++                    viewModel.performScan(UserScan.AdIdConfirmed)
+                     showAdIdVerification = false
+                 }
+             },
+             onReset = {
+                 scope.launch {
+                     maintenanceManager.resetAdIdCheck()
+-                    viewModel.performScan()
++                    viewModel.performScan(UserScan.AdIdReset)
+                 }
+             }
+         )
+     }
++
++    // Result snackbar: above every overlay screen, and above the bottom bar when that shows.
++    val isOverlayShown = showScoringSystemScreen || navigationState.showHistoryScreen ||
++        showSettingsScreen || showManualCheckDetail != null || showQuickWinDetail != null ||
++        showAdIdVerification
++    val bottomBarPadding = with(LocalDensity.current) { bottomBarHeightPx.toDp() }
++    Box(modifier = Modifier.fillMaxSize()) {
++        SnackbarHost(
++            hostState = snackbarHostState,
++            modifier = Modifier
++                .align(Alignment.BottomCenter)
++                .then(
++                    if (isOverlayShown || scanState !is PrivacyScanState.Success) {
++                        Modifier.windowInsetsPadding(WindowInsets.navigationBars)
++                    } else {
++                        Modifier.padding(bottom = bottomBarPadding)
++                    }
++                )
++        )
++    }
+ }
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/screens/ManualCheckDetailScreen.kt b/app/src/main/java/com/techtrest/privamatic/ui/screens/ManualCheckDetailScreen.kt
+index 75834ed..0737dbe 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/screens/ManualCheckDetailScreen.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/screens/ManualCheckDetailScreen.kt
+@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
+ import com.techtrest.privamatic.R
+ import com.techtrest.privamatic.accentOnSurface
+ import com.techtrest.privamatic.accentOutlinedButtonColors
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.ActionType
+ import com.techtrest.privamatic.data.model.ManualCheckState
+ import com.techtrest.privamatic.data.model.ManualCheckType
+@@ -170,7 +171,9 @@ fun ManualCheckDetailScreen(
+                     onClick = {
+                         IntentHelper.launchActionIntent(
+                             context = context,
+-                            actionType = getSettingsActionType(checkState.type)
++                            actionType = getSettingsActionType(checkState.type),
++                            // A review can change a scanned check (Location: Background location).
++                            onReturn = UserScan.FixReturn(null)
+                         )
+                     },
+                     modifier = Modifier.weight(1f),
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/screens/QuickWinDetailScreen.kt b/app/src/main/java/com/techtrest/privamatic/ui/screens/QuickWinDetailScreen.kt
+index a6341c5..c6afe05 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/screens/QuickWinDetailScreen.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/screens/QuickWinDetailScreen.kt
+@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.unit.dp
+ import com.techtrest.privamatic.R
+ import com.techtrest.privamatic.accentOnSurface
++import com.techtrest.privamatic.accentOutlinedButtonColors
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.QuickWin
+ import com.techtrest.privamatic.ui.utils.IntentHelper
+ 
+@@ -57,6 +59,8 @@ fun QuickWinDetailScreen(
+     quickWin: QuickWin,
+     onBackClick: () -> Unit,
+     onDismiss: () -> Unit,
++    onCheckAgain: () -> Unit,
++    isChecking: Boolean,
+     modifier: Modifier = Modifier
+ ) {
+     BackHandler {
+@@ -204,7 +208,7 @@ fun QuickWinDetailScreen(
+                             context = context,
+                             actionType = actionType,
+                             packageName = quickWin.relatedCheck?.packageName,
+-                            rescanOnReturn = true
++                            onReturn = UserScan.FixReturn(quickWin.relatedCheck)
+                         )
+                     },
+                     modifier = Modifier.fillMaxWidth()
+@@ -220,9 +224,23 @@ fun QuickWinDetailScreen(
+                             ?: stringResource(R.string.label_common_open_settings)
+                     )
+                 }
++            }
+ 
+-                Spacer(modifier = Modifier.height(8.dp))
++            OutlinedButton(
++                onClick = onCheckAgain,
++                enabled = !isChecking,
++                modifier = Modifier.fillMaxWidth(),
++                colors = accentOutlinedButtonColors()
++            ) {
++                Text(
++                    stringResource(
++                        if (isChecking) R.string.label_check_again_checking
++                        else R.string.label_check_again
++                    )
++                )
+             }
++
++            Spacer(modifier = Modifier.height(8.dp))
+         }
+     }
+ }
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/utils/IntentHelper.kt b/app/src/main/java/com/techtrest/privamatic/ui/utils/IntentHelper.kt
+index 79b9714..68f5dd4 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/utils/IntentHelper.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/utils/IntentHelper.kt
+@@ -6,6 +6,7 @@ import android.content.Intent
+ import android.net.Uri
+ import android.provider.Settings
+ import android.widget.Toast
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.ActionType
+ 
+ /**
+@@ -15,17 +16,17 @@ import com.techtrest.privamatic.data.model.ActionType
+ object IntentHelper {
+ 
+     /**
+-     * Set when a fix deep link (Quick Win or check row) opened Settings; MainScreen rescans
+-     * once when the app resumes, so the score reflects the fix. In memory only: if the process
+-     * dies meanwhile, the next launch scans anyway.
++     * Set when a fix deep link (Quick Win, check row or manual check) opened Settings;
++     * MainScreen rescans once when the app resumes, so the score reflects the fix. In memory
++     * only: if the process dies meanwhile, the next launch scans anyway.
+      */
+     @Volatile
+-    private var rescanPending = false
++    private var pendingReturn: UserScan.FixReturn? = null
+ 
+-    /** True once after a fix deep link was launched; clears the flag. */
+-    fun consumeRescanOnReturn(): Boolean {
+-        val pending = rescanPending
+-        rescanPending = false
++    /** The scan to run on return, once after a fix deep link was launched; clears it. */
++    fun consumeRescanOnReturn(): UserScan.FixReturn? {
++        val pending = pendingReturn
++        pendingReturn = null
+         return pending
+     }
+ 
+@@ -36,7 +37,7 @@ object IntentHelper {
+         context: Context,
+         actionType: ActionType,
+         packageName: String? = null,
+-        rescanOnReturn: Boolean = false
++        onReturn: UserScan.FixReturn? = null
+     ) {
+         val intent = createIntent(actionType, packageName)
+         if (intent == null) {
+@@ -46,13 +47,13 @@ object IntentHelper {
+ 
+         try {
+             context.startActivity(intent)
+-            if (rescanOnReturn) rescanPending = true
++            if (onReturn != null) pendingReturn = onReturn
+         } catch (e: ActivityNotFoundException) {
+             val fallback = createFallbackIntent(actionType)
+             if (fallback != null) {
+                 try {
+                     context.startActivity(fallback)
+-                    if (rescanOnReturn) rescanPending = true
++                    if (onReturn != null) pendingReturn = onReturn
+                     showToast(context, "Opening general settings (specific page not available)")
+                 } catch (e2: ActivityNotFoundException) {
+                     showToast(context, "Unable to open settings on this device")
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/utils/ScanFeedbackText.kt b/app/src/main/java/com/techtrest/privamatic/ui/utils/ScanFeedbackText.kt
+new file mode 100644
+index 0000000..392046f
+--- /dev/null
++++ b/app/src/main/java/com/techtrest/privamatic/ui/utils/ScanFeedbackText.kt
+@@ -0,0 +1,84 @@
++package com.techtrest.privamatic.ui.utils
++
++import android.content.res.Resources
++import androidx.annotation.PluralsRes
++import androidx.annotation.StringRes
++import com.techtrest.privamatic.R
++import com.techtrest.privamatic.data.ScanOutcome
++import com.techtrest.privamatic.data.model.ManualCheckType
++import com.techtrest.privamatic.data.model.PrivacyCheck
++
++/** The lookups [ScanFeedbackText] needs, so its texts can be tested without Android. */
++interface FeedbackStrings {
++    fun string(@StringRes id: Int, vararg args: Any): String
++    fun plural(@PluralsRes id: Int, count: Int): String
++}
++
++class ResourceFeedbackStrings(private val resources: Resources) : FeedbackStrings {
++    override fun string(id: Int, vararg args: Any): String = resources.getString(id, *args)
++    override fun plural(id: Int, count: Int): String = resources.getQuantityString(id, count, count)
++}
++
++/** The snackbar text for a finished user scan. */
++object ScanFeedbackText {
++
++    fun text(outcome: ScanOutcome, strings: FeedbackStrings): String = when (outcome) {
++        is ScanOutcome.CheckFixed -> strings.line(
++            strings.string(R.string.fmt_snackbar_fixed, strings.name(outcome.check)),
++            strings.gain(outcome.points), outcome.score
++        )
++        is ScanOutcome.ChecksFixed -> strings.line(
++            strings.plural(R.plurals.plural_snackbar_checks_fixed, outcome.count),
++            strings.gain(outcome.points), outcome.score
++        )
++        is ScanOutcome.CheckImproved ->
++            strings.line(strings.name(outcome.check), strings.gain(outcome.points), outcome.score)
++        is ScanOutcome.ReviewDone -> strings.line(
++            strings.string(R.string.fmt_snackbar_review_done, strings.string(reviewName(outcome.type))),
++            outcome.points?.let { strings.gain(it) }, outcome.score
++        )
++        is ScanOutcome.AdIdConfirmed -> strings.line(
++            strings.string(R.string.fmt_snackbar_confirmed, strings.name(PrivacyCheck.ADVERTISING_ID)),
++            outcome.points?.let { strings.gain(it) }, outcome.score
++        )
++        is ScanOutcome.Gain -> strings.line(strings.gain(outcome.points), null, outcome.score)
++        is ScanOutcome.Loss -> {
++            val points = strings.plural(R.plurals.plural_snackbar_loss, outcome.points)
++            if (outcome.check == null) strings.line(points, null, outcome.score)
++            else strings.line(strings.name(outcome.check), points, outcome.score)
++        }
++        is ScanOutcome.Mixed -> strings.line(
++            if (outcome.exact) {
++                strings.string(
++                    R.string.fmt_snackbar_mixed,
++                    strings.plural(R.plurals.plural_snackbar_fixed, outcome.better),
++                    strings.plural(R.plurals.plural_snackbar_new_issues, outcome.worse)
++                )
++            } else {
++                strings.string(R.string.fmt_snackbar_better_worse, outcome.better, outcome.worse)
++            },
++            null, outcome.score
++        )
++        is ScanOutcome.NotFixedYet ->
++            strings.line(strings.string(R.string.copy_snackbar_not_fixed), null, outcome.score)
++        is ScanOutcome.NoChange ->
++            strings.line(strings.string(R.string.copy_snackbar_no_change), null, outcome.score)
++    }
++
++    @StringRes
++    private fun reviewName(type: ManualCheckType): Int = when (type) {
++        ManualCheckType.LOCATION_ALWAYS_ON -> R.string.label_snackbar_review_location
++        ManualCheckType.CAMERA_MIC_ACCESS -> R.string.label_snackbar_review_camera_mic
++        ManualCheckType.UNUSED_APPS -> R.string.label_snackbar_review_unused_apps
++        // Has its own trigger and text; here only so the mapping is complete.
++        ManualCheckType.ADVERTISING_ID_CHECK -> R.string.manual_check_advertising_id_check_name
++    }
++
++    private fun FeedbackStrings.name(check: PrivacyCheck) = string(check.displayName)
++
++    private fun FeedbackStrings.gain(points: Int) = plural(R.plurals.plural_quick_win_points, points)
++
++    private fun FeedbackStrings.line(headline: String, points: String?, score: Int): String =
++        if (points == null) string(R.string.fmt_snackbar_headline, headline, score)
++        else string(R.string.fmt_snackbar_headline_points, headline, points, score)
++}
+diff --git a/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt b/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
+index 9f5ba7b..0665641 100644
+--- a/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
++++ b/app/src/main/java/com/techtrest/privamatic/ui/viewmodel/PrivacyViewModel.kt
+@@ -5,12 +5,16 @@ import androidx.lifecycle.AndroidViewModel
+ import androidx.lifecycle.viewModelScope
+ import com.techtrest.privamatic.PrivacyWidgetProvider
+ import com.techtrest.privamatic.data.HistoryFilter
++import com.techtrest.privamatic.data.PendingUserScan
+ import com.techtrest.privamatic.data.PrivacySnapshotRepository
+ import com.techtrest.privamatic.data.QuickWinsDetector
++import com.techtrest.privamatic.data.ScanFeedback
++import com.techtrest.privamatic.data.ScanOutcome
+ import com.techtrest.privamatic.data.ScoreHistoryRepository
+ import com.techtrest.privamatic.data.SdkScanRepository
+ import com.techtrest.privamatic.data.TrustedAppsAdjuster
+ import com.techtrest.privamatic.data.TrustedAppsRepository
++import com.techtrest.privamatic.data.UserScan
+ import com.techtrest.privamatic.data.model.FlaggedApp
+ import com.techtrest.privamatic.data.model.PrivacyScore
+ import com.techtrest.privamatic.data.model.PrivacySnapshot
+@@ -24,14 +28,19 @@ import com.techtrest.privamatic.data.util.PackageManagerUtil
+ import kotlinx.coroutines.CancellationException
+ import kotlinx.coroutines.Job
+ import kotlinx.coroutines.async
+-import kotlinx.coroutines.awaitAll
++import kotlinx.coroutines.channels.Channel
++import kotlinx.coroutines.coroutineScope
++import kotlinx.coroutines.currentCoroutineContext
+ import kotlinx.coroutines.delay
++import kotlinx.coroutines.ensureActive
++import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.MutableStateFlow
+ import kotlinx.coroutines.flow.SharingStarted
+ import kotlinx.coroutines.flow.StateFlow
+ import kotlinx.coroutines.flow.asStateFlow
+ import kotlinx.coroutines.flow.combine
+ import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.flow.receiveAsFlow
+ import kotlinx.coroutines.flow.stateIn
+ import kotlinx.coroutines.launch
+ 
+@@ -42,12 +51,40 @@ sealed class PrivacyScanState {
+     data class Error(val message: String) : PrivacyScanState()
+ }
+ 
++/** One-shot result of a scan while an earlier result was on screen. */
++sealed class ScanEvent {
++    /** [quickWins]: the list the finished scan produced, trust filter applied. */
++    data class Finished(
++        val outcome: ScanOutcome,
++        val trigger: UserScan,
++        val quickWins: List<QuickWin>
++    ) : ScanEvent()
++
++    data class Failed(val trigger: UserScan) : ScanEvent()
++}
++
+ sealed class SdkScanState {
+     data object Idle : SdkScanState()
+     data object Scanning : SdkScanState()
+     data object Error : SdkScanState()
+ }
+ 
++/**
++ * Runs [scan] for at least [minimumMs]. A failing scan throws here instead of failing the
++ * caller's job (which would crash the app). A cancelled caller always gets its cancellation,
++ * also when the scan fails on its way out: a newer scan is running by then.
++ */
++internal suspend fun <T> runScan(minimumMs: Long, scan: suspend () -> T): T = try {
++    coroutineScope {
++        val result = async { scan() }
++        delay(minimumMs)
++        result.await()
++    }
++} catch (e: Exception) {
++    currentCoroutineContext().ensureActive()
++    throw e
++}
++
+ class PrivacyViewModel(application: Application) : AndroidViewModel(application) {
+ 
+     private val privacyScanner = PrivacyScanner(application)
+@@ -60,6 +97,16 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+     private val _scanState = MutableStateFlow<PrivacyScanState>(PrivacyScanState.Idle)
+     val scanState: StateFlow<PrivacyScanState> = _scanState.asStateFlow()
+ 
++    /** A scan is running while the previous result stays on screen. */
++    private val _isRefreshing = MutableStateFlow(false)
++    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
++
++    private val _scanEvents = Channel<ScanEvent>(Channel.BUFFERED)
++    val scanEvents: Flow<ScanEvent> = _scanEvents.receiveAsFlow()
++
++    // Survives a cancelled scan, so the next one still compares with what the user last saw
++    private var pendingUserScan: PendingUserScan? = null
++
+     private val _scoreHistory = MutableStateFlow<ScoreHistory?>(null)
+     val scoreHistory: StateFlow<ScoreHistory?> = _scoreHistory.asStateFlow()
+ 
+@@ -81,11 +128,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+         _rawPrivacyScore,
+         trustedPackages
+     ) { rawWins, rawScore, trusted ->
+-        if (trusted.isEmpty() || rawScore == null) rawWins
+-        else rawWins.filter { quickWin ->
+-            val issue = rawScore.issues.find { it.check == quickWin.relatedCheck }
+-            issue == null || !issue.isFullyTrusted(trusted)
+-        }
++        if (rawScore == null) rawWins else filterTrusted(rawWins, rawScore, trusted)
+     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+ 
+     private val _flaggedApps = MutableStateFlow<List<FlaggedApp>>(emptyList())
+@@ -110,14 +153,17 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+     private var currentScanJob: Job? = null
+     private var isInitialLoad = true
+ 
++    // The trusted set the shown score uses
++    private var shownTrusted: Set<String>? = null
++
+     init {
+         // Recompute score reactively whenever the whitelist changes
+         viewModelScope.launch {
+             trustedPackages.collect { trusted ->
+                 val rawScore = _rawPrivacyScore.value ?: return@collect
+-                if (_scanState.value is PrivacyScanState.Scanning) return@collect
+-                _scanState.value = PrivacyScanState.Success(TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted))
+-                PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
++                // The running scan applies the change when it finishes
++                if (_scanState.value is PrivacyScanState.Scanning || _isRefreshing.value) return@collect
++                showAdjusted(rawScore, trusted)
+             }
+         }
+         performScan()
+@@ -153,36 +199,59 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+         }
+     }
+ 
+-    fun performScan() {
++    /**
++     * Scans the device. The first scan shows [PrivacyScanState.Scanning]; later ones keep the
++     * result on screen and only set [isRefreshing]. [trigger] is set when the user asked for the
++     * scan; it reports a [ScanEvent] if there is an earlier result to compare with.
++     */
++    fun performScan(trigger: UserScan? = null) {
+         currentScanJob?.cancel()
++        val hasResult = _scanState.value is PrivacyScanState.Success
++        pendingUserScan = ScanFeedback.merge(
++            pendingUserScan, trigger, _rawPrivacyScore.value.takeIf { hasResult }
++        )
++        if (hasResult) _isRefreshing.value = true else _scanState.value = PrivacyScanState.Scanning
++
+         currentScanJob = viewModelScope.launch {
+-            _scanState.value = PrivacyScanState.Scanning
+             try {
+-                val scanDeferred = async { privacyScanner.performCompleteScan() }
+-
+-                if (isInitialLoad) {
+-                    val result = scanDeferred.await()
+-                    onScanSuccess(result)
+-                    isInitialLoad = false
+-                } else {
+-                    val delayDeferred = async { delay(MINIMUM_SCAN_DISPLAY_TIME_MS) }
+-                    awaitAll(scanDeferred, delayDeferred)
+-                    val result = scanDeferred.await()
+-                    onScanSuccess(result)
+-                }
+-
++                val minimumMs = if (isInitialLoad) 0L else MINIMUM_SCAN_DISPLAY_TIME_MS
++                onScanSuccess(runScan(minimumMs) { privacyScanner.performCompleteScan() })
++                isInitialLoad = false
++                _isRefreshing.value = false
+                 PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
++                applyMissedTrustChange()
+             } catch (e: CancellationException) {
++                // A newer scan took over, or the ViewModel is gone
+                 throw e
+             } catch (e: Exception) {
+-                _scanState.value = PrivacyScanState.Error(
+-                    e.message ?: "An unknown error occurred during scanning"
+-                )
+                 isInitialLoad = false
++                if (_scanState.value is PrivacyScanState.Success) {
++                    _isRefreshing.value = false
++                    pendingUserScan?.let { _scanEvents.trySend(ScanEvent.Failed(it.trigger)) }
++                    pendingUserScan = null
++                    applyMissedTrustChange()
++                } else {
++                    _scanState.value = PrivacyScanState.Error(
++                        e.message ?: "An unknown error occurred during scanning"
++                    )
++                }
+             }
+         }
+     }
+ 
++    /** The trust collector skips changes made while a scan runs; applies one it skipped. */
++    private suspend fun applyMissedTrustChange() {
++        val trusted = trustedAppsRepository.trustedPackages.first()
++        val raw = _rawPrivacyScore.value ?: return
++        if (trusted != shownTrusted) showAdjusted(raw, trusted)
++    }
++
++    private fun showAdjusted(rawScore: PrivacyScore, trusted: Set<String>) {
++        shownTrusted = trusted
++        _scanState.value = PrivacyScanState.Success(TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted))
++        PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
++    }
++
+     fun trustApp(packageName: String) {
+         viewModelScope.launch { trustedAppsRepository.trustApp(packageName) }
+     }
+@@ -217,16 +286,48 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
+         _hasHistory.value = snapshotRepository.hasAnySnapshot()
+     }
+ 
++    /**
++     * Records the scan, then publishes everything at once: no suspension after the first
++     * assignment, so a cancelled scan never leaves half of its result on screen.
++     */
+     private suspend fun onScanSuccess(result: PrivacyScore) {
+-        _rawPrivacyScore.value = result
+-        _rawQuickWins.value = QuickWinsDetector.detectQuickWins(result, getApplication())
+-        _flaggedApps.value = computeFlaggedApps(result)
++        val quickWins = QuickWinsDetector.detectQuickWins(result, getApplication())
++        val flaggedApps = computeFlaggedApps(result)
+         val trusted = trustedAppsRepository.trustedPackages.first()
+         val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
+-        _scoreHistory.value = scoreHistoryRepository.recordScore(adjustedScore.score)
++        val history = scoreHistoryRepository.recordScore(adjustedScore.score)
+         snapshotRepository.recordScan(adjustedScore)
+         reloadHistory()
++
++        _rawPrivacyScore.value = result
++        _rawQuickWins.value = quickWins
++        _flaggedApps.value = flaggedApps
++        _scoreHistory.value = history
++        shownTrusted = trusted
+         _scanState.value = PrivacyScanState.Success(adjustedScore)
++        pendingUserScan?.let { pending ->
++            _scanEvents.trySend(
++                ScanEvent.Finished(
++                    outcome = ScanFeedback.between(
++                        before = TrustedAppsAdjuster.computeAdjustedScore(pending.before, trusted),
++                        after = adjustedScore,
++                        trigger = pending.trigger
++                    ),
++                    trigger = pending.trigger,
++                    quickWins = filterTrusted(quickWins, result, trusted)
++                )
++            )
++        }
++        pendingUserScan = null
++    }
++
++    private fun filterTrusted(
++        wins: List<QuickWin>,
++        rawScore: PrivacyScore,
++        trusted: Set<String>
++    ): List<QuickWin> = wins.filter { quickWin ->
++        val issue = rawScore.issues.find { it.check == quickWin.relatedCheck }
++        issue == null || !issue.isFullyTrusted(trusted)
+     }
+ 
+     private fun computeFlaggedApps(rawScore: PrivacyScore): List<FlaggedApp> {
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index b32de40..9b6570e 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -463,7 +463,7 @@
+     <string name="quick_win_revoke_notification_listeners_time">1 minute</string>
+     <string name="quick_win_revoke_notification_listeners_action">Open Notification Settings</string>
+     <string name="quick_win_revoke_notification_listeners_short">Revoke Listeners</string>
+-    <string name="quick_win_revoke_notification_listeners_instructions">Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.\n\nSteps:\n1. Open Settings app\n2. Go to \'Apps\' → \'Special app access\'\n3. Tap \'Notification access\'\n4. Review the list and disable access for non-essential apps\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_revoke_notification_listeners_instructions">Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.\n\nSteps:\n1. Open Settings app\n2. Go to \'Apps\' → \'Special app access\'\n3. Tap \'Notification access\'\n4. Review the list and disable access for non-essential apps</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REVOKE ACCESSIBILITY SERVICES -->
+@@ -473,7 +473,7 @@
+     <string name="quick_win_revoke_accessibility_services_time">1 minute</string>
+     <string name="quick_win_revoke_accessibility_services_action">Open Accessibility Settings</string>
+     <string name="quick_win_revoke_accessibility_services_short">Revoke Access</string>
+-    <string name="quick_win_revoke_accessibility_services_instructions">Apps with accessibility service access can control your entire device and potentially log keystrokes.\n\nSteps:\n1. Open Settings app\n2. Go to \'Accessibility\'\n3. Review \'Downloaded apps\' or \'Installed services\'\n4. Disable any services you don\'t actively need\n\nNote: Keep accessibility services that you genuinely use (password managers, screen readers).\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_revoke_accessibility_services_instructions">Apps with accessibility service access can control your entire device and potentially log keystrokes.\n\nSteps:\n1. Open Settings app\n2. Go to \'Accessibility\'\n3. Review \'Downloaded apps\' or \'Installed services\'\n4. Disable any services you don\'t actively need\n\nNote: Keep accessibility services that you genuinely use (password managers, screen readers).</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REVOKE DEVICE ADMINS -->
+@@ -483,7 +483,7 @@
+     <string name="quick_win_revoke_device_admins_time">1 minute</string>
+     <string name="quick_win_revoke_device_admins_action">Open Security Settings</string>
+     <string name="quick_win_revoke_device_admins_short">Revoke Admins</string>
+-    <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — DISABLE WI-FI SCANNING -->
+@@ -493,7 +493,7 @@
+     <string name="quick_win_disable_wifi_scanning_time">30 seconds</string>
+     <string name="quick_win_disable_wifi_scanning_action">Open Location Settings</string>
+     <string name="quick_win_disable_wifi_scanning_short">Disable Wi-Fi Scan</string>
+-    <string name="quick_win_disable_wifi_scanning_instructions">Even with Wi-Fi turned off, your phone regularly broadcasts a signal that nearby receivers can pick up. Shopping malls, airports, and retailers already use this commercially to track visitor movements. Disabling it makes your phone invisible to these systems with no noticeable impact on daily use.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_disable_wifi_scanning_instructions">Even with Wi-Fi turned off, your phone regularly broadcasts a signal that nearby receivers can pick up. Shopping malls, airports, and retailers already use this commercially to track visitor movements. Disabling it makes your phone invisible to these systems with no noticeable impact on daily use.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — DISABLE ADVERTISING ID -->
+@@ -503,7 +503,7 @@
+     <string name="quick_win_disable_advertising_id_time">30 seconds</string>
+     <string name="quick_win_disable_advertising_id_action">Open Privacy Settings</string>
+     <string name="quick_win_disable_advertising_id_short">Disable Ad ID</string>
+-    <string name="quick_win_disable_advertising_id_instructions">This prevents apps from building an advertising profile and tracking you across different apps.\n\nSteps:\n1. Open Settings app\n2. Scroll to \'Privacy\' or \'Google\'\n3. Tap \'Ads\'\n4. Tap \'Delete Advertising ID\' or \'Opt out of Ads Personalization\'\n5. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_disable_advertising_id_instructions">This prevents apps from building an advertising profile and tracking you across different apps.\n\nSteps:\n1. Open Settings app\n2. Scroll to \'Privacy\' or \'Google\'\n3. Tap \'Ads\'\n4. Tap \'Delete Advertising ID\' or \'Opt out of Ads Personalization\'\n5. Confirm</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — ENABLE PRIVATE DNS -->
+@@ -513,7 +513,7 @@
+     <string name="quick_win_enable_private_dns_time">1 minute</string>
+     <string name="quick_win_enable_private_dns_action">Open Network Settings</string>
+     <string name="quick_win_enable_private_dns_short">Enable Private DNS</string>
+-    <string name="quick_win_enable_private_dns_instructions">Private DNS blocks tracking and malicious domains at the network level for all apps.\n\nRecommended providers:\n• Quad9 (dns.quad9.net)\n  Privacy-focused, blocks malware, no logging\n\n• AdGuard DNS (dns.adguard-dns.com)\n  Blocks ads and trackers\n\nSteps:\n1. Open Settings app\n2. Go to \'Network &amp; Internet\'\n3. Tap \'Private DNS\'\n4. Select \'Private DNS provider hostname\'\n5. Enter: dns.quad9.net\n6. Tap \'Save\'\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_enable_private_dns_instructions">Private DNS blocks tracking and malicious domains at the network level for all apps.\n\nRecommended providers:\n• Quad9 (dns.quad9.net)\n  Privacy-focused, blocks malware, no logging\n\n• AdGuard DNS (dns.adguard-dns.com)\n  Blocks ads and trackers\n\nSteps:\n1. Open Settings app\n2. Go to \'Network &amp; Internet\'\n3. Tap \'Private DNS\'\n4. Select \'Private DNS provider hostname\'\n5. Enter: dns.quad9.net\n6. Tap \'Save\'</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — DISABLE DEVELOPER OPTIONS -->
+@@ -523,7 +523,7 @@
+     <string name="quick_win_disable_developer_options_time">30 seconds</string>
+     <string name="quick_win_disable_developer_options_action">Open Developer Settings</string>
+     <string name="quick_win_disable_developer_options_short">Dev Options</string>
+-    <string name="quick_win_disable_developer_options_instructions">Developer options expose advanced settings that can reduce device security if misconfigured.\n\nSteps:\n1. Open Settings app\n2. Go to \'System\' → \'Developer options\'\n3. Toggle off \'Developer options\' at the top\n4. Confirm\n\nNote: If you need developer options for specific tasks, re-enable only when needed.\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_disable_developer_options_instructions">Developer options expose advanced settings that can reduce device security if misconfigured.\n\nSteps:\n1. Open Settings app\n2. Go to \'System\' → \'Developer options\'\n3. Toggle off \'Developer options\' at the top\n4. Confirm\n\nNote: If you need developer options for specific tasks, re-enable only when needed.</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REPLACE BROWSER -->
+@@ -533,7 +533,7 @@
+     <string name="quick_win_replace_browser_time">2 minutes</string>
+     <string name="quick_win_replace_browser_action">Open Default App Settings</string>
+     <string name="quick_win_replace_browser_short">Browser</string>
+-    <string name="quick_win_replace_browser_instructions">Privacy-focused browsers block trackers and don\'t sync your browsing history to cloud servers.\n\nRecommended alternatives:\n• Brave (Play Store) - Blocks trackers by default\n• Firefox (F-Droid and Play Store) - Privacy-focused, customizable\n\nOr explore more options:\n→ Privacy Guides: privacyguides.org/browsers\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'Brave\' or \'Firefox\'\n3. Install browser\n4. Open the new browser\n5. When prompted, set as default browser\n   (Or: Settings → Apps → Default apps → Browser)\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_replace_browser_instructions">Privacy-focused browsers block trackers and don\'t sync your browsing history to cloud servers.\n\nRecommended alternatives:\n• Brave (Play Store) - Blocks trackers by default\n• Firefox (F-Droid and Play Store) - Privacy-focused, customizable\n\nOr explore more options:\n→ Privacy Guides: privacyguides.org/browsers\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'Brave\' or \'Firefox\'\n3. Install browser\n4. Open the new browser\n5. When prompted, set as default browser\n   (Or: Settings → Apps → Default apps → Browser)</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REPLACE KEYBOARD -->
+@@ -543,7 +543,7 @@
+     <string name="quick_win_replace_keyboard_time">2 minutes</string>
+     <string name="quick_win_replace_keyboard_action">Open Default App Settings</string>
+     <string name="quick_win_replace_keyboard_short">Keyboard</string>
+-    <string name="quick_win_replace_keyboard_instructions">Your current keyboard may send your typing data to cloud servers for processing.\n\nRecommended alternatives:\n• FUTO Keyboard (Play Store)\n  Best privacy + features, offline voice typing\n• AnySoftKeyboard (F-Droid &amp; Play Store)\n  Mature, highly customizable\n\nOr explore more options:\n→ F-Droid: Browse privacy keyboards\n→ Privacy Guides: privacyguides.org/android\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'privacy keyboard\'\n3. Install keyboard\n4. Open Settings → System → Languages &amp; Input\n5. Tap \'On-screen keyboard\' or \'Virtual keyboard\'\n6. Select your new keyboard as default\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_replace_keyboard_instructions">Your current keyboard may send your typing data to cloud servers for processing.\n\nRecommended alternatives:\n• FUTO Keyboard (Play Store)\n  Best privacy + features, offline voice typing\n• AnySoftKeyboard (F-Droid &amp; Play Store)\n  Mature, highly customizable\n\nOr explore more options:\n→ F-Droid: Browse privacy keyboards\n→ Privacy Guides: privacyguides.org/android\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'privacy keyboard\'\n3. Install keyboard\n4. Open Settings → System → Languages &amp; Input\n5. Tap \'On-screen keyboard\' or \'Virtual keyboard\'\n6. Select your new keyboard as default</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REPLACE DEFAULT SMS -->
+@@ -553,7 +553,7 @@
+     <string name="quick_win_replace_default_sms_time">2 minutes</string>
+     <string name="quick_win_replace_default_sms_action">Open Default App Settings</string>
+     <string name="quick_win_replace_default_sms_short">SMS</string>
+-    <string name="quick_win_replace_default_sms_instructions">Your current SMS app may collect your messaging data and contacts.\n\nRecommended alternatives:\n• Fossify Messages (F-Droid &amp; Play Store)\n  Open source, privacy-focused, no ads\n• QKSMS (F-Droid)\n  Lightweight and private\n\nSteps:\n1. Install a privacy-focused messaging app\n2. Open Settings → Apps → Default apps\n3. Tap \'SMS app\'\n4. Select your new messaging app\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_replace_default_sms_instructions">Your current SMS app may collect your messaging data and contacts.\n\nRecommended alternatives:\n• Fossify Messages (F-Droid &amp; Play Store)\n  Open source, privacy-focused, no ads\n• QKSMS (F-Droid)\n  Lightweight and private\n\nSteps:\n1. Install a privacy-focused messaging app\n2. Open Settings → Apps → Default apps\n3. Tap \'SMS app\'\n4. Select your new messaging app</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REPLACE DEFAULT EMAIL -->
+@@ -563,7 +563,7 @@
+     <string name="quick_win_replace_default_email_time">2 minutes</string>
+     <string name="quick_win_replace_default_email_action">Open Default App Settings</string>
+     <string name="quick_win_replace_default_email_short">Email</string>
+-    <string name="quick_win_replace_default_email_instructions">Your current email app may scan your emails for advertising and data collection.\n\nRecommended alternatives:\n• K-9 Mail (F-Droid &amp; Play Store) - Open source\n• FairEmail (F-Droid &amp; Play Store) - Privacy-focused\n• ProtonMail (Play Store) - Encrypted email\n\nSteps:\n1. Install a privacy-focused email app\n2. Open Settings → Apps → Default apps\n3. Tap \'Email app\' (if available)\n4. Select your new email app\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_replace_default_email_instructions">Your current email app may scan your emails for advertising and data collection.\n\nRecommended alternatives:\n• K-9 Mail (F-Droid &amp; Play Store) - Open source\n• FairEmail (F-Droid &amp; Play Store) - Privacy-focused\n• ProtonMail (Play Store) - Encrypted email\n\nSteps:\n1. Install a privacy-focused email app\n2. Open Settings → Apps → Default apps\n3. Tap \'Email app\' (if available)\n4. Select your new email app</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — REPLACE DEFAULT LAUNCHER -->
+@@ -573,7 +573,7 @@
+     <string name="quick_win_replace_default_launcher_time">2 minutes</string>
+     <string name="quick_win_replace_default_launcher_action">Open Default App Settings</string>
+     <string name="quick_win_replace_default_launcher_short">Launcher</string>
+-    <string name="quick_win_replace_default_launcher_instructions">Your current launcher may collect usage patterns, app habits, and behavioral data.\n\nRecommended alternatives:\n• Lawnchair (F-Droid &amp; Play Store) - Modern and customizable\n• KISS Launcher (F-Droid &amp; Play Store) - Lightweight\n• Neo Launcher (F-Droid) - Feature-rich\n\nSteps:\n1. Install a privacy-focused launcher\n2. Open Settings → Apps → Default apps\n3. Tap \'Home app\'\n4. Select your new launcher\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_replace_default_launcher_instructions">Your current launcher may collect usage patterns, app habits, and behavioral data.\n\nRecommended alternatives:\n• Lawnchair (F-Droid &amp; Play Store) - Modern and customizable\n• KISS Launcher (F-Droid &amp; Play Store) - Lightweight\n• Neo Launcher (F-Droid) - Feature-rich\n\nSteps:\n1. Install a privacy-focused launcher\n2. Open Settings → Apps → Default apps\n3. Tap \'Home app\'\n4. Select your new launcher</string>
+ 
+     <!-- ============================================================ -->
+     <!-- QUICK WIN TYPES — UNINSTALL APP -->
+@@ -583,7 +583,7 @@
+     <string name="quick_win_uninstall_app_time">30 seconds</string>
+     <string name="quick_win_uninstall_app_action">Open App Settings</string>
+     <string name="quick_win_uninstall_app_short">App</string>
+-    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap Uninstall.\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
++    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\'\n3. Confirm</string>
+ 
+     <!-- ============================================================ -->
+     <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->
+@@ -1081,4 +1081,41 @@
+         <item quantity="other">%d trackers</item>
+     </plurals>
+ 
++    <!-- ============================================================ -->
++    <!-- SCAN RESULT SNACKBAR -->
++    <!-- ============================================================ -->
++    <!-- 1 = what happened, 2 = points ("+5 pts"), 3 = score; no-break space, so the number never wraps alone -->
++    <string name="fmt_snackbar_headline_points">%1$s · %2$s · Score&#160;%3$d</string>
++    <string name="fmt_snackbar_headline">%1$s · Score&#160;%2$d</string>
++    <string name="fmt_snackbar_fixed">%1$s fixed</string>
++    <string name="fmt_snackbar_confirmed">%1$s confirmed</string>
++    <string name="fmt_snackbar_review_done">%1$s review done</string>
++    <string name="label_snackbar_review_location">Location</string>
++    <string name="label_snackbar_review_camera_mic">Camera &amp; Mic</string>
++    <string name="label_snackbar_review_unused_apps">Unused apps</string>
++    <string name="fmt_snackbar_mixed">%1$s, %2$s</string>
++    <string name="fmt_snackbar_better_worse">%1$d better, %2$d worse</string>
++    <string name="copy_snackbar_not_fixed">Not fixed yet</string>
++    <string name="copy_snackbar_no_change">No change</string>
++    <string name="copy_snackbar_scan_failed">Couldn\'t check. Your last result is still shown.</string>
++    <string name="label_snackbar_details">Details</string>
++    <string name="label_snackbar_try_again">Try again</string>
++    <string name="label_check_again">Check again</string>
++    <string name="label_check_again_checking">Checking…</string>
++    <plurals name="plural_snackbar_loss">
++        <item quantity="one">−%d pt</item>
++        <item quantity="other">−%d pts</item>
++    </plurals>
++    <plurals name="plural_snackbar_checks_fixed">
++        <item quantity="one">%d check fixed</item>
++        <item quantity="other">%d checks fixed</item>
++    </plurals>
++    <plurals name="plural_snackbar_fixed">
++        <item quantity="one">%d fixed</item>
++        <item quantity="other">%d fixed</item>
++    </plurals>
++    <plurals name="plural_snackbar_new_issues">
++        <item quantity="one">%d new issue</item>
++        <item quantity="other">%d new issues</item>
++    </plurals>
+ </resources>
+diff --git a/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt b/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt
+index 2690629..ba581a9 100644
+--- a/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt
++++ b/app/src/test/java/com/techtrest/privamatic/StockSafeAdviceTest.kt
+@@ -87,6 +87,15 @@ class StockSafeAdviceTest {
+     fun `uninstall quick win never mentions disabling`() {
+         // User-installed apps have Uninstall on their App info page, no Disable.
+         assertFalse("disabl" in text("quick_win_uninstall_app_instructions"))
+-        assertTrue("Tap Uninstall." in requireNotNull(strings["quick_win_uninstall_app_instructions"]))
++        // Steps quoted alike, without full stops. aapt's \' escape reaches the DOM as is.
++        val steps = requireNotNull(strings["quick_win_uninstall_app_instructions"]).replace("\\'", "'")
++        assertTrue(steps, "1. Tap 'Open App Settings' below\\n2. Tap 'Uninstall'\\n3. Confirm" in steps)
++        assertTrue(steps, steps.endsWith("Confirm"))
++    }
++
++    @Test
++    fun `no text asks the user to rescan for their score`() {
++        // The result snackbar reports it (v1.6 section 4.2).
++        assertTrue(strings.filterValues { "rescan to see" in it.lowercase() }.keys.isEmpty())
+     }
+ }
+diff --git a/app/src/test/java/com/techtrest/privamatic/data/ScanFeedbackTest.kt b/app/src/test/java/com/techtrest/privamatic/data/ScanFeedbackTest.kt
+new file mode 100644
+index 0000000..971a96f
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/data/ScanFeedbackTest.kt
+@@ -0,0 +1,270 @@
++package com.techtrest.privamatic.data
++
++import com.techtrest.privamatic.data.model.ManualCheckType
++import com.techtrest.privamatic.data.model.PrivacyCheck
++import com.techtrest.privamatic.data.model.PrivacyIssue
++import com.techtrest.privamatic.data.model.PrivacyScore
++import com.techtrest.privamatic.data.scanner.PrivacyScoreCalculator
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Test
++
++class ScanFeedbackTest {
++
++    private val lock = PrivacyCheck.SCREEN_LOCK
++    private val dns = PrivacyCheck.PRIVATE_DNS
++    private val vpn = PrivacyCheck.VPN_CONNECTION
++    private val usb = PrivacyCheck.USB_DEBUGGING
++
++    private fun fail(check: PrivacyCheck, points: Int) =
++        PrivacyIssue(check, isSecure = false, currentStatus = "", customPointDeduction = points)
++
++    private fun pass(check: PrivacyCheck) = PrivacyIssue(check, isSecure = true, currentStatus = "")
++
++    private fun unknown(check: PrivacyCheck) = PrivacyIssue(
++        check, isSecure = false, currentStatus = "", customPointDeduction = 0, isUnknown = true
++    )
++
++    private fun score(vararg issues: PrivacyIssue, manual: Int = 15): PrivacyScore =
++        PrivacyScoreCalculator.calculateScore(issues.toList(), manual)
++
++    private fun between(
++        before: PrivacyScore,
++        after: PrivacyScore,
++        trigger: UserScan = UserScan.Rescan
++    ) = ScanFeedback.between(before, after, trigger)
++
++    // Better
++
++    @Test
++    fun `one fix names the check`() = assertEquals(
++        ScanOutcome.CheckFixed(lock, 11, 94),
++        between(score(fail(lock, 11), fail(dns, 6)), score(pass(lock), fail(dns, 6)))
++    )
++
++    @Test
++    fun `several fixes are counted`() = assertEquals(
++        ScanOutcome.ChecksFixed(2, 17, 100),
++        between(score(fail(lock, 11), fail(dns, 6)), score(pass(lock), pass(dns)))
++    )
++
++    @Test
++    fun `a partial improvement is not called fixed`() = assertEquals(
++        ScanOutcome.CheckImproved(dns, 3, 97),
++        between(score(fail(dns, 6)), score(fail(dns, 3)))
++    )
++
++    @Test
++    fun `a fix together with a partial improvement reports only the points`() = assertEquals(
++        ScanOutcome.Gain(14, 97, hasLosses = false),
++        between(score(fail(lock, 11), fail(dns, 6)), score(pass(lock), fail(dns, 3)))
++    )
++
++    @Test
++    fun `fail to unknown is better but not fixed`() = assertEquals(
++        ScanOutcome.CheckImproved(usb, 4, 100),
++        between(score(fail(usb, 4)), score(unknown(usb)))
++    )
++
++    @Test
++    fun `a gain with a loss names neither`() = assertEquals(
++        ScanOutcome.Gain(8, 97, hasLosses = true),
++        between(score(fail(lock, 11), pass(dns)), score(pass(lock), fail(dns, 3)))
++    )
++
++    // Worse
++
++    @Test
++    fun `one worse check is named`() = assertEquals(
++        ScanOutcome.Loss(dns, 3, 97),
++        between(score(pass(dns)), score(fail(dns, 3)))
++    )
++
++    @Test
++    fun `several worse checks are not named`() = assertEquals(
++        ScanOutcome.Loss(null, 9, 91),
++        between(score(pass(dns), pass(vpn)), score(fail(dns, 6), fail(vpn, 3)))
++    )
++
++    @Test
++    fun `a net loss with something better names neither`() = assertEquals(
++        ScanOutcome.Loss(null, 3, 94),
++        between(score(pass(dns), fail(vpn, 3)), score(fail(dns, 6), pass(vpn)))
++    )
++
++    @Test
++    fun `unknown to fail is worse`() = assertEquals(
++        ScanOutcome.Loss(usb, 4, 96),
++        between(score(unknown(usb)), score(fail(usb, 4)))
++    )
++
++    @Test
++    fun `a review falling due is an unnamed loss`() = assertEquals(
++        ScanOutcome.Loss(null, 5, 95),
++        between(score(pass(dns)), score(pass(dns), manual = 10))
++    )
++
++    @Test
++    fun `Ad ID reset shows the points it costs`() = assertEquals(
++        ScanOutcome.Loss(PrivacyCheck.ADVERTISING_ID, 5, 95),
++        between(
++            score(pass(PrivacyCheck.ADVERTISING_ID)),
++            score(fail(PrivacyCheck.ADVERTISING_ID, 5)),
++            UserScan.AdIdReset
++        )
++    )
++
++    // Net 0
++
++    @Test
++    fun `mixed net 0 counts both sides`() = assertEquals(
++        ScanOutcome.Mixed(better = 1, worse = 1, exact = true, score = 97),
++        between(score(fail(dns, 3), pass(vpn)), score(pass(dns), fail(vpn, 3)))
++    )
++
++    @Test
++    fun `mixed net 0 with partial changes is not exact`() = assertEquals(
++        ScanOutcome.Mixed(better = 1, worse = 1, exact = false, score = 91),
++        between(score(fail(dns, 6), fail(vpn, 3)), score(fail(dns, 3), fail(vpn, 6)))
++    )
++
++    @Test
++    fun `mixed net 0 wins over not fixed yet`() = assertEquals(
++        ScanOutcome.Mixed(better = 1, worse = 1, exact = true, score = 86),
++        between(
++            score(fail(lock, 11), fail(dns, 3), pass(vpn)),
++            score(fail(lock, 11), pass(dns), fail(vpn, 3)),
++            UserScan.CheckAgain(lock)
++        )
++    )
++
++    @Test
++    fun `no change after a rescan`() = assertEquals(
++        ScanOutcome.NoChange(94),
++        between(score(fail(dns, 6)), score(fail(dns, 6)))
++    )
++
++    @Test
++    fun `no change after a fix deep link is not fixed yet`() = assertEquals(
++        ScanOutcome.NotFixedYet(dns, 94),
++        between(score(fail(dns, 6)), score(fail(dns, 6)), UserScan.FixReturn(dns))
++    )
++
++    @Test
++    fun `no change after check again is not fixed yet`() = assertEquals(
++        ScanOutcome.NotFixedYet(dns, 94),
++        between(score(fail(dns, 6)), score(fail(dns, 6)), UserScan.CheckAgain(dns))
++    )
++
++    @Test
++    fun `no change back from a manual review's settings is no change`() = assertEquals(
++        ScanOutcome.NoChange(94),
++        between(score(fail(dns, 6)), score(fail(dns, 6)), UserScan.FixReturn(null))
++    )
++
++    @Test
++    fun `a check that cost nothing is never not fixed yet`() = assertEquals(
++        ScanOutcome.NoChange(100),
++        between(score(fail(dns, 0)), score(fail(dns, 0)), UserScan.FixReturn(dns))
++    )
++
++    // Manual reviews and Ad ID
++
++    @Test
++    fun `manual review gain`() = assertEquals(
++        ScanOutcome.ReviewDone(ManualCheckType.CAMERA_MIC_ACCESS, 5, 95),
++        between(
++            score(manual = 5), score(manual = 10),
++            UserScan.ManualDone(ManualCheckType.CAMERA_MIC_ACCESS)
++        )
++    )
++
++    @Test
++    fun `a review that was not due earns no points`() = assertEquals(
++        ScanOutcome.ReviewDone(ManualCheckType.UNUSED_APPS, null, 100),
++        between(score(), score(), UserScan.ManualDone(ManualCheckType.UNUSED_APPS))
++    )
++
++    @Test
++    fun `a review plus a fix reports only the points`() = assertEquals(
++        ScanOutcome.Gain(9, 100, hasLosses = false),
++        between(
++            score(fail(PrivacyCheck.BACKGROUND_LOCATION_APPS, 4), manual = 10),
++            score(pass(PrivacyCheck.BACKGROUND_LOCATION_APPS)),
++            UserScan.ManualDone(ManualCheckType.LOCATION_ALWAYS_ON)
++        )
++    )
++
++    @Test
++    fun `two reviews merged into one scan are not named after one`() = assertEquals(
++        ScanOutcome.Gain(10, 100, hasLosses = false),
++        between(score(manual = 5), score(), UserScan.ManualDone(ManualCheckType.UNUSED_APPS))
++    )
++
++    @Test
++    fun `Ad ID confirm`() = assertEquals(
++        ScanOutcome.AdIdConfirmed(5, 100),
++        between(
++            score(fail(PrivacyCheck.ADVERTISING_ID, 5)),
++            score(pass(PrivacyCheck.ADVERTISING_ID)),
++            UserScan.AdIdConfirmed
++        )
++    )
++
++    // Clamp at 0
++
++    @Test
++    fun `a fix below the clamp is no change, not +0 and not not-fixed-yet`() = assertEquals(
++        ScanOutcome.NoChange(0),
++        between(
++            score(fail(lock, 80), fail(dns, 60)), score(fail(lock, 80), fail(dns, 30)),
++            UserScan.CheckAgain(dns)
++        )
++    )
++
++    @Test
++    fun `a review below the clamp is no change`() = assertEquals(
++        ScanOutcome.NoChange(0),
++        between(
++            score(fail(lock, 140), manual = 5), score(fail(lock, 140), manual = 10),
++            UserScan.ManualDone(ManualCheckType.UNUSED_APPS)
++        )
++    )
++
++    @Test
++    fun `leaving the clamp shows the shown points only`() = assertEquals(
++        ScanOutcome.CheckFixed(dns, 20, 20),
++        between(score(fail(lock, 80), fail(dns, 60)), score(fail(lock, 80), pass(dns)))
++    )
++
++    // Pending requests
++
++    private val first = score(fail(lock, 11))
++    private val second = score(pass(lock))
++
++    @Test
++    fun `before survives a cancelled scan`() {
++        val pending = ScanFeedback.merge(null, UserScan.FixReturn(lock), first)
++        val merged = ScanFeedback.merge(pending, UserScan.CheckAgain(lock), second)
++        assertEquals(PendingUserScan(first, UserScan.CheckAgain(lock)), merged)
++    }
++
++    @Test
++    fun `a plain rescan keeps the cancelled scan's trigger`() {
++        val done = UserScan.ManualDone(ManualCheckType.UNUSED_APPS)
++        val merged = ScanFeedback.merge(PendingUserScan(first, done), UserScan.Rescan, second)
++        assertEquals(PendingUserScan(first, done), merged)
++    }
++
++    @Test
++    fun `a scan nobody asked for keeps the pending one`() {
++        val pending = PendingUserScan(first, UserScan.Rescan)
++        assertEquals(pending, ScanFeedback.merge(pending, null, second))
++    }
++
++    @Test
++    fun `nothing to compare with means no feedback`() {
++        assertNull(ScanFeedback.merge(null, UserScan.Rescan, null))
++        assertNull(ScanFeedback.merge(null, null, first))
++    }
++}
+diff --git a/app/src/test/java/com/techtrest/privamatic/ui/utils/ScanFeedbackTextTest.kt b/app/src/test/java/com/techtrest/privamatic/ui/utils/ScanFeedbackTextTest.kt
+new file mode 100644
+index 0000000..d4c2cbc
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/ui/utils/ScanFeedbackTextTest.kt
+@@ -0,0 +1,104 @@
++package com.techtrest.privamatic.ui.utils
++
++import com.techtrest.privamatic.R
++import com.techtrest.privamatic.data.ScanOutcome
++import com.techtrest.privamatic.data.model.ManualCheckType
++import com.techtrest.privamatic.data.model.PrivacyCheck
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Test
++import org.w3c.dom.Element
++import java.io.File
++import javax.xml.parsers.DocumentBuilderFactory
++
++/** The exact snackbar texts, built from strings.xml with the English one/other rule. */
++class ScanFeedbackTextTest {
++
++    private object XmlStrings : FeedbackStrings {
++        private val root = DocumentBuilderFactory.newInstance().newDocumentBuilder()
++            .parse(File("src/main/res/values/strings.xml")).documentElement
++        private val strings = elements("string").associate { it.getAttribute("name") to it.textContent }
++        private val plurals = elements("plurals").associate { plural ->
++            val items = plural.getElementsByTagName("item")
++            plural.getAttribute("name") to (0 until items.length).map { items.item(it) as Element }
++                .associate { it.getAttribute("quantity") to it.textContent }
++        }
++
++        private fun elements(tag: String): List<Element> {
++            val nodes = root.getElementsByTagName(tag)
++            return (0 until nodes.length).map { nodes.item(it) as Element }
++        }
++
++        private fun name(holder: Class<*>, id: Int) = holder.fields.first { it.getInt(null) == id }.name
++
++        override fun string(id: Int, vararg args: Any): String =
++            strings.getValue(name(R.string::class.java, id)).replace("\\'", "'").let {
++                if (args.isEmpty()) it else it.format(*args)
++            }
++
++        override fun plural(id: Int, count: Int): String =
++            plurals.getValue(name(R.plurals::class.java, id))
++                .getValue(if (count == 1) "one" else "other").format(count)
++    }
++
++    private fun check(expected: String, outcome: ScanOutcome) =
++        // "Score 36" holds a no-break space, so the number never wraps alone
++        assertEquals(expected.replace("Score ", "Score\u00A0"), ScanFeedbackText.text(outcome, XmlStrings))
++
++    @Test
++    fun `one fix`() =
++        check("Screen Lock fixed · +11 pts · Score 36", ScanOutcome.CheckFixed(PrivacyCheck.SCREEN_LOCK, 11, 36))
++
++    @Test
++    fun `one point is singular`() {
++        check("Developer Options fixed · +1 pt · Score 36", ScanOutcome.CheckFixed(PrivacyCheck.DEVELOPER_OPTIONS, 1, 36))
++        check("−1 pt · Score 32", ScanOutcome.Loss(null, 1, 32))
++        check("+1 pt · Score 32", ScanOutcome.Gain(1, 32, hasLosses = false))
++    }
++
++    @Test
++    fun `several fixes`() = check("2 checks fixed · +6 pts · Score 41", ScanOutcome.ChecksFixed(2, 6, 41))
++
++    @Test
++    fun `partial improvement`() =
++        check("Private DNS · +3 pts · Score 36", ScanOutcome.CheckImproved(PrivacyCheck.PRIVATE_DNS, 3, 36))
++
++    @Test
++    fun reviews() {
++        check("Camera & Mic review done · +5 pts · Score 40", ScanOutcome.ReviewDone(ManualCheckType.CAMERA_MIC_ACCESS, 5, 40))
++        check("Location review done · +5 pts · Score 40", ScanOutcome.ReviewDone(ManualCheckType.LOCATION_ALWAYS_ON, 5, 40))
++        check("Unused apps review done · Score 40", ScanOutcome.ReviewDone(ManualCheckType.UNUSED_APPS, null, 40))
++    }
++
++    @Test
++    fun `Ad ID`() {
++        check("Advertising ID confirmed · +5 pts · Score 30", ScanOutcome.AdIdConfirmed(5, 30))
++        check("Advertising ID confirmed · Score 30", ScanOutcome.AdIdConfirmed(null, 30))
++    }
++
++    @Test
++    fun losses() {
++        check("−3 pts · Score 32", ScanOutcome.Loss(null, 3, 32))
++        check("Private DNS · −3 pts · Score 32", ScanOutcome.Loss(PrivacyCheck.PRIVATE_DNS, 3, 32))
++    }
++
++    @Test
++    fun mixed() {
++        check("1 fixed, 1 new issue · Score 33", ScanOutcome.Mixed(1, 1, exact = true, score = 33))
++        check("1 fixed, 2 new issues · Score 33", ScanOutcome.Mixed(1, 2, exact = true, score = 33))
++        check("1 better, 1 worse · Score 33", ScanOutcome.Mixed(1, 1, exact = false, score = 33))
++    }
++
++    @Test
++    fun unchanged() {
++        check("Not fixed yet · Score 33", ScanOutcome.NotFixedYet(PrivacyCheck.PRIVATE_DNS, 33))
++        check("No change · Score 33", ScanOutcome.NoChange(33))
++    }
++
++    @Test
++    fun `failed scan text has no exclamation mark`() {
++        val text = XmlStrings.string(R.string.copy_snackbar_scan_failed)
++        assertEquals("Couldn't check. Your last result is still shown.", text)
++        assertFalse('!' in text)
++    }
++}
+diff --git a/app/src/test/java/com/techtrest/privamatic/ui/viewmodel/RunScanTest.kt b/app/src/test/java/com/techtrest/privamatic/ui/viewmodel/RunScanTest.kt
+new file mode 100644
+index 0000000..711bc36
+--- /dev/null
++++ b/app/src/test/java/com/techtrest/privamatic/ui/viewmodel/RunScanTest.kt
+@@ -0,0 +1,73 @@
++package com.techtrest.privamatic.ui.viewmodel
++
++import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.CompletableDeferred
++import kotlinx.coroutines.CoroutineExceptionHandler
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.NonCancellable
++import kotlinx.coroutines.SupervisorJob
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.runBlocking
++import kotlinx.coroutines.withContext
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++class RunScanTest {
++
++    private var uncaught: Throwable? = null
++
++    /** Like viewModelScope: a supervisor, so a failed job ends in the uncaught handler (a crash). */
++    private val scope = CoroutineScope(
++        SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> uncaught = e }
++    )
++
++    @Test
++    fun `a failing scan can be caught and never reaches the crash handler`() = runBlocking {
++        var caught: Exception? = null
++        scope.launch {
++            try {
++                runScan(1_000) { error("scan failed") }
++            } catch (e: Exception) {
++                caught = e
++            }
++        }.join()
++
++        assertEquals("scan failed", caught?.message)
++        assertNull(uncaught)
++    }
++
++    @Test
++    fun `a cancelled scan that fails on its way out is cancelled, not failed`() = runBlocking {
++        val started = CompletableDeferred<Unit>()
++        val release = CompletableDeferred<Unit>()
++        var caught: Exception? = null
++        val job = scope.launch {
++            try {
++                runScan(0) {
++                    // A checker blocks without suspending, so it only fails after the cancel
++                    withContext(NonCancellable) {
++                        started.complete(Unit)
++                        release.await()
++                    }
++                    error("scan failed")
++                }
++            } catch (e: Exception) {
++                caught = e
++            }
++        }
++        started.await()
++        job.cancel()
++        release.complete(Unit)
++        job.join()
++
++        assertTrue("$caught", caught is CancellationException)
++    }
++
++    @Test
++    fun `a scan's result comes back`() = runBlocking {
++        assertEquals(42, runScan(0) { 42 })
++    }
++}
+diff --git a/docs/screens/rescan-in-place/a01-dashboard.png b/docs/screens/rescan-in-place/a01-dashboard.png
+new file mode 100644
+index 0000000..c0d0332
+Binary files /dev/null and b/docs/screens/rescan-in-place/a01-dashboard.png differ
+diff --git a/docs/screens/rescan-in-place/a02-scan-in-progress.png b/docs/screens/rescan-in-place/a02-scan-in-progress.png
+new file mode 100644
+index 0000000..cc4fc09
+Binary files /dev/null and b/docs/screens/rescan-in-place/a02-scan-in-progress.png differ
+diff --git a/docs/screens/rescan-in-place/a02b-scan-in-progress.png b/docs/screens/rescan-in-place/a02b-scan-in-progress.png
+new file mode 100644
+index 0000000..8738dce
+Binary files /dev/null and b/docs/screens/rescan-in-place/a02b-scan-in-progress.png differ
+diff --git a/docs/screens/rescan-in-place/a02c-double-tap-in-progress.png b/docs/screens/rescan-in-place/a02c-double-tap-in-progress.png
+new file mode 100644
+index 0000000..5801253
+Binary files /dev/null and b/docs/screens/rescan-in-place/a02c-double-tap-in-progress.png differ
+diff --git a/docs/screens/rescan-in-place/a03-loss.png b/docs/screens/rescan-in-place/a03-loss.png
+new file mode 100644
+index 0000000..335636c
+Binary files /dev/null and b/docs/screens/rescan-in-place/a03-loss.png differ
+diff --git a/docs/screens/rescan-in-place/a04-loss-details.png b/docs/screens/rescan-in-place/a04-loss-details.png
+new file mode 100644
+index 0000000..4ae2279
+Binary files /dev/null and b/docs/screens/rescan-in-place/a04-loss-details.png differ
+diff --git a/docs/screens/rescan-in-place/a05-no-change.png b/docs/screens/rescan-in-place/a05-no-change.png
+new file mode 100644
+index 0000000..d2ad69e
+Binary files /dev/null and b/docs/screens/rescan-in-place/a05-no-change.png differ
+diff --git a/docs/screens/rescan-in-place/a06-detail.png b/docs/screens/rescan-in-place/a06-detail.png
+new file mode 100644
+index 0000000..ea94c61
+Binary files /dev/null and b/docs/screens/rescan-in-place/a06-detail.png differ
+diff --git a/docs/screens/rescan-in-place/a06b-detail-scrolled.png b/docs/screens/rescan-in-place/a06b-detail-scrolled.png
+new file mode 100644
+index 0000000..118d5d4
+Binary files /dev/null and b/docs/screens/rescan-in-place/a06b-detail-scrolled.png differ
+diff --git a/docs/screens/rescan-in-place/a07-not-fixed.png b/docs/screens/rescan-in-place/a07-not-fixed.png
+new file mode 100644
+index 0000000..bf4095a
+Binary files /dev/null and b/docs/screens/rescan-in-place/a07-not-fixed.png differ
+diff --git a/docs/screens/rescan-in-place/a08-snackbar-check-again.png b/docs/screens/rescan-in-place/a08-snackbar-check-again.png
+new file mode 100644
+index 0000000..bf4095a
+Binary files /dev/null and b/docs/screens/rescan-in-place/a08-snackbar-check-again.png differ
+diff --git a/docs/screens/rescan-in-place/a08b-snackbar-check-again-scanning.png b/docs/screens/rescan-in-place/a08b-snackbar-check-again-scanning.png
+new file mode 100644
+index 0000000..c02ab86
+Binary files /dev/null and b/docs/screens/rescan-in-place/a08b-snackbar-check-again-scanning.png differ
+diff --git a/docs/screens/rescan-in-place/a09-checking.png b/docs/screens/rescan-in-place/a09-checking.png
+new file mode 100644
+index 0000000..9dd7e12
+Binary files /dev/null and b/docs/screens/rescan-in-place/a09-checking.png differ
+diff --git a/docs/screens/rescan-in-place/a10-page-check-again.png b/docs/screens/rescan-in-place/a10-page-check-again.png
+new file mode 100644
+index 0000000..fa68d05
+Binary files /dev/null and b/docs/screens/rescan-in-place/a10-page-check-again.png differ
+diff --git a/docs/screens/rescan-in-place/a11-return-scan.png b/docs/screens/rescan-in-place/a11-return-scan.png
+new file mode 100644
+index 0000000..4dc5139
+Binary files /dev/null and b/docs/screens/rescan-in-place/a11-return-scan.png differ
+diff --git a/docs/screens/rescan-in-place/a12-fixed.png b/docs/screens/rescan-in-place/a12-fixed.png
+new file mode 100644
+index 0000000..26ed2b5
+Binary files /dev/null and b/docs/screens/rescan-in-place/a12-fixed.png differ
+diff --git a/docs/screens/rescan-in-place/a13-dashboard-after.png b/docs/screens/rescan-in-place/a13-dashboard-after.png
+new file mode 100644
+index 0000000..c6db30c
+Binary files /dev/null and b/docs/screens/rescan-in-place/a13-dashboard-after.png differ
+diff --git a/docs/screens/rescan-in-place/a14-overlay-loss.png b/docs/screens/rescan-in-place/a14-overlay-loss.png
+new file mode 100644
+index 0000000..a61fa73
+Binary files /dev/null and b/docs/screens/rescan-in-place/a14-overlay-loss.png differ
+diff --git a/docs/screens/rescan-in-place/a15-overlay-details.png b/docs/screens/rescan-in-place/a15-overlay-details.png
+new file mode 100644
+index 0000000..b6e7d47
+Binary files /dev/null and b/docs/screens/rescan-in-place/a15-overlay-details.png differ
+diff --git a/docs/screens/rescan-in-place/a16-fixed-by-rescan.png b/docs/screens/rescan-in-place/a16-fixed-by-rescan.png
+new file mode 100644
+index 0000000..41f8dc5
+Binary files /dev/null and b/docs/screens/rescan-in-place/a16-fixed-by-rescan.png differ
+diff --git a/docs/screens/rescan-in-place/a17-breakdown-jump.png b/docs/screens/rescan-in-place/a17-breakdown-jump.png
+new file mode 100644
+index 0000000..c5d28cd
+Binary files /dev/null and b/docs/screens/rescan-in-place/a17-breakdown-jump.png differ
+diff --git a/docs/screens/rescan-in-place/a18-google-camera.png b/docs/screens/rescan-in-place/a18-google-camera.png
+new file mode 100644
+index 0000000..060a2b0
+Binary files /dev/null and b/docs/screens/rescan-in-place/a18-google-camera.png differ
+diff --git a/docs/screens/rescan-in-place/b01-bar-dashboard-light.png b/docs/screens/rescan-in-place/b01-bar-dashboard-light.png
+new file mode 100644
+index 0000000..08cc38e
+Binary files /dev/null and b/docs/screens/rescan-in-place/b01-bar-dashboard-light.png differ
+diff --git a/docs/screens/rescan-in-place/b02-bar-actions-light.png b/docs/screens/rescan-in-place/b02-bar-actions-light.png
+new file mode 100644
+index 0000000..edad1d1
+Binary files /dev/null and b/docs/screens/rescan-in-place/b02-bar-actions-light.png differ
+diff --git a/docs/screens/rescan-in-place/b03-bar-details-light.png b/docs/screens/rescan-in-place/b03-bar-details-light.png
+new file mode 100644
+index 0000000..df99753
+Binary files /dev/null and b/docs/screens/rescan-in-place/b03-bar-details-light.png differ
+diff --git a/docs/screens/rescan-in-place/b04-loss-wrap.png b/docs/screens/rescan-in-place/b04-loss-wrap.png
+new file mode 100644
+index 0000000..af6ec82
+Binary files /dev/null and b/docs/screens/rescan-in-place/b04-loss-wrap.png differ
+diff --git a/docs/screens/rescan-in-place/b05-overlay-details.png b/docs/screens/rescan-in-place/b05-overlay-details.png
+new file mode 100644
+index 0000000..d61ffa2
+Binary files /dev/null and b/docs/screens/rescan-in-place/b05-overlay-details.png differ
+diff --git a/docs/screens/rescan-in-place/b06-bar-dashboard-dark.png b/docs/screens/rescan-in-place/b06-bar-dashboard-dark.png
+new file mode 100644
+index 0000000..cdc9cb9
+Binary files /dev/null and b/docs/screens/rescan-in-place/b06-bar-dashboard-dark.png differ
+diff --git a/docs/screens/rescan-in-place/b07-bar-actions-dark.png b/docs/screens/rescan-in-place/b07-bar-actions-dark.png
+new file mode 100644
+index 0000000..d64cec2
+Binary files /dev/null and b/docs/screens/rescan-in-place/b07-bar-actions-dark.png differ
+diff --git a/docs/screens/rescan-in-place/b08-bar-details-dark.png b/docs/screens/rescan-in-place/b08-bar-details-dark.png
+new file mode 100644
+index 0000000..df2b585
+Binary files /dev/null and b/docs/screens/rescan-in-place/b08-bar-details-dark.png differ
+diff --git a/docs/screens/rescan-in-place/b09-snackbar-dark.png b/docs/screens/rescan-in-place/b09-snackbar-dark.png
+new file mode 100644
+index 0000000..cbe8556
+Binary files /dev/null and b/docs/screens/rescan-in-place/b09-snackbar-dark.png differ
+diff --git a/docs/screens/rescan-in-place/b10-pull.png b/docs/screens/rescan-in-place/b10-pull.png
+new file mode 100644
+index 0000000..7293418
+Binary files /dev/null and b/docs/screens/rescan-in-place/b10-pull.png differ
+diff --git a/docs/screens/rescan-in-place/b11-pull-result.png b/docs/screens/rescan-in-place/b11-pull-result.png
+new file mode 100644
+index 0000000..5995ef8
+Binary files /dev/null and b/docs/screens/rescan-in-place/b11-pull-result.png differ
+diff --git a/docs/screens/rescan-in-place/b12-manual-return.png b/docs/screens/rescan-in-place/b12-manual-return.png
+new file mode 100644
+index 0000000..49a16ce
+Binary files /dev/null and b/docs/screens/rescan-in-place/b12-manual-return.png differ
+diff --git a/docs/screens/rescan-in-place/b13-trust.png b/docs/screens/rescan-in-place/b13-trust.png
+new file mode 100644
+index 0000000..02afeb1
+Binary files /dev/null and b/docs/screens/rescan-in-place/b13-trust.png differ
+diff --git a/docs/screens/rescan-in-place/b14-mark-done.png b/docs/screens/rescan-in-place/b14-mark-done.png
+new file mode 100644
+index 0000000..49c03ea
+Binary files /dev/null and b/docs/screens/rescan-in-place/b14-mark-done.png differ
+diff --git a/docs/screens/rescan-in-place/b15-adid-reset.png b/docs/screens/rescan-in-place/b15-adid-reset.png
+new file mode 100644
+index 0000000..988a391
+Binary files /dev/null and b/docs/screens/rescan-in-place/b15-adid-reset.png differ
+diff --git a/docs/screens/rescan-in-place/b15a-adid-confirm-no-points.png b/docs/screens/rescan-in-place/b15a-adid-confirm-no-points.png
+new file mode 100644
+index 0000000..adac353
+Binary files /dev/null and b/docs/screens/rescan-in-place/b15a-adid-confirm-no-points.png differ
+diff --git a/docs/screens/rescan-in-place/b16-adid-confirm.png b/docs/screens/rescan-in-place/b16-adid-confirm.png
+new file mode 100644
+index 0000000..300b629
+Binary files /dev/null and b/docs/screens/rescan-in-place/b16-adid-confirm.png differ
+diff --git a/docs/screens/rescan-in-place/b17-history.png b/docs/screens/rescan-in-place/b17-history.png
+new file mode 100644
+index 0000000..39997e5
+Binary files /dev/null and b/docs/screens/rescan-in-place/b17-history.png differ
+diff --git a/docs/screens/rescan-in-place/b18-uninstall-copy.png b/docs/screens/rescan-in-place/b18-uninstall-copy.png
+new file mode 100644
+index 0000000..f8c6582
+Binary files /dev/null and b/docs/screens/rescan-in-place/b18-uninstall-copy.png differ
+diff --git a/docs/state-archive/2026-11.md b/docs/state-archive/2026-11.md
+index 455222d..2911b85 100644
+--- a/docs/state-archive/2026-11.md
++++ b/docs/state-archive/2026-11.md
+@@ -2,6 +2,14 @@
+ 
+ Newest first. Moved unedited from `STATE.md`.
+ 
++### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
++
++- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
++- [x] Crash check, code reading of `master` `00e9d4d` (v1.5.3), not proven on a phone: every settings button goes through `IntentHelper.launchActionIntent` or `launchAdSettings` (`AdIdVerificationScreen.kt:418`); both catch `ActivityNotFoundException` on every step, neither `SecurityException`. No intent in use is known to throw it; the October audit (Pixel 8, Android 17) opened the four manual-check targets, the Wi-Fi scanning Quick Win and the Ad ID Ads page, and those intents are unchanged since. Plausible risk only: the Ad ID screen's explicit Play services component, if a Play services update stops exporting it. No hotfix; runs 4 and 6 add the catch.
++- [x] Call 8 check: AI-app rows are not unknown. Installed → `isSecure = false`, "Installed", 0 pts (`InstalledAppsChecker.kt:272-277`), INFO because `isInformational` (`IssueItem.kt:49`). Spec says no, pending Oliver.
++- [x] Spec updated: calls 1–16 decided, VPN copy, F1 +15 test in run 4, release split (v1.6 12.25, v1.6.1 8.0, M4 Later), What's new / change label / unknown-row wording per release, run 9 no longer depends on run 7, 2+3 before 5 and 9.
++- [x] Own diff review: no blocking problems. No external review (spec only, no app code). Merged into `master` with `--no-ff`, not pushed.
++
+ ### 2026-11-22 — overnight readout and widget push-back check (`fix/snapshot-every-scan`, device-verify)
+ 
+ - [x] Inbox: Oliver's block (2 STATE:, 2 ADD Next) applied. Pixel 8 unplugged overnight (Doze), plugged in again before the readout.
