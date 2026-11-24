@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.accentOnSurface
+import com.techtrest.privamatic.accentOutlinedButtonColors
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
@@ -57,6 +59,8 @@ fun QuickWinDetailScreen(
     quickWin: QuickWin,
     onBackClick: () -> Unit,
     onDismiss: () -> Unit,
+    onCheckAgain: () -> Unit,
+    isChecking: Boolean,
     modifier: Modifier = Modifier
 ) {
     BackHandler {
@@ -204,7 +208,7 @@ fun QuickWinDetailScreen(
                             context = context,
                             actionType = actionType,
                             packageName = quickWin.relatedCheck?.packageName,
-                            rescanOnReturn = true
+                            onReturn = UserScan.FixReturn(quickWin.relatedCheck)
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -220,9 +224,23 @@ fun QuickWinDetailScreen(
                             ?: stringResource(R.string.label_common_open_settings)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
+            OutlinedButton(
+                onClick = onCheckAgain,
+                enabled = !isChecking,
+                modifier = Modifier.fillMaxWidth(),
+                colors = accentOutlinedButtonColors()
+            ) {
+                Text(
+                    stringResource(
+                        if (isChecking) R.string.label_check_again_checking
+                        else R.string.label_check_again
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

@@ -98,6 +98,8 @@ fun DetailsScreen(
     sdkScanState: SdkScanState,
     onRunSdkScan: () -> Unit,
     onNavigateToManualChecks: () -> Unit,
+    isBreakdownRequested: Boolean,
+    onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Dark primary is the lighter brand green (#00854A): onPrimary at 0.8 alpha only reaches
@@ -149,7 +151,9 @@ fun DetailsScreen(
             DetailsTab.CHECKS -> ChecksTab(
                 privacyScore = privacyScore,
                 trustedPackages = trustedPackages,
-                onNavigateToManualChecks = onNavigateToManualChecks
+                onNavigateToManualChecks = onNavigateToManualChecks,
+                isBreakdownRequested = isBreakdownRequested,
+                onBreakdownShown = onBreakdownShown
             )
             DetailsTab.APPS -> AppsContent(
                 flaggedApps = flaggedApps,
@@ -177,6 +181,8 @@ private fun ChecksTab(
     privacyScore: PrivacyScore,
     trustedPackages: Set<String>,
     onNavigateToManualChecks: () -> Unit,
+    isBreakdownRequested: Boolean,
+    onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -197,6 +203,14 @@ private fun ChecksTab(
     // so a plain toggle back to the list never replays it.
     var highlightedCheck by remember { mutableStateOf<PrivacyCheck?>(null) }
     val listState = rememberLazyListState()
+
+    LaunchedEffect(isBreakdownRequested) {
+        if (isBreakdownRequested) {
+            highlightedCheck = null
+            showView(ChecksView.BREAKDOWN)
+            onBreakdownShown()
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         ChecksHeader(

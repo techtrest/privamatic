@@ -95,10 +95,16 @@ install (`firstInstallTime == lastUpdateTime`) is marked seen silently. The card
 so notes never repeat for someone who dismissed them on any version since. v1.6 plan: notes
 kept per version, showing every version newer than the last one seen.
 
-**Rescan after a fix deep link** — Settings intents that let the user fix a check (Quick Win
-detail, check-row "Open settings") call `IntentHelper.launchActionIntent(…, rescanOnReturn = true)`;
-`MainScreen` rescans once on the next resume. Manual-check links don't (they change no scan
-result). The flag is in memory only.
+**Rescan after a fix deep link** — Settings buttons that let the user fix a check (Quick Win
+detail, check-row "Open settings", manual-check Open Settings) call
+`IntentHelper.launchActionIntent(…, onReturn = UserScan.FixReturn(check))` (null check for a manual
+review); `MainScreen` rescans once on the next resume. The flag is in memory only.
+
+**Rescan in place and its result** — only the first scan shows `PrivacyScanState.Scanning`; later
+ones keep `Success` and set `isRefreshing`. A scan the user asked for passes a `UserScan` to
+`performScan`; `ScanFeedback.between` compares the two in-memory scores (never `score_history`, the
+widget writes it too) and `MainScreen` shows one snackbar. A newer scan cancels a running one but
+keeps the earliest `before`. `onScanSuccess` publishes everything after its last suspension.
 
 **View toggles vs tabs** — a tab is for different data; a toggle is for the same data viewed
 differently. Toggles are an `IconButton` in the tab's fixed header row (never a segmented

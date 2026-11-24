@@ -463,7 +463,7 @@
     <string name="quick_win_revoke_notification_listeners_time">1 minute</string>
     <string name="quick_win_revoke_notification_listeners_action">Open Notification Settings</string>
     <string name="quick_win_revoke_notification_listeners_short">Revoke Listeners</string>
-    <string name="quick_win_revoke_notification_listeners_instructions">Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.\n\nSteps:\n1. Open Settings app\n2. Go to \'Apps\' → \'Special app access\'\n3. Tap \'Notification access\'\n4. Review the list and disable access for non-essential apps\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_revoke_notification_listeners_instructions">Apps with notification listener access can read ALL your notifications, including 2FA codes and private messages.\n\nSteps:\n1. Open Settings app\n2. Go to \'Apps\' → \'Special app access\'\n3. Tap \'Notification access\'\n4. Review the list and disable access for non-essential apps</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REVOKE ACCESSIBILITY SERVICES -->
@@ -473,7 +473,7 @@
     <string name="quick_win_revoke_accessibility_services_time">1 minute</string>
     <string name="quick_win_revoke_accessibility_services_action">Open Accessibility Settings</string>
     <string name="quick_win_revoke_accessibility_services_short">Revoke Access</string>
-    <string name="quick_win_revoke_accessibility_services_instructions">Apps with accessibility service access can control your entire device and potentially log keystrokes.\n\nSteps:\n1. Open Settings app\n2. Go to \'Accessibility\'\n3. Review \'Downloaded apps\' or \'Installed services\'\n4. Disable any services you don\'t actively need\n\nNote: Keep accessibility services that you genuinely use (password managers, screen readers).\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_revoke_accessibility_services_instructions">Apps with accessibility service access can control your entire device and potentially log keystrokes.\n\nSteps:\n1. Open Settings app\n2. Go to \'Accessibility\'\n3. Review \'Downloaded apps\' or \'Installed services\'\n4. Disable any services you don\'t actively need\n\nNote: Keep accessibility services that you genuinely use (password managers, screen readers).</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REVOKE DEVICE ADMINS -->
@@ -483,7 +483,7 @@
     <string name="quick_win_revoke_device_admins_time">1 minute</string>
     <string name="quick_win_revoke_device_admins_action">Open Security Settings</string>
     <string name="quick_win_revoke_device_admins_short">Revoke Admins</string>
-    <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_revoke_device_admins_instructions">Apps with device administrator privileges have elevated control over your device.\n\nSteps:\n1. Open Settings app\n2. Go to \'Security\' → \'Device admin apps\'\n3. Review the list of device administrators\n4. Deactivate any that you don\'t recognize or need</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — DISABLE WI-FI SCANNING -->
@@ -493,7 +493,7 @@
     <string name="quick_win_disable_wifi_scanning_time">30 seconds</string>
     <string name="quick_win_disable_wifi_scanning_action">Open Location Settings</string>
     <string name="quick_win_disable_wifi_scanning_short">Disable Wi-Fi Scan</string>
-    <string name="quick_win_disable_wifi_scanning_instructions">Even with Wi-Fi turned off, your phone regularly broadcasts a signal that nearby receivers can pick up. Shopping malls, airports, and retailers already use this commercially to track visitor movements. Disabling it makes your phone invisible to these systems with no noticeable impact on daily use.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_disable_wifi_scanning_instructions">Even with Wi-Fi turned off, your phone regularly broadcasts a signal that nearby receivers can pick up. Shopping malls, airports, and retailers already use this commercially to track visitor movements. Disabling it makes your phone invisible to these systems with no noticeable impact on daily use.\n\nSteps:\n1. Open Settings app\n2. Go to \'Location\'\n3. Tap \'Location services\' or \'Wi-Fi and Bluetooth scanning\'\n4. Disable \'Wi-Fi scanning\'</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — DISABLE ADVERTISING ID -->
@@ -503,7 +503,7 @@
     <string name="quick_win_disable_advertising_id_time">30 seconds</string>
     <string name="quick_win_disable_advertising_id_action">Open Privacy Settings</string>
     <string name="quick_win_disable_advertising_id_short">Disable Ad ID</string>
-    <string name="quick_win_disable_advertising_id_instructions">This prevents apps from building an advertising profile and tracking you across different apps.\n\nSteps:\n1. Open Settings app\n2. Scroll to \'Privacy\' or \'Google\'\n3. Tap \'Ads\'\n4. Tap \'Delete Advertising ID\' or \'Opt out of Ads Personalization\'\n5. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_disable_advertising_id_instructions">This prevents apps from building an advertising profile and tracking you across different apps.\n\nSteps:\n1. Open Settings app\n2. Scroll to \'Privacy\' or \'Google\'\n3. Tap \'Ads\'\n4. Tap \'Delete Advertising ID\' or \'Opt out of Ads Personalization\'\n5. Confirm</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — ENABLE PRIVATE DNS -->
@@ -513,7 +513,7 @@
     <string name="quick_win_enable_private_dns_time">1 minute</string>
     <string name="quick_win_enable_private_dns_action">Open Network Settings</string>
     <string name="quick_win_enable_private_dns_short">Enable Private DNS</string>
-    <string name="quick_win_enable_private_dns_instructions">Private DNS blocks tracking and malicious domains at the network level for all apps.\n\nRecommended providers:\n• Quad9 (dns.quad9.net)\n  Privacy-focused, blocks malware, no logging\n\n• AdGuard DNS (dns.adguard-dns.com)\n  Blocks ads and trackers\n\nSteps:\n1. Open Settings app\n2. Go to \'Network &amp; Internet\'\n3. Tap \'Private DNS\'\n4. Select \'Private DNS provider hostname\'\n5. Enter: dns.quad9.net\n6. Tap \'Save\'\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_enable_private_dns_instructions">Private DNS blocks tracking and malicious domains at the network level for all apps.\n\nRecommended providers:\n• Quad9 (dns.quad9.net)\n  Privacy-focused, blocks malware, no logging\n\n• AdGuard DNS (dns.adguard-dns.com)\n  Blocks ads and trackers\n\nSteps:\n1. Open Settings app\n2. Go to \'Network &amp; Internet\'\n3. Tap \'Private DNS\'\n4. Select \'Private DNS provider hostname\'\n5. Enter: dns.quad9.net\n6. Tap \'Save\'</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — DISABLE DEVELOPER OPTIONS -->
@@ -523,7 +523,7 @@
     <string name="quick_win_disable_developer_options_time">30 seconds</string>
     <string name="quick_win_disable_developer_options_action">Open Developer Settings</string>
     <string name="quick_win_disable_developer_options_short">Dev Options</string>
-    <string name="quick_win_disable_developer_options_instructions">Developer options expose advanced settings that can reduce device security if misconfigured.\n\nSteps:\n1. Open Settings app\n2. Go to \'System\' → \'Developer options\'\n3. Toggle off \'Developer options\' at the top\n4. Confirm\n\nNote: If you need developer options for specific tasks, re-enable only when needed.\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_disable_developer_options_instructions">Developer options expose advanced settings that can reduce device security if misconfigured.\n\nSteps:\n1. Open Settings app\n2. Go to \'System\' → \'Developer options\'\n3. Toggle off \'Developer options\' at the top\n4. Confirm\n\nNote: If you need developer options for specific tasks, re-enable only when needed.</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REPLACE BROWSER -->
@@ -533,7 +533,7 @@
     <string name="quick_win_replace_browser_time">2 minutes</string>
     <string name="quick_win_replace_browser_action">Open Default App Settings</string>
     <string name="quick_win_replace_browser_short">Browser</string>
-    <string name="quick_win_replace_browser_instructions">Privacy-focused browsers block trackers and don\'t sync your browsing history to cloud servers.\n\nRecommended alternatives:\n• Brave (Play Store) - Blocks trackers by default\n• Firefox (F-Droid and Play Store) - Privacy-focused, customizable\n\nOr explore more options:\n→ Privacy Guides: privacyguides.org/browsers\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'Brave\' or \'Firefox\'\n3. Install browser\n4. Open the new browser\n5. When prompted, set as default browser\n   (Or: Settings → Apps → Default apps → Browser)\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_replace_browser_instructions">Privacy-focused browsers block trackers and don\'t sync your browsing history to cloud servers.\n\nRecommended alternatives:\n• Brave (Play Store) - Blocks trackers by default\n• Firefox (F-Droid and Play Store) - Privacy-focused, customizable\n\nOr explore more options:\n→ Privacy Guides: privacyguides.org/browsers\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'Brave\' or \'Firefox\'\n3. Install browser\n4. Open the new browser\n5. When prompted, set as default browser\n   (Or: Settings → Apps → Default apps → Browser)</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REPLACE KEYBOARD -->
@@ -543,7 +543,7 @@
     <string name="quick_win_replace_keyboard_time">2 minutes</string>
     <string name="quick_win_replace_keyboard_action">Open Default App Settings</string>
     <string name="quick_win_replace_keyboard_short">Keyboard</string>
-    <string name="quick_win_replace_keyboard_instructions">Your current keyboard may send your typing data to cloud servers for processing.\n\nRecommended alternatives:\n• FUTO Keyboard (Play Store)\n  Best privacy + features, offline voice typing\n• AnySoftKeyboard (F-Droid &amp; Play Store)\n  Mature, highly customizable\n\nOr explore more options:\n→ F-Droid: Browse privacy keyboards\n→ Privacy Guides: privacyguides.org/android\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'privacy keyboard\'\n3. Install keyboard\n4. Open Settings → System → Languages &amp; Input\n5. Tap \'On-screen keyboard\' or \'Virtual keyboard\'\n6. Select your new keyboard as default\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_replace_keyboard_instructions">Your current keyboard may send your typing data to cloud servers for processing.\n\nRecommended alternatives:\n• FUTO Keyboard (Play Store)\n  Best privacy + features, offline voice typing\n• AnySoftKeyboard (F-Droid &amp; Play Store)\n  Mature, highly customizable\n\nOr explore more options:\n→ F-Droid: Browse privacy keyboards\n→ Privacy Guides: privacyguides.org/android\n\nSteps:\n1. Open F-Droid or Play Store\n2. Search \'privacy keyboard\'\n3. Install keyboard\n4. Open Settings → System → Languages &amp; Input\n5. Tap \'On-screen keyboard\' or \'Virtual keyboard\'\n6. Select your new keyboard as default</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REPLACE DEFAULT SMS -->
@@ -553,7 +553,7 @@
     <string name="quick_win_replace_default_sms_time">2 minutes</string>
     <string name="quick_win_replace_default_sms_action">Open Default App Settings</string>
     <string name="quick_win_replace_default_sms_short">SMS</string>
-    <string name="quick_win_replace_default_sms_instructions">Your current SMS app may collect your messaging data and contacts.\n\nRecommended alternatives:\n• Fossify Messages (F-Droid &amp; Play Store)\n  Open source, privacy-focused, no ads\n• QKSMS (F-Droid)\n  Lightweight and private\n\nSteps:\n1. Install a privacy-focused messaging app\n2. Open Settings → Apps → Default apps\n3. Tap \'SMS app\'\n4. Select your new messaging app\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_replace_default_sms_instructions">Your current SMS app may collect your messaging data and contacts.\n\nRecommended alternatives:\n• Fossify Messages (F-Droid &amp; Play Store)\n  Open source, privacy-focused, no ads\n• QKSMS (F-Droid)\n  Lightweight and private\n\nSteps:\n1. Install a privacy-focused messaging app\n2. Open Settings → Apps → Default apps\n3. Tap \'SMS app\'\n4. Select your new messaging app</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REPLACE DEFAULT EMAIL -->
@@ -563,7 +563,7 @@
     <string name="quick_win_replace_default_email_time">2 minutes</string>
     <string name="quick_win_replace_default_email_action">Open Default App Settings</string>
     <string name="quick_win_replace_default_email_short">Email</string>
-    <string name="quick_win_replace_default_email_instructions">Your current email app may scan your emails for advertising and data collection.\n\nRecommended alternatives:\n• K-9 Mail (F-Droid &amp; Play Store) - Open source\n• FairEmail (F-Droid &amp; Play Store) - Privacy-focused\n• ProtonMail (Play Store) - Encrypted email\n\nSteps:\n1. Install a privacy-focused email app\n2. Open Settings → Apps → Default apps\n3. Tap \'Email app\' (if available)\n4. Select your new email app\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_replace_default_email_instructions">Your current email app may scan your emails for advertising and data collection.\n\nRecommended alternatives:\n• K-9 Mail (F-Droid &amp; Play Store) - Open source\n• FairEmail (F-Droid &amp; Play Store) - Privacy-focused\n• ProtonMail (Play Store) - Encrypted email\n\nSteps:\n1. Install a privacy-focused email app\n2. Open Settings → Apps → Default apps\n3. Tap \'Email app\' (if available)\n4. Select your new email app</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — REPLACE DEFAULT LAUNCHER -->
@@ -573,7 +573,7 @@
     <string name="quick_win_replace_default_launcher_time">2 minutes</string>
     <string name="quick_win_replace_default_launcher_action">Open Default App Settings</string>
     <string name="quick_win_replace_default_launcher_short">Launcher</string>
-    <string name="quick_win_replace_default_launcher_instructions">Your current launcher may collect usage patterns, app habits, and behavioral data.\n\nRecommended alternatives:\n• Lawnchair (F-Droid &amp; Play Store) - Modern and customizable\n• KISS Launcher (F-Droid &amp; Play Store) - Lightweight\n• Neo Launcher (F-Droid) - Feature-rich\n\nSteps:\n1. Install a privacy-focused launcher\n2. Open Settings → Apps → Default apps\n3. Tap \'Home app\'\n4. Select your new launcher\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_replace_default_launcher_instructions">Your current launcher may collect usage patterns, app habits, and behavioral data.\n\nRecommended alternatives:\n• Lawnchair (F-Droid &amp; Play Store) - Modern and customizable\n• KISS Launcher (F-Droid &amp; Play Store) - Lightweight\n• Neo Launcher (F-Droid) - Feature-rich\n\nSteps:\n1. Install a privacy-focused launcher\n2. Open Settings → Apps → Default apps\n3. Tap \'Home app\'\n4. Select your new launcher</string>
 
     <!-- ============================================================ -->
     <!-- QUICK WIN TYPES — UNINSTALL APP -->
@@ -583,7 +583,7 @@
     <string name="quick_win_uninstall_app_time">30 seconds</string>
     <string name="quick_win_uninstall_app_action">Open App Settings</string>
     <string name="quick_win_uninstall_app_short">App</string>
-    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap Uninstall.\n3. Confirm\n\nAfter completing this, rescan to see your improved score!</string>
+    <string name="quick_win_uninstall_app_instructions">You can improve your privacy by uninstalling this app.\n\nSteps:\n1. Tap \'Open App Settings\' below\n2. Tap \'Uninstall\'\n3. Confirm</string>
 
     <!-- ============================================================ -->
     <!-- PRIVACY TIPS — ISSUE-AWARE (12) -->
@@ -1081,4 +1081,41 @@
         <item quantity="other">%d trackers</item>
     </plurals>
 
+    <!-- ============================================================ -->
+    <!-- SCAN RESULT SNACKBAR -->
+    <!-- ============================================================ -->
+    <!-- 1 = what happened, 2 = points ("+5 pts"), 3 = score -->
+    <string name="fmt_snackbar_headline_points">%1$s · %2$s · Score %3$d</string>
+    <string name="fmt_snackbar_headline">%1$s · Score %2$d</string>
+    <string name="fmt_snackbar_fixed">%1$s fixed</string>
+    <string name="fmt_snackbar_confirmed">%1$s confirmed</string>
+    <string name="fmt_snackbar_review_done">%1$s review done</string>
+    <string name="label_snackbar_review_location">Location</string>
+    <string name="label_snackbar_review_camera_mic">Camera &amp; Mic</string>
+    <string name="label_snackbar_review_unused_apps">Unused apps</string>
+    <string name="fmt_snackbar_mixed">%1$s, %2$s</string>
+    <string name="fmt_snackbar_better_worse">%1$d better, %2$d worse</string>
+    <string name="copy_snackbar_not_fixed">Not fixed yet</string>
+    <string name="copy_snackbar_no_change">No change</string>
+    <string name="copy_snackbar_scan_failed">Couldn\'t check. Your last result is still shown.</string>
+    <string name="label_snackbar_details">Details</string>
+    <string name="label_snackbar_try_again">Try again</string>
+    <string name="label_check_again">Check again</string>
+    <string name="label_check_again_checking">Checking…</string>
+    <plurals name="plural_snackbar_loss">
+        <item quantity="one">−%d pt</item>
+        <item quantity="other">−%d pts</item>
+    </plurals>
+    <plurals name="plural_snackbar_checks_fixed">
+        <item quantity="one">%d check fixed</item>
+        <item quantity="other">%d checks fixed</item>
+    </plurals>
+    <plurals name="plural_snackbar_fixed">
+        <item quantity="one">%d fixed</item>
+        <item quantity="other">%d fixed</item>
+    </plurals>
+    <plurals name="plural_snackbar_new_issues">
+        <item quantity="one">%d new issue</item>
+        <item quantity="other">%d new issues</item>
+    </plurals>
 </resources>

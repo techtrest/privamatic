@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.accentOnSurface
 import com.techtrest.privamatic.accentOutlinedButtonColors
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.PrivacyIssue
 import com.techtrest.privamatic.data.model.PrivacyCheck
 import com.techtrest.privamatic.data.model.isFullyTrusted
@@ -155,7 +156,7 @@ fun IssueItem(
                                             context = context,
                                             actionType = actionType,
                                             packageName = issue.check.packageName,
-                                            rescanOnReturn = true
+                                            onReturn = UserScan.FixReturn(issue.check)
                                         )
                                     },
                                     modifier = Modifier.fillMaxWidth(),
@@ -204,7 +205,7 @@ fun IssueItem(
                                             context = context,
                                             actionType = actionType,
                                             packageName = issue.check.packageName,
-                                            rescanOnReturn = true
+                                            onReturn = UserScan.FixReturn(issue.check)
                                         )
                                     },
                                     modifier = Modifier.fillMaxWidth(),

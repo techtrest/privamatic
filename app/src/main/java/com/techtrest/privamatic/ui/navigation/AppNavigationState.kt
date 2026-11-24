@@ -33,6 +33,20 @@ class AppNavigationState(
     var showHistoryScreen by mutableStateOf(false)
         private set
 
+    /** One-shot: Details > Checks switches to its Breakdown view, then clears it. */
+    var isBreakdownRequested by mutableStateOf(false)
+        private set
+
+    fun openBreakdown() {
+        isBreakdownRequested = true
+        selectDetailsTab(DetailsTab.CHECKS)
+        selectTab(NavigationTab.DETAILS)
+    }
+
+    fun onBreakdownShown() {
+        isBreakdownRequested = false
+    }
+
     fun selectTab(tab: NavigationTab) {
         selectedTab = tab
     }

@@ -87,6 +87,15 @@ class StockSafeAdviceTest {
     fun `uninstall quick win never mentions disabling`() {
         // User-installed apps have Uninstall on their App info page, no Disable.
         assertFalse("disabl" in text("quick_win_uninstall_app_instructions"))
-        assertTrue("Tap Uninstall." in requireNotNull(strings["quick_win_uninstall_app_instructions"]))
+        // Steps quoted alike, without full stops. aapt's \' escape reaches the DOM as is.
+        val steps = requireNotNull(strings["quick_win_uninstall_app_instructions"]).replace("\\'", "'")
+        assertTrue(steps, "1. Tap 'Open App Settings' below\\n2. Tap 'Uninstall'\\n3. Confirm" in steps)
+        assertTrue(steps, steps.endsWith("Confirm"))
+    }
+
+    @Test
+    fun `no text asks the user to rescan for their score`() {
+        // The result snackbar reports it (v1.6 section 4.2).
+        assertTrue(strings.filterValues { "rescan to see" in it.lowercase() }.keys.isEmpty())
     }
 }
