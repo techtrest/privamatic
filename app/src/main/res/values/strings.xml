@@ -1084,9 +1084,9 @@
     <!-- ============================================================ -->
     <!-- SCAN RESULT SNACKBAR -->
     <!-- ============================================================ -->
-    <!-- 1 = what happened, 2 = points ("+5 pts"), 3 = score -->
-    <string name="fmt_snackbar_headline_points">%1$s · %2$s · Score %3$d</string>
-    <string name="fmt_snackbar_headline">%1$s · Score %2$d</string>
+    <!-- 1 = what happened, 2 = points ("+5 pts"), 3 = score; no-break space, so the number never wraps alone -->
+    <string name="fmt_snackbar_headline_points">%1$s · %2$s · Score&#160;%3$d</string>
+    <string name="fmt_snackbar_headline">%1$s · Score&#160;%2$d</string>
     <string name="fmt_snackbar_fixed">%1$s fixed</string>
     <string name="fmt_snackbar_confirmed">%1$s confirmed</string>
     <string name="fmt_snackbar_review_done">%1$s review done</string>

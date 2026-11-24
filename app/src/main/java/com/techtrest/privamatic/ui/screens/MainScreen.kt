@@ -1,6 +1,7 @@
 package com.techtrest.privamatic.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.techtrest.privamatic.Cream
 import com.techtrest.privamatic.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtrest.privamatic.data.PrivacyTipSelector
@@ -434,13 +436,16 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                 )
                             }
                         }
-                        // On top of the content, so it never shifts the layout
+                        // On top of the content, so it never shifts the layout. Header colour behind
+                        // the whole bar (its track has gaps), Cream like the tab indicator: onPrimary
+                        // white vanishes against the light content below.
                         if (isRefreshing) {
                             LinearProgressIndicator(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .align(Alignment.TopCenter),
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                    .align(Alignment.TopCenter)
+                                    .background(MaterialTheme.colorScheme.primary),
+                                color = Cream,
                                 trackColor = MaterialTheme.colorScheme.primary
                             )
                         }

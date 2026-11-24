@@ -42,7 +42,8 @@ class ScanFeedbackTextTest {
     }
 
     private fun check(expected: String, outcome: ScanOutcome) =
-        assertEquals(expected, ScanFeedbackText.text(outcome, XmlStrings))
+        // "Score 36" holds a no-break space, so the number never wraps alone
+        assertEquals(expected.replace("Score ", "Score\u00A0"), ScanFeedbackText.text(outcome, XmlStrings))
 
     @Test
     fun `one fix`() =
