@@ -454,6 +454,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                         navigationState.selectTab(NavigationTab.ACTIONS)
                                     },
                                     isBreakdownRequested = navigationState.isBreakdownRequested,
+                                    isSettled = pagerState.settledPage == NavigationTab.DETAILS.ordinal,
                                     onBreakdownShown = { navigationState.onBreakdownShown() }
                                 )
                             }

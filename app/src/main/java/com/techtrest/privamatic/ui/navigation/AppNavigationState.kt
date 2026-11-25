@@ -34,8 +34,8 @@ class AppNavigationState(
         private set
 
     /**
-     * One-shot: Details > Checks switches to its Breakdown view, then clears it. Going anywhere
-     * else before it shows drops it, so it can't change a later visit.
+     * One-shot: Details > Checks shows its Breakdown view, and keeps it and clears this once the
+     * pager has settled there. Going anywhere else first drops it, so it can't change a later visit.
      */
     var isBreakdownRequested by mutableStateOf(false)
         private set

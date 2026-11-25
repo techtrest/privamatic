@@ -99,6 +99,7 @@ fun DetailsScreen(
     onRunSdkScan: () -> Unit,
     onNavigateToManualChecks: () -> Unit,
     isBreakdownRequested: Boolean,
+    isSettled: Boolean,
     onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -153,6 +154,7 @@ fun DetailsScreen(
                 trustedPackages = trustedPackages,
                 onNavigateToManualChecks = onNavigateToManualChecks,
                 isBreakdownRequested = isBreakdownRequested,
+                isSettled = isSettled,
                 onBreakdownShown = onBreakdownShown
             )
             DetailsTab.APPS -> AppsContent(
@@ -182,15 +184,19 @@ private fun ChecksTab(
     trustedPackages: Set<String>,
     onNavigateToManualChecks: () -> Unit,
     isBreakdownRequested: Boolean,
+    isSettled: Boolean,
     onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val viewPrefs = remember { DetailsViewPreferences(context) }
-    var view by remember { mutableStateOf(viewPrefs.getChecksView()) }
+    var savedView by remember { mutableStateOf(viewPrefs.getChecksView()) }
+    // While the pager still moves here, a Breakdown request only shows; a dropped one leaves no trace
+    val view = if (isBreakdownRequested) ChecksView.BREAKDOWN else savedView
     fun showView(newView: ChecksView) {
-        view = newView
+        savedView = newView
         viewPrefs.setChecksView(newView)
+        onBreakdownShown()
     }
 
     // Hoisted out of the list so expansion and scroll position survive the view toggle, and
@@ -204,11 +210,10 @@ private fun ChecksTab(
     var highlightedCheck by remember { mutableStateOf<PrivacyCheck?>(null) }
     val listState = rememberLazyListState()
 
-    LaunchedEffect(isBreakdownRequested) {
-        if (isBreakdownRequested) {
+    LaunchedEffect(isBreakdownRequested, isSettled) {
+        if (isBreakdownRequested && isSettled) {
             highlightedCheck = null
             showView(ChecksView.BREAKDOWN)
-            onBreakdownShown()
         }
     }
 
