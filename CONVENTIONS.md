@@ -104,7 +104,10 @@ review); `MainScreen` rescans once on the next resume. The flag is in memory onl
 ones keep `Success` and set `isRefreshing`. A scan the user asked for passes a `UserScan` to
 `performScan`; `ScanFeedback.between` compares the two in-memory scores (never `score_history`, the
 widget writes it too) and `MainScreen` shows one snackbar. A newer scan cancels a running one but
-keeps the earliest `before`. `onScanSuccess` publishes everything after its last suspension.
+keeps the earliest `before`. `onScanSuccess` publishes everything after its last suspension, and a
+cancelled scan that fails touches nothing (`ensureActive` first in `performScan`'s catch). `MainScreen`
+collects `scanEvents` only while STARTED, so a result waits for the user to come back. A check only
+one of the two scores has counts in the points and is never called fixed.
 
 **View toggles vs tabs** — a tab is for different data; a toggle is for the same data viewed
 differently. Toggles are an `IconButton` in the tab's fixed header row (never a segmented

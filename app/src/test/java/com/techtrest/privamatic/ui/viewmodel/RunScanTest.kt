@@ -43,6 +43,7 @@ class RunScanTest {
     fun `a cancelled scan that fails on its way out is cancelled, not failed`() = runBlocking {
         val started = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
+        var isFailureReached = false
         var caught: Exception? = null
         val job = scope.launch {
             try {
@@ -52,6 +53,7 @@ class RunScanTest {
                         started.complete(Unit)
                         release.await()
                     }
+                    isFailureReached = true
                     error("scan failed")
                 }
             } catch (e: Exception) {
@@ -63,11 +65,20 @@ class RunScanTest {
         release.complete(Unit)
         job.join()
 
+        assertTrue("the scan must get as far as failing", isFailureReached)
         assertTrue("$caught", caught is CancellationException)
     }
 
     @Test
     fun `a scan's result comes back`() = runBlocking {
         assertEquals(42, runScan(0) { 42 })
+    }
+
+    @Test
+    fun `a fast scan's result waits for the minimum`() = runBlocking {
+        val start = System.nanoTime()
+        assertEquals(42, runScan(300) { 42 })
+        val ms = (System.nanoTime() - start) / 1_000_000
+        assertTrue("$ms ms", ms >= 300)
     }
 }

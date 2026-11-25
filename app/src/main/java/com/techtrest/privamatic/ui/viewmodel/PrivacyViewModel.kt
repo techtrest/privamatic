@@ -25,7 +25,7 @@ import com.techtrest.privamatic.data.model.isFullyTrusted
 import com.techtrest.privamatic.data.scanner.PrivacyScanner
 import com.techtrest.privamatic.data.scanner.SdkScanner
 import com.techtrest.privamatic.data.util.PackageManagerUtil
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -58,7 +58,11 @@ sealed class ScanEvent {
         val outcome: ScanOutcome,
         val trigger: UserScan,
         val quickWins: List<QuickWin>
-    ) : ScanEvent()
+    ) : ScanEvent() {
+        /** The open Quick Win page's Action with its new gain; null when it is gone. */
+        fun updated(open: QuickWin): QuickWin? =
+            quickWins.find { it.type == open.type && it.relatedCheck == open.relatedCheck }
+    }
 
     data class Failed(val trigger: UserScan) : ScanEvent()
 }
@@ -85,14 +89,32 @@ internal suspend fun <T> runScan(minimumMs: Long, scan: suspend () -> T): T = tr
     throw e
 }
 
-class PrivacyViewModel(application: Application) : AndroidViewModel(application) {
+/** The primary constructor is for tests; the app uses the one that only takes the application. */
+class PrivacyViewModel internal constructor(
+    application: Application,
+    private val scoreHistoryRepository: ScoreHistoryRepository,
+    private val snapshotRepository: PrivacySnapshotRepository,
+    private val trustedAppsRepository: TrustedAppsRepository,
+    private val sdkScanner: SdkScanner,
+    private val sdkScanRepository: SdkScanRepository,
+    private val scan: suspend () -> PrivacyScore,
+    private val requestWidgetUpdate: () -> Unit,
+    testScope: CoroutineScope?
+) : AndroidViewModel(application) {
 
-    private val privacyScanner = PrivacyScanner(application)
-    private val scoreHistoryRepository = ScoreHistoryRepository(application)
-    private val snapshotRepository = PrivacySnapshotRepository(application)
-    private val trustedAppsRepository = TrustedAppsRepository(application)
-    private val sdkScanner = SdkScanner(application)
-    private val sdkScanRepository = SdkScanRepository(application)
+    constructor(application: Application) : this(
+        application = application,
+        scoreHistoryRepository = ScoreHistoryRepository(application),
+        snapshotRepository = PrivacySnapshotRepository(application),
+        trustedAppsRepository = TrustedAppsRepository(application),
+        sdkScanner = SdkScanner(application),
+        sdkScanRepository = SdkScanRepository(application),
+        scan = PrivacyScanner(application)::performCompleteScan,
+        requestWidgetUpdate = { PrivacyWidgetProvider.requestImmediateUpdate(application) },
+        testScope = null
+    )
+
+    private val scope: CoroutineScope = testScope ?: viewModelScope
 
     private val _scanState = MutableStateFlow<PrivacyScanState>(PrivacyScanState.Idle)
     val scanState: StateFlow<PrivacyScanState> = _scanState.asStateFlow()
@@ -117,10 +139,10 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     private val _rawQuickWins = MutableStateFlow<List<QuickWin>>(emptyList())
 
     val trustedPackages: StateFlow<Set<String>> = trustedAppsRepository.trustedPackages
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+        .stateIn(scope, SharingStarted.Eagerly, emptySet())
 
     val isAppsBannerDismissed: StateFlow<Boolean> = trustedAppsRepository.isAppsBannerDismissed
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(scope, SharingStarted.Eagerly, false)
 
     // Quick wins with trusted apps filtered out; reactive to both scan results and whitelist changes
     val filteredQuickWins: StateFlow<List<QuickWin>> = combine(
@@ -129,7 +151,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         trustedPackages
     ) { rawWins, rawScore, trusted ->
         if (rawScore == null) rawWins else filterTrusted(rawWins, rawScore, trusted)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     private val _flaggedApps = MutableStateFlow<List<FlaggedApp>>(emptyList())
     val flaggedApps: StateFlow<List<FlaggedApp>> = _flaggedApps.asStateFlow()
@@ -153,17 +175,16 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     private var currentScanJob: Job? = null
     private var isInitialLoad = true
 
-    // The trusted set the shown score uses
+    // The stored trusted set (null until first read), and the one the shown score uses
+    private var latestTrusted: Set<String>? = null
     private var shownTrusted: Set<String>? = null
 
     init {
         // Recompute score reactively whenever the whitelist changes
-        viewModelScope.launch {
-            trustedPackages.collect { trusted ->
-                val rawScore = _rawPrivacyScore.value ?: return@collect
-                // The running scan applies the change when it finishes
-                if (_scanState.value is PrivacyScanState.Scanning || _isRefreshing.value) return@collect
-                showAdjusted(rawScore, trusted)
+        scope.launch {
+            trustedAppsRepository.trustedPackages.collect { trusted ->
+                latestTrusted = trusted
+                applyTrustChange()
             }
         }
         performScan()
@@ -172,7 +193,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
 
     fun runSdkScan() {
         if (_sdkScanState.value is SdkScanState.Scanning) return
-        viewModelScope.launch {
+        scope.launch {
             _sdkScanState.value = SdkScanState.Scanning
             try {
                 val findings = sdkScanner.scan()
@@ -190,7 +211,7 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadSdkResults() {
-        viewModelScope.launch {
+        scope.launch {
             sdkScanRepository.load()?.let { cached ->
                 if (_sdkScanResults.value == null) {
                     _sdkScanResults.value = cached
@@ -212,79 +233,85 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
         )
         if (hasResult) _isRefreshing.value = true else _scanState.value = PrivacyScanState.Scanning
 
-        currentScanJob = viewModelScope.launch {
+        currentScanJob = scope.launch {
             try {
                 val minimumMs = if (isInitialLoad) 0L else MINIMUM_SCAN_DISPLAY_TIME_MS
-                onScanSuccess(runScan(minimumMs) { privacyScanner.performCompleteScan() })
-                isInitialLoad = false
-                _isRefreshing.value = false
-                PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
-                applyMissedTrustChange()
-            } catch (e: CancellationException) {
-                // A newer scan took over, or the ViewModel is gone
-                throw e
+                onScanSuccess(runScan(minimumMs) { scan() })
             } catch (e: Exception) {
-                isInitialLoad = false
-                if (_scanState.value is PrivacyScanState.Success) {
-                    _isRefreshing.value = false
-                    pendingUserScan?.let { _scanEvents.trySend(ScanEvent.Failed(it.trigger)) }
-                    pendingUserScan = null
-                    applyMissedTrustChange()
-                } else {
-                    _scanState.value = PrivacyScanState.Error(
-                        e.message ?: "An unknown error occurred during scanning"
-                    )
-                }
+                // A cancelled scan that fails on its way out: the state is the newer scan's now
+                ensureActive()
+                onScanFailed(e)
             }
         }
     }
 
-    /** The trust collector skips changes made while a scan runs; applies one it skipped. */
-    private suspend fun applyMissedTrustChange() {
-        val trusted = trustedAppsRepository.trustedPackages.first()
-        val raw = _rawPrivacyScore.value ?: return
-        if (trusted != shownTrusted) showAdjusted(raw, trusted)
+    private fun onScanFailed(e: Exception) {
+        isInitialLoad = false
+        if (_scanState.value is PrivacyScanState.Success) {
+            val pending = pendingUserScan
+            pendingUserScan = null
+            _isRefreshing.value = false
+            applyTrustChange()
+            pending?.let { _scanEvents.trySend(ScanEvent.Failed(it.trigger)) }
+        } else {
+            _scanState.value = PrivacyScanState.Error(
+                e.message ?: "An unknown error occurred during scanning"
+            )
+        }
     }
 
-    private fun showAdjusted(rawScore: PrivacyScore, trusted: Set<String>) {
+    /** Shows a trust change. While a scan runs it does nothing: the end of the scan shows it. */
+    private fun applyTrustChange() {
+        val rawScore = _rawPrivacyScore.value ?: return
+        val trusted = latestTrusted ?: return
+        if (trusted == shownTrusted || _isRefreshing.value) return
         shownTrusted = trusted
         _scanState.value = PrivacyScanState.Success(TrustedAppsAdjuster.computeAdjustedScore(rawScore, trusted))
-        PrivacyWidgetProvider.requestImmediateUpdate(getApplication())
+        requestWidgetUpdate()
     }
 
     fun trustApp(packageName: String) {
-        viewModelScope.launch { trustedAppsRepository.trustApp(packageName) }
+        scope.launch { trustedAppsRepository.trustApp(packageName) }
     }
 
     fun untrustApp(packageName: String) {
-        viewModelScope.launch { trustedAppsRepository.untrustApp(packageName) }
+        scope.launch { trustedAppsRepository.untrustApp(packageName) }
     }
 
     fun dismissAppsBanner() {
-        viewModelScope.launch { trustedAppsRepository.dismissAppsBanner() }
+        scope.launch { trustedAppsRepository.dismissAppsBanner() }
     }
 
     fun setHistoryFilter(filter: HistoryFilter) {
         _selectedFilter.value = filter
-        viewModelScope.launch { reloadHistory() }
+        scope.launch { reloadHistory() }
     }
 
     fun loadHistory() {
-        viewModelScope.launch { reloadHistory() }
+        scope.launch { reloadHistory() }
     }
 
     fun clearHistory() {
-        viewModelScope.launch {
+        scope.launch {
             snapshotRepository.clearAll()
             _historySnapshots.value = emptyList()
             _hasHistory.value = false
         }
     }
 
-    private suspend fun reloadHistory() {
-        _historySnapshots.value = snapshotRepository.getSnapshots(_selectedFilter.value)
-        _hasHistory.value = snapshotRepository.hasAnySnapshot()
+    private class History(val snapshots: List<PrivacySnapshot>, val hasAny: Boolean)
+
+    private suspend fun readHistory(): History {
+        val hasAny = snapshotRepository.hasAnySnapshot()
+        return History(snapshotRepository.getSnapshots(_selectedFilter.value), hasAny)
     }
+
+    private fun publishHistory(history: History) {
+        _historySnapshots.value = history.snapshots
+        _hasHistory.value = history.hasAny
+    }
+
+    private suspend fun reloadHistory() = publishHistory(readHistory())
 
     /**
      * Records the scan, then publishes everything at once: no suspension after the first
@@ -293,32 +320,42 @@ class PrivacyViewModel(application: Application) : AndroidViewModel(application)
     private suspend fun onScanSuccess(result: PrivacyScore) {
         val quickWins = QuickWinsDetector.detectQuickWins(result, getApplication())
         val flaggedApps = computeFlaggedApps(result)
-        val trusted = trustedAppsRepository.trustedPackages.first()
-        val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
-        val history = scoreHistoryRepository.recordScore(adjustedScore.score)
-        snapshotRepository.recordScan(adjustedScore)
-        reloadHistory()
+        val recordedTrust = trustedAppsRepository.trustedPackages.first()
+        val recordedScore = TrustedAppsAdjuster.computeAdjustedScore(result, recordedTrust)
+        val scoreHistory = scoreHistoryRepository.recordScore(recordedScore.score)
+        snapshotRepository.recordScan(recordedScore)
+        val history = readHistory()
+        currentCoroutineContext().ensureActive()
 
+        // An app trusted while the result was saved already counts in the score and the snackbar;
+        // today's history point gets it with the next scan, like any trust change.
+        val trusted = latestTrusted ?: recordedTrust
+        val adjustedScore = TrustedAppsAdjuster.computeAdjustedScore(result, trusted)
+        val pending = pendingUserScan
+        pendingUserScan = null
+        publishHistory(history)
         _rawPrivacyScore.value = result
         _rawQuickWins.value = quickWins
         _flaggedApps.value = flaggedApps
-        _scoreHistory.value = history
+        _scoreHistory.value = scoreHistory
         shownTrusted = trusted
         _scanState.value = PrivacyScanState.Success(adjustedScore)
-        pendingUserScan?.let { pending ->
+        _isRefreshing.value = false
+        isInitialLoad = false
+        requestWidgetUpdate()
+        pending?.let {
             _scanEvents.trySend(
                 ScanEvent.Finished(
                     outcome = ScanFeedback.between(
-                        before = TrustedAppsAdjuster.computeAdjustedScore(pending.before, trusted),
+                        before = TrustedAppsAdjuster.computeAdjustedScore(it.before, trusted),
                         after = adjustedScore,
-                        trigger = pending.trigger
+                        trigger = it.trigger
                     ),
-                    trigger = pending.trigger,
+                    trigger = it.trigger,
                     quickWins = filterTrusted(quickWins, result, trusted)
                 )
             )
         }
-        pendingUserScan = null
     }
 
     private fun filterTrusted(

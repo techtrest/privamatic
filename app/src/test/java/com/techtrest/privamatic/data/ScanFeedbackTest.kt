@@ -7,6 +7,7 @@ import com.techtrest.privamatic.data.model.PrivacyScore
 import com.techtrest.privamatic.data.scanner.PrivacyScoreCalculator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ScanFeedbackTest {
@@ -210,6 +211,92 @@ class ScanFeedbackTest {
             UserScan.AdIdConfirmed
         )
     )
+
+    // A check on one side only
+
+    @Test
+    fun `a check that disappears is points only, never 0 checks fixed`() = assertEquals(
+        ScanOutcome.Gain(6, 100, hasLosses = false),
+        between(score(fail(dns, 6)), score())
+    )
+
+    @Test
+    fun `a check that disappears together with a fix doesn't lend its points to it`() = assertEquals(
+        ScanOutcome.Gain(17, 100, hasLosses = false),
+        between(score(fail(lock, 11), fail(dns, 6)), score(pass(lock)))
+    )
+
+    @Test
+    fun `two checks that disappear are not called fixed`() = assertEquals(
+        ScanOutcome.Gain(17, 100, hasLosses = false),
+        between(score(fail(lock, 11), fail(dns, 6)), score())
+    )
+
+    @Test
+    fun `a failing check that appears is worse, also when another improves by the same points`() = assertEquals(
+        ScanOutcome.Mixed(better = 1, worse = 1, exact = false, score = 94),
+        between(score(fail(dns, 6)), score(fail(dns, 3), fail(vpn, 3)))
+    )
+
+    @Test
+    fun `a failing check that appears while another is fixed for the same points is a new issue`() = assertEquals(
+        ScanOutcome.Mixed(better = 1, worse = 1, exact = true, score = 97),
+        between(score(fail(dns, 3)), score(pass(dns), fail(vpn, 3)))
+    )
+
+    @Test
+    fun `a failing check that appears is named as the loss`() = assertEquals(
+        ScanOutcome.Loss(vpn, 3, 97),
+        between(score(pass(dns)), score(pass(dns), fail(vpn, 3)))
+    )
+
+    @Test
+    fun `a check that disappears while another gets worse is neither fixed nor unchanged`() = assertEquals(
+        ScanOutcome.Mixed(better = 1, worse = 1, exact = false, score = 97),
+        between(score(fail(vpn, 3), pass(dns)), score(fail(dns, 3)))
+    )
+
+    @Test
+    fun `a check that disappears below the clamp is no change`() = assertEquals(
+        ScanOutcome.NoChange(0),
+        between(score(fail(lock, 140), fail(dns, 6)), score(fail(lock, 140)), UserScan.CheckAgain(dns))
+    )
+
+    @Test
+    fun `an Ad ID check that disappears is not called confirmed`() = assertEquals(
+        ScanOutcome.Gain(5, 100, hasLosses = false),
+        between(score(fail(PrivacyCheck.ADVERTISING_ID, 5)), score(), UserScan.AdIdConfirmed)
+    )
+
+    @Test
+    fun `checks that cost nothing may come and go`() = assertEquals(
+        ScanOutcome.NoChange(94),
+        between(score(fail(dns, 6), pass(vpn)), score(fail(dns, 6), unknown(usb)))
+    )
+
+    @Test
+    fun `no combination is ever called 0 checks fixed`() {
+        // Absent, pass, unknown, 3 or 6 points: every state of two checks on both sides
+        fun states(check: PrivacyCheck) =
+            listOf(null, pass(check), unknown(check), fail(check, 3), fail(check, 6))
+        val scores = states(dns).flatMap { a ->
+            states(vpn).flatMap { b ->
+                listOf(10, 15).map { manual -> score(*listOfNotNull(a, b).toTypedArray(), manual = manual) }
+            }
+        }
+        val triggers = listOf(UserScan.Rescan, UserScan.CheckAgain(dns), UserScan.AdIdConfirmed)
+        for (before in scores) for (after in scores) for (trigger in triggers) {
+            val outcome = between(before, after, trigger)
+            if (outcome is ScanOutcome.ChecksFixed) assertTrue("$outcome", outcome.count >= 2)
+            if (outcome is ScanOutcome.CheckFixed) {
+                assertTrue("$outcome", after.issues.any { it.check == outcome.check && it.isSecure })
+            }
+            if (after.score == before.score) {
+                val costs = { s: PrivacyScore -> s.issues.filter { it.pointDeduction > 0 }.associate { it.check to it.pointDeduction } }
+                if (costs(before) != costs(after)) assertTrue("$outcome", outcome is ScanOutcome.Mixed)
+            }
+        }
+    }
 
     // Clamp at 0
 

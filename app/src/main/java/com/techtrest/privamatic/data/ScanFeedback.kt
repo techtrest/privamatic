@@ -54,14 +54,15 @@ object ScanFeedback {
 
     /**
      * Compares two trust-adjusted scores held in memory. Never reads score_history: the widget
-     * writes that file too. A check is better when its deduction went down, worse when it went up.
+     * writes that file too. A check is better when its deduction went down, worse when it went up;
+     * a check only one side has costs nothing on the other.
      */
     fun between(before: PrivacyScore, after: PrivacyScore, trigger: UserScan): ScanOutcome {
         val points = after.score - before.score
         val beforeIssues = before.issues.associateBy { it.check }
-        val changes = after.issues.mapNotNull { new ->
-            val old = beforeIssues[new.check] ?: return@mapNotNull null
-            Change(new.check, old.pointDeduction, new.pointDeduction, new.isUnknown)
+        val afterIssues = after.issues.associateBy { it.check }
+        val changes = (beforeIssues.keys + afterIssues.keys).map { check ->
+            Change(check, beforeIssues[check]?.pointDeduction ?: 0, afterIssues[check])
         }
         val better = changes.filter { it.after < it.before }
         val worse = changes.filter { it.after > it.before }
@@ -98,6 +99,8 @@ object ScanFeedback {
     ): ScanOutcome {
         val single = better.singleOrNull()
         return when {
+            // Nothing shows that a check which disappeared was fixed: its points only
+            better.any { it.isGone } -> ScanOutcome.Gain(points, score, hasLosses = worseCount > 0)
             worseCount > 0 -> ScanOutcome.Gain(points, score, hasLosses = true)
             manual > 0 ->
                 if (better.isEmpty() && trigger is UserScan.ManualDone && manual == trigger.type.pointValue) {
@@ -109,7 +112,7 @@ object ScanFeedback {
                 ScanOutcome.AdIdConfirmed(points, score)
             single != null && single.isFixed -> ScanOutcome.CheckFixed(single.check, points, score)
             single != null -> ScanOutcome.CheckImproved(single.check, points, score)
-            better.all { it.isFixed } -> ScanOutcome.ChecksFixed(better.size, points, score)
+            better.isNotEmpty() && better.all { it.isFixed } -> ScanOutcome.ChecksFixed(better.size, points, score)
             else -> ScanOutcome.Gain(points, score, hasLosses = false)
         }
     }
@@ -147,7 +150,9 @@ object ScanFeedback {
             else -> pending.copy(trigger = trigger)
         }
 
-    private class Change(val check: PrivacyCheck, val before: Int, val after: Int, isUnknown: Boolean) {
-        val isFixed = after == 0 && !isUnknown
+    private class Change(val check: PrivacyCheck, val before: Int, new: PrivacyIssue?) {
+        val after = new?.pointDeduction ?: 0
+        val isGone = new == null
+        val isFixed = new != null && after == 0 && !new.isUnknown
     }
 }

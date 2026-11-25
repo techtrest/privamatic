@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,7 +53,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.techtrest.privamatic.Cream
 import com.techtrest.privamatic.R
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -81,8 +85,13 @@ import com.techtrest.privamatic.ui.utils.ScanFeedbackText
 import com.techtrest.privamatic.ui.viewmodel.PrivacyScanState
 import com.techtrest.privamatic.ui.viewmodel.PrivacyViewModel
 import com.techtrest.privamatic.ui.viewmodel.ScanEvent
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,6 +164,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     }
     val snackbarHostState = remember { SnackbarHostState() }
     var bottomBarHeightPx by remember { mutableStateOf(0) }
+    var snackbarHeightPx by remember { mutableStateOf(0) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val pagerState = rememberPagerState(pageCount = { NavigationTab.entries.size })
@@ -170,24 +180,30 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
     // Sync: user taps bottom nav or tile click → animate pager to that page
     LaunchedEffect(navigationState.selectedTab) {
-        if (pagerState.currentPage != navigationState.selectedTab.ordinal) {
-            pagerState.animateScrollToPage(navigationState.selectedTab.ordinal)
+        val page = navigationState.selectedTab.ordinal
+        if (pagerState.currentPage == page) return@LaunchedEffect
+        try {
+            pagerState.animateScrollToPage(page)
+        } catch (e: CancellationException) {
+            // A newer tab took over
+            ensureActive()
+            // A swipe did. Back on the page it started from, the collector above sees no change,
+            // so follow the swipe from here: the tab, and a Breakdown request, must not stay.
+            withFrameNanos { }
+            snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+            navigationState.selectTab(NavigationTab.entries[pagerState.currentPage])
         }
     }
 
     // Result of a user scan: update the open Quick Win page, then one snackbar.
-    LaunchedEffect(viewModel) {
+    // A result that arrives while the app is in the background waits for the user to come back.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel, lifecycleOwner) {
         val strings = ResourceFeedbackStrings(context.resources)
         var snackbarJob: Job? = null
-        viewModel.scanEvents.collect { event ->
-            if (event is ScanEvent.Finished &&
-                (event.trigger is UserScan.FixReturn || event.trigger is UserScan.CheckAgain)
-            ) {
-                // Gone from the list closes the page; otherwise its gain updates
-                showQuickWinDetail = showQuickWinDetail?.let { open ->
-                    event.quickWins.find { it.type == open.type && it.relatedCheck == open.relatedCheck }
-                }
-            }
+        val snackbarScope = this // outlives the collector, so leaving the app doesn't dismiss it
+        fun showResult(event: ScanEvent) {
+            if (event is ScanEvent.Finished) showQuickWinDetail = showQuickWinDetail?.let(event::updated)
 
             val text = when (event) {
                 is ScanEvent.Finished -> ScanFeedbackText.text(event.outcome, strings)
@@ -220,13 +236,19 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
             }
             // The newer snackbar replaces the older
             snackbarJob?.cancel()
-            snackbarJob = launch {
+            snackbarJob = snackbarScope.launch {
                 val result = snackbarHostState.showSnackbar(
                     message = text,
                     actionLabel = action?.let { strings.string(it.first) },
                     duration = if (action == null) SnackbarDuration.Short else SnackbarDuration.Long
                 )
                 if (result == SnackbarResult.ActionPerformed) action?.second?.invoke()
+            }
+        }
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            // Immediate: an event taken from the channel is handled before the app can stop
+            withContext(Dispatchers.Main.immediate) {
+                viewModel.scanEvents.collect { showResult(it) }
             }
         }
     }
@@ -571,7 +593,8 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
             onCheckAgain = {
                 quickWin.relatedCheck?.let { viewModel.performScan(UserScan.CheckAgain(it)) }
             },
-            isChecking = isRefreshing
+            isChecking = isRefreshing,
+            snackbarHeight = with(LocalDensity.current) { snackbarHeightPx.toDp() }
         )
     }
 
@@ -613,6 +636,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                         Modifier.padding(bottom = bottomBarPadding)
                     }
                 )
+                .onSizeChanged { snackbarHeightPx = it.height }
         )
     }
 }
