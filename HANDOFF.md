@@ -2,22 +2,20 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 17
+- Run: 18
 - Branch: feat/rescan-in-place
-- Commit: f45f9b6
-- Time: 2026-11-24T20:28:34+01:00
-- Deviations: 5 (the words are in status.json, not in this public file)
+- Commit: fe57328
+- Time: 2026-11-25T20:13:48+01:00
+- Deviations: 1 (the words are in status.json, not in this public file)
 
 ## Where we are
-v1.6 run 2+3 (`feat/rescan-in-place`) is built and passed its Pixel 8 gate. 280 unit tests pass and the debug build assembles. The review files are written; the branch is checked out.
-The phone check found two looks problems, both fixed and checked again on the phone: the scan bar vanished against the light Dashboard, and the score's number could wrap alone in the snackbar.
-Not verified on a phone: trusting an app during a scan (no app to trust on the Pixel 8) and TalkBack (its speech can't be read from the computer).
-Found: on a long Quick Win page, Check again is below the fold, and the snackbar covers it for up to 10 s. Oliver wants it fixed in the review round.
-Found: the phone agent's step that deletes the old APK first was refused and not worked around; the APK's time and its checksum on the phone show the right build was tested.
-The Pixel 8 is as it was before, with the new debug build installed and today's scans in its history.
+v1.6 run 2+3 (`feat/rescan-in-place`): external review round 1 is fixed in code. Each finding was shown by a failing test first, where a test can show it (24 failing tests on the old logic); one Low is rejected with evidence. 312 unit tests pass (280 before) and the debug build assembles.
+Also done: after a result, the snackbar no longer covers Check again on long Quick Win pages (not seen on a phone yet).
+Not verified on a phone yet: everything in this round. No phone was touched.
+Found: if the trusted list can't be read when the app starts, the app crashes; this is on `master` too and was not changed.
 
 ## Blocked on you
-Run the external review of feat/rescan-in-place in Cursor. Files: `docs/reviews/feat-rescan-in-place.diff` and `docs/reviews/feat-rescan-in-place-prompt-1.md`; save the result as `docs/reviews/feat-rescan-in-place-findings-1.md`.
+Say whether the Pixel 8 is free. The re-check covers the fix loop, the top-bar rescan, a loss with Details, Mark as done, the snackbar on a long Quick Win page, and leaving the app during a scan.
 
 ## Red flags
 None
@@ -26,7 +24,7 @@ None
 1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
 
 ## Next step for chat
-Review findings for run 2+3, then merge. The snackbar item is fixed in the same round. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
+Pixel 8 re-check, then external review round 2 of run 2+3, then merge. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
 
 ## Unapplied ROADMAP UPDATE blocks
 None
