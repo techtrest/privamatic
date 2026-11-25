@@ -25,11 +25,11 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov); review round 1 (2 High, 2 Medium, 4 Low) is fixed in code and checked on the Pixel 8 (25 Nov). In order: external review round 2, merge, then run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov); review round 1 (2 High, 2 Medium, 4 Low) is fixed (one Low rejected) and re-checked on the Pixel 8 (25 Nov). It waits for external review round 2 in Cursor, then merge; after that run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
 - [x] [S] (25 Nov, c07–c13) Run 2+3: on long Quick Win pages the result snackbar covers Check again (below the fold) for up to 10 s; fix in the review round, e.g. keep Check again in view after a result or lift the snackbar above it (Oliver, 24 Nov)
 - [x] [S] (24 Nov, b18) Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
 - [ ] [S] Tab tap while the pager still moves to another tab: it can stay stuck between two pages (seen 25 Nov with slow animations; same lines on `master`).
-- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open.
+- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open; decide it before run 10.
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).

@@ -4,8 +4,8 @@
 - Project: Privamatic
 - Run: 18
 - Branch: feat/rescan-in-place
-- Commit: 8e0b7fb
-- Time: 2026-11-25T21:18:54+01:00
+- Commit: c54b705
+- Time: 2026-11-25T21:25:45+01:00
 - Deviations: 6 (the words are in status.json, not in this public file)
 
 ## Where we are
@@ -27,7 +27,7 @@ None
 1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
 
 ## Next step for chat
-Findings of review round 2; if no High is left, merge. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
+Review round 2 findings for run 2+3, then merge. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
 
 ## Unapplied ROADMAP UPDATE blocks
 None
