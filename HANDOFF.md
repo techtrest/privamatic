@@ -2,18 +2,17 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 16
-- Branch: chore/wrap-up-2026-11-23
-- Commit: 6906571
-- Time: 2026-11-23T20:27:37+01:00
+- Run: 19
+- Branch: feat/rescan-in-place
+- Commit: 16f5858
+- Time: 2026-11-26T20:07:44+01:00
 - Deviations: none
 
 ## Where we are
-v1.6 run 1 (`fix/stock-safe-advice`) is done and merged into master. Master waits for Oliver's push.
-On stock Android, rows for apps that came with the phone have no disable advice and no App settings button. Scores are unchanged. The S8 check passed, the external review's four Lows are fixed, and 234 unit tests pass.
-Next is v1.6 run 2+3, `feat/rescan-in-place`. It needs the Pixel 8, which a Calluna session was using on 23 Nov. Its gate also checks the Google Camera row on the Pixel 8.
-Open items for run 2+3: the uninstall Quick Win's steps need to be made consistent when its trailing rescan sentence goes (step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps), and the roadmap line on device-verify's `cd` prefix (the agent file must say adb commands start with adb itself) is still open.
-Call 8 (AI-app rows and "I've checked this") is still open and has to be decided before v1.6.1 run 10.
+v1.6 run 2+3 (`feat/rescan-in-place`, rescan in place with a result snackbar) is done and merged into master. It is not pushed.
+External review round 2 found no High, one Medium and two Lows. The Medium and one Low are in the tab-swiping code, which already had two fix rounds; they are parked into the existing "stuck pager" item for one pager-navigation run later. The other Low is fixed: "Advertising ID confirmed" now shows only when that check really passes; two new tests failed before the fix and pass after it. 314 unit tests pass and the debug build assembles.
+Resolutions are in `docs/reviews/feat-rescan-in-place-findings-2.md`. This last change is unit-level; it was not checked on a phone.
+TalkBack over the result snackbar is still not checked on a phone; it is open in STATE.md for a later release check.
 
 ## Blocked on you
 None
@@ -22,10 +21,10 @@ None
 None
 
 ## Pending decisions
-1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
+None
 
 ## Next step for chat
-Start v1.6 run 2+3 (rescan in place) once the Pixel 8 is free.
+Start v1.6 run 4 (fix list).
 
 ## Unapplied ROADMAP UPDATE blocks
 None

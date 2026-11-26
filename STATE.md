@@ -7,7 +7,7 @@ Older runs move to `docs/state-archive/YYYY-MM.md`.
 
 Released version is v1.5.2 (versionCode 10), tagged on `2a95fa3`; live on F-Droid (Oliver, 2026-11-07).
 v1.5.3 (versionCode 11) is pushed and tagged `v1.5.3` on `00e9d4d` (Oliver, 2026-11-23); not yet confirmed live on F-Droid.
-The Pixel 8 runs the 1.5.2 debug build (versionCode 10), What's new already dismissed.
+The Pixel 8 runs the run 2+3 debug build (versionCode 11, `92b4065a…`).
 The Claude Code workflow files are merged into `master` with `--no-ff` and pushed. They are:
 - CLAUDE.md and STATE.md;
 - the narrowed `.claude/settings.local.json` (untracked; the allow list, plus the Pixel 9 adb deny rules since 2026-11-05);
@@ -25,9 +25,13 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 `fix/stock-safe-advice` is done and merged into `master` (23 Nov, not pushed). Next: run 2+3 `feat/rescan-in-place`. It needs the Pixel 8, which a Calluna session was using on 23 Nov: ask Oliver that it is free before any device step. Its gate also checks the Google Camera row on the Pixel 8.
-- [ ] [S] Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
-- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open.
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov); review round 1 (2 High, 2 Medium, 4 Low) is fixed (one Low rejected) and re-checked on the Pixel 8 (25 Nov). External review round 2 (no High, 1 Medium, 2 Low) is resolved and the branch is merged into local `master` (26 Nov, not pushed); next is run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
+- [x] [S] (25 Nov, c07–c13) Run 2+3: on long Quick Win pages the result snackbar covers Check again (below the fold) for up to 10 s; fix in the review round, e.g. keep Check again in view after a result or lift the snackbar above it (Oliver, 24 Nov)
+- [x] [S] (24 Nov, b18) Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
+- [ ] [S] Tab tap while the pager still moves to another tab: it can stay stuck between two pages (seen 25 Nov with slow animations; same lines on `master`).
+  Also covers run 2+3 review round 2 M1 (swipe recovery in the drag→fling gap) and L2 (`isSettled` ignores `isScrollInProgress`): one pager-navigation run (Oliver, 26 Nov).
+- [ ] [S] TalkBack pass over the scan result snackbar and the Quick Win page closing in the same frame: not verified on a phone (run 2+3, rounds 1–2); do it at a later release check.
+- [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open; decide it before run 10.
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
   - [x] Pixel 8 half: 8 literal Pixel 8 adb commands ran without a prompt or refusal, no new `hook.log` line (2026-11-17 device-verify gate).
@@ -102,29 +106,43 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
-### 2026-11-23 — v1.6 run 1: stock-safe advice (`fix/stock-safe-advice`, S8 via device-verify)
+### 2026-11-26 — v1.6 run 2+3: review round 2 resolved, merged (`feat/rescan-in-place`)
 
-- [x] Inbox empty; Oliver: no ROADMAP block from chat.
-- [x] Strings (spec 4.1 hard rule): `fmt_recommendation_system_app` no longer says disable, it says the app came with the phone, costs 1 pt and needn't be used; `privacy_check_google_camera_system_recommendation` says keep it, use Open Camera instead if wanted; `quick_win_uninstall_app_instructions` lost its pre-installed sentence. Play Services row untouched.
-- [x] Call 10: new `PrivacyIssue.rowActionType` (null when `isPreinstalledApp`); both `IssueItem` button sites read it, so preinstalled rows (also the informational AI rows, e.g. a preinstalled Gemini) have no App settings button. User-installed rows keep theirs. Call 12: no scoring change.
-- [x] Tests: `PrivacyIssueTest` (button per system/user app, camera text choice, still 1 pt, every scored app check costs 1 pt as the text says), `PackageManagerUtilTest` (system, updated system, user, unresolvable), new `StockSafeAdviceTest` (strings.xml: no "disabl", no "uninstall it"/"remove it", no "!"). `compileDebugKotlin`, `testDebugUnitTest --rerun` (233 tests after the follow-up, 0 failures; 216 before), `assembleDebug` pass.
-- [x] Phone gate (S8, Android 9, device-verify, APK `5456439d…` built 19:56): first try the S8 showed `no permissions`; Oliver re-plugged it. Install Success, start scan score 17, crash buffer empty, app alive. Details → Checks → Google Apps: Chrome, Gmail, YouTube (system apps per `pm list packages -s`) show "<App> came with your phone and can't be removed, so it costs 1 pt while it's here. …", chip −1, no button in the row (uiautomator dump: no "Open App Settings", "disable" or "uninstall"). Google Photos (user-installed on the S8, `-3`) keeps "Consider uninstalling…" and its Open App Settings button, chip −1. Screens: `docs/screens/stock-safe-advice/` (dashboard, checks-google-services, row-chrome, row-gmail, row-youtube, row-user-app). Pixel 8, Pixel 9 and the LG G2 not touched.
-- [ ] Google Camera row: not verified on a phone: covered by unit test, phone check in run 2+3's Pixel 8 gate (added to spec 4.2).
+- [x] Inbox empty; Oliver pasted one ROADMAP block in the chat: applied (stuck-pager item now also covers round 2 M1 and L2).
+- [x] Round 2 (`docs/reviews/feat-rescan-in-place-findings-2.md`): no High, 1 Medium, 2 Low; resolutions added to the file.
+  - M1, L2: parked into the stuck-pager item (L8 pager code had two fix rounds already; Oliver, 26 Nov).
+  - L3: proven first, two new `ScanFeedbackTest` cases (Advertising ID fail → unknown, fail → partial, on a confirm) failed on the old code (`was: AdIdConfirmed(…)`), pass after the fix (`16f5858`).
+  - Test renamed to what it guards: no second trusted-list read after a finished scan.
+- [x] Gate (unit-level change, no phone): `compileDebugKotlin`, `testDebugUnitTest --rerun` 314 tests, 0 failures, `assembleDebug` pass (APK 2026-11-26 20:06, `6aa0b44f…`; not installed).
+- [x] Own diff review against `master`: no blocking problems. No round 3 (one condition and a rename; Oliver).
+- [x] Merged into local `master` with `--no-ff`; not pushed.
+
+### 2026-11-25 — v1.6 run 2+3: external review round 1 (`feat/rescan-in-place`)
+
+- [x] Inbox empty; Oliver: no ROADMAP block this time. Findings: 2 High, 2 Medium, 4 Low.
+- [x] Proven first, on the unfixed logic (view model collaborators made constructor parameters, no logic change): 24 of 312 tests failed, each with the finding's symptom.
+  - H1: 5 in `PrivacyViewModelScanTest` (real view model): a superseded scan failing ended the newer scan's progress; a trusted list that can't be read crashed (`IOException` reached the uncaught handler).
+  - H2: 10 in `ScanFeedbackTest`: `ChecksFixed(count=0)`, both checks' points on one name, "No change" over a new issue.
+  - M4: a cancelled scan left the history list on its own point. Also found: a superseded scan that notices late published its result; a scan failing with someone else's cancellation left "Checking…" on for good.
+  - L5: snackbar 97, screen 100. L6: 3 in `ScanEventTest`. L8: 2 in `AppNavigationStateTest`.
+- [x] Fixed: H1, H2, M3, M4, L5 (fell out of H1: the failure path and the publish use the trusted set the app already holds, so nothing is read from storage there; one widget refresh), L6, L8; snackbar item: the Quick Win page ends above the snackbar and scrolls to Check again when a result arrives.
+- [x] L7 rejected: all 13 `QuickWin(…)` constructions in `QuickWinsDetector` (the only ones in the app) set a non-null `relatedCheck`.
+- [x] M3: kept result pinned by a test; the loss of a background result reproduced on the pre-fix build.
+- [x] Reviewer's test gaps: 800 ms minimum (view model and `runScan`), `RunScanTest` asserts the failure was reached. Mutations caught: minimum 0, `runScan` without its delay, each of the three cancellation guards removed.
+- [x] Gate: `compileDebugKotlin`, `testDebugUnitTest --rerun` 312 tests, 0 failures (280 before), `assembleDebug` pass (APK 20:12:58, `8940b5fd…`).
 - [x] Own diff review against `master`: no blocking problems.
-- [x] Follow-up (Oliver agreed the texts): `fmt_recommendation_system_app` = "…came with your phone and can't be removed, so it costs 1 pt while it's here. You don't have to use it: pick an alternative, and keep your account and data out of it."; uninstall Quick Win step 2 = "Tap Uninstall." (the rest as before); `StockSafeAdviceTest` checks no "Disable" in those steps.
-- [x] Deviation: before handing over to device-verify, the main session ran adb directly in the sandbox (`adb devices`, `start-server`, `wait-for-device`). That breaks the rule: device commands only through device-verify, only the exact excluded forms, never `wait-for-device`. From then on device work went only through device-verify.
-- [x] Follow-up 2 (Oliver): uninstall Quick Win first line = "You can improve your privacy by uninstalling this app."; `StockSafeAdviceTest` checks no "disabl" in it, case-insensitive. `testDebugUnitTest --rerun` (233, 0 failures), `assembleDebug` pass. No phone check: same screen path the S8 check covered (Oliver).
-- [x] External review round 1: no High or Medium, four Lows; Oliver: fix all four, no round 2. Each test proven first by mutating the string (then restored): 1. `PrivacyIssueTest` checks the text says "costs 1 pt" (mutation "costs 2 pts" → failed); 2. camera text keeps "Keep", "Open Camera", "built-in camera" (keep sentence dropped → failed); 3. spec 4.1 quotes the shipped sentence; 4. system-app texts reject any "uninstall"/"remov" except "can't be removed" (old "can't be uninstalled" → failed). All pass restored: `testDebugUnitTest --rerun` 234, 0 failures; `assembleDebug` pass. No phone (tests and docs only).
-- [x] Proofs repeated with the reviewer's own mutations once Oliver saved the findings file ("costs 2 pt"; camera text = the generic sentence; "Consider uninstalling it."; "remove this app"): each FAILED, restored → 234 pass. Resolutions in `docs/reviews/fix-stock-safe-advice-findings-1.md`. Own diff review against `master`: no blocking problems. Merged into `master` with `--no-ff`, not pushed.
-- [x] Found: device-verify's first S8 try put a `cd` in front of the install command, so it ran inside the sandbox (its own adb server, "device not found"); rerun once with the bare command, which passed. On the S8, `am start -W` timed out because the screen was off (Dozing); a wake keyevent fixed it.
+- [x] Oliver (25 Nov): Pixel 8 free; keep "1 better, 1 worse"; ROADMAP block applied (Later: app start with an unreadable trusted list).
+- [x] Pixel 8 (device-verify, 20:34–21:17; pre-fix build `5eee7dfe…`, then `8940b5fd…`, then `92b4065a…`; screens c0 = pre-fix, c). Main session looked at the key screens.
+  - [x] Pre-fix: M3 (stopped 240 ms after the tap, no snackbar on return) and the covered Check again (54 px) reproduced.
+  - [x] Fixed: No change (c02), loss and Details → Breakdown (c04, c05), Not fixed yet by return, page button and snackbar button (c07–c10), fixed and page closed (c14), page opened during a rescan closes (c15, c16), background loss and no change shown once on return (stop at most 272 / 267 ms after the tap; c17b–c19b), Mark as done, not due (c20).
+  - [x] Snackbar item: Check again 104 px above the snackbar in four dumps, also on Replace Chrome (c13); a hand scroll stays (c11); no strip afterwards (c12).
+  - [x] L8: first fix FAILED (swipe during the move: Checks in Breakdown, c24); second round (saved only once settled): 2 of 2 in LIST (c33, c34), completed moves still save Breakdown (c30–c32).
+  - [x] Final state: Wi-Fi scanning 0, animator scale null, review dates restored (equal hash), Checks list view, score 53, crash buffer empty, final build installed (`92b4065a…`, versionCode 11). Today's scans stay in its history.
+  - [ ] Not verified on a phone: a failed scan, a trust change during a scan (Trusted is empty), a tab tap interrupting the snackbar's move (the tap had no visible effect, not explained; covered by unit tests only), TalkBack, "+5 pts" for a due review (seen 24 Nov).
+- [x] Gate after the second L8 round: `compileDebugKotlin`, `testDebugUnitTest --rerun` 312, 0 failures, `assembleDebug` pass.
+- [x] External review round 2: files written; resolved 26 Nov (run above).
+- [x] Found: one device call held an escaped `$(…)`, ran in the sandbox and started its own adb server there; the agent stopped, a plain `adb devices -l` showed the Pixel 8 as `device`, the run went on. After an install over an existing task the first start can stack a second activity: force-stop before the install.
+- [x] Found, not changed (Next): a tab tap while the pager still moves leaves it stuck between two pages (c36–c38, animations 10 times slower; same lines on `master`, not checked on a `master` build). App start with an unreadable trusted list crashes (code reading, on `master` too; ROADMAP Later).
 
-### 2026-11-23 — v1.6 spec decisions and crash check (`docs/v1.6-spec`, spec only, no phone)
-
-- [x] Inbox empty; Oliver's pasted ROADMAP UPDATE (1 DONE, 1 CHANGE, 2 ADD) applied to ROADMAP.md.
-- [x] Crash check, code reading of `master` `00e9d4d` (v1.5.3), not proven on a phone: every settings button goes through `IntentHelper.launchActionIntent` or `launchAdSettings` (`AdIdVerificationScreen.kt:418`); both catch `ActivityNotFoundException` on every step, neither `SecurityException`. No intent in use is known to throw it; the October audit (Pixel 8, Android 17) opened the four manual-check targets, the Wi-Fi scanning Quick Win and the Ad ID Ads page, and those intents are unchanged since. Plausible risk only: the Ad ID screen's explicit Play services component, if a Play services update stops exporting it. No hotfix; runs 4 and 6 add the catch.
-- [x] Call 8 check: AI-app rows are not unknown. Installed → `isSecure = false`, "Installed", 0 pts (`InstalledAppsChecker.kt:272-277`), INFO because `isInformational` (`IssueItem.kt:49`). Spec says no, pending Oliver.
-- [x] Spec updated: calls 1–16 decided, VPN copy, F1 +15 test in run 4, release split (v1.6 12.25, v1.6.1 8.0, M4 Later), What's new / change label / unknown-row wording per release, run 9 no longer depends on run 7, 2+3 before 5 and 9.
-- [x] Own diff review: no blocking problems. No external review (spec only, no app code). Merged into `master` with `--no-ff`, not pushed.
-
-The 2026-11-23 v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-24 v1.6 run 2+3 build and first Pixel 8 gate, the 2026-11-23 v1.6 run 1 (stock-safe advice), v1.6 spec decisions run, v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.

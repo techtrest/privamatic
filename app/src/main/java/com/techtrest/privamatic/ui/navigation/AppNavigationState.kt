@@ -33,12 +33,31 @@ class AppNavigationState(
     var showHistoryScreen by mutableStateOf(false)
         private set
 
+    /**
+     * One-shot: Details > Checks shows its Breakdown view, and keeps it and clears this once the
+     * pager has settled there. Going anywhere else first drops it, so it can't change a later visit.
+     */
+    var isBreakdownRequested by mutableStateOf(false)
+        private set
+
+    fun openBreakdown() {
+        selectDetailsTab(DetailsTab.CHECKS)
+        selectTab(NavigationTab.DETAILS)
+        isBreakdownRequested = true
+    }
+
+    fun onBreakdownShown() {
+        isBreakdownRequested = false
+    }
+
     fun selectTab(tab: NavigationTab) {
         selectedTab = tab
+        if (tab != NavigationTab.DETAILS) isBreakdownRequested = false
     }
 
     fun selectDetailsTab(tab: DetailsTab) {
         selectedDetailsTab = tab
+        if (tab != DetailsTab.CHECKS) isBreakdownRequested = false
     }
 
     fun openDrawer() {

@@ -1,12 +1,16 @@
 package com.techtrest.privamatic.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -21,8 +25,13 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -35,13 +44,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.techtrest.privamatic.Cream
 import com.techtrest.privamatic.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtrest.privamatic.data.PrivacyTipSelector
@@ -49,6 +65,8 @@ import com.techtrest.privamatic.data.maintenance.MaintenanceManager
 import com.techtrest.privamatic.data.maintenance.PrivacyTipHistory
 import com.techtrest.privamatic.data.maintenance.QuickWinDismissalManager
 import com.techtrest.privamatic.data.HistoryFilter
+import com.techtrest.privamatic.data.ScanOutcome
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.PrivacyTip
 import com.techtrest.privamatic.data.model.ManualCheckType
 import com.techtrest.privamatic.data.model.QuickWinType
@@ -62,9 +80,18 @@ import com.techtrest.privamatic.ui.components.ScoringInfoDialog
 import com.techtrest.privamatic.ui.navigation.NavigationTab
 import com.techtrest.privamatic.ui.navigation.rememberAppNavigationState
 import com.techtrest.privamatic.ui.utils.IntentHelper
+import com.techtrest.privamatic.ui.utils.ResourceFeedbackStrings
+import com.techtrest.privamatic.ui.utils.ScanFeedbackText
 import com.techtrest.privamatic.ui.viewmodel.PrivacyScanState
 import com.techtrest.privamatic.ui.viewmodel.PrivacyViewModel
+import com.techtrest.privamatic.ui.viewmodel.ScanEvent
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,13 +101,14 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     val dismissalManager = remember { QuickWinDismissalManager(context) }
     val tipHistory = remember { PrivacyTipHistory(context) }
     val scanState by viewModel.scanState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val scoreHistory by viewModel.scoreHistory.collectAsState()
     val historySnapshots by viewModel.historySnapshots.collectAsState()
     val hasHistory by viewModel.hasHistory.collectAsState()
 
     // Back from Settings after a fix deep link: rescan once so the score shows the fix.
     LifecycleResumeEffect(Unit) {
-        if (IntentHelper.consumeRescanOnReturn()) viewModel.performScan()
+        IntentHelper.consumeRescanOnReturn()?.let { viewModel.performScan(it) }
         onPauseOrDispose { }
     }
     val selectedHistoryFilter by viewModel.selectedFilter.collectAsState()
@@ -129,6 +157,14 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
     var showManualCheckDetail by remember { mutableStateOf<ManualCheckType?>(null) }
     var showQuickWinDetail by remember { mutableStateOf<QuickWin?>(null) }
     var showAdIdVerification by remember { mutableStateOf(false) }
+    // Pull to refresh shows its own spinner; other scans only the bar under the top bar
+    var isPullRefresh by remember { mutableStateOf(false) }
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing) isPullRefresh = false
+    }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var bottomBarHeightPx by remember { mutableStateOf(0) }
+    var snackbarHeightPx by remember { mutableStateOf(0) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val pagerState = rememberPagerState(pageCount = { NavigationTab.entries.size })
@@ -144,8 +180,76 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
 
     // Sync: user taps bottom nav or tile click → animate pager to that page
     LaunchedEffect(navigationState.selectedTab) {
-        if (pagerState.currentPage != navigationState.selectedTab.ordinal) {
-            pagerState.animateScrollToPage(navigationState.selectedTab.ordinal)
+        val page = navigationState.selectedTab.ordinal
+        if (pagerState.currentPage == page) return@LaunchedEffect
+        try {
+            pagerState.animateScrollToPage(page)
+        } catch (e: CancellationException) {
+            // A newer tab took over
+            ensureActive()
+            // A swipe did. Back on the page it started from, the collector above sees no change,
+            // so follow the swipe from here: the tab, and a Breakdown request, must not stay.
+            withFrameNanos { }
+            snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+            navigationState.selectTab(NavigationTab.entries[pagerState.currentPage])
+        }
+    }
+
+    // Result of a user scan: update the open Quick Win page, then one snackbar.
+    // A result that arrives while the app is in the background waits for the user to come back.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        val strings = ResourceFeedbackStrings(context.resources)
+        var snackbarJob: Job? = null
+        val snackbarScope = this // outlives the collector, so leaving the app doesn't dismiss it
+        fun showResult(event: ScanEvent) {
+            if (event is ScanEvent.Finished) showQuickWinDetail = showQuickWinDetail?.let(event::updated)
+
+            val text = when (event) {
+                is ScanEvent.Finished -> ScanFeedbackText.text(event.outcome, strings)
+                is ScanEvent.Failed -> strings.string(R.string.copy_snackbar_scan_failed)
+            }
+            val action: Pair<Int, () -> Unit>? = when (event) {
+                is ScanEvent.Failed ->
+                    R.string.label_snackbar_try_again to { viewModel.performScan(event.trigger) }
+                is ScanEvent.Finished -> {
+                    val outcome = event.outcome
+                    when {
+                        outcome is ScanOutcome.NotFixedYet -> R.string.label_check_again to {
+                            viewModel.performScan(UserScan.CheckAgain(outcome.check))
+                        }
+                        outcome is ScanOutcome.Loss || outcome is ScanOutcome.Mixed ||
+                            (outcome is ScanOutcome.Gain && outcome.hasLosses) ->
+                            R.string.label_snackbar_details to {
+                                showManualCheckDetail = null
+                                showQuickWinDetail = null
+                                showAdIdVerification = false
+                                showScoringSystemScreen = false
+                                showSettingsScreen = false
+                                navigationState.closeHistory()
+                                scope.launch { drawerState.close() }
+                                navigationState.openBreakdown()
+                            }
+                        else -> null
+                    }
+                }
+            }
+            // The newer snackbar replaces the older
+            snackbarJob?.cancel()
+            snackbarJob = snackbarScope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = text,
+                    actionLabel = action?.let { strings.string(it.first) },
+                    duration = if (action == null) SnackbarDuration.Short else SnackbarDuration.Long
+                )
+                if (result == SnackbarResult.ActionPerformed) action?.second?.invoke()
+            }
+        }
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            // Immediate: an event taken from the channel is handled before the app can stop
+            withContext(Dispatchers.Main.immediate) {
+                viewModel.scanEvents.collect { showResult(it) }
+            }
         }
     }
 
@@ -210,23 +314,25 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                         }
                     },
                     onRescanClick = {
-                        viewModel.performScan()
+                        viewModel.performScan(UserScan.Rescan)
                     },
                     onInfoClick = {
                         showInfoDialog = true
                     },
-                    isScanning = scanState is PrivacyScanState.Scanning
+                    isScanning = isRefreshing || scanState is PrivacyScanState.Scanning
                 )
             },
             bottomBar = {
                 // Only show bottom nav when in success state
                 if (scanState is PrivacyScanState.Success) {
-                    BottomNavigationBar(
-                        selectedTab = navigationState.selectedTab,
-                        onTabSelected = { tab ->
-                            navigationState.selectTab(tab)
-                        }
-                    )
+                    Box(modifier = Modifier.onSizeChanged { bottomBarHeightPx = it.height }) {
+                        BottomNavigationBar(
+                            selectedTab = navigationState.selectedTab,
+                            onTabSelected = { tab ->
+                                navigationState.selectTab(tab)
+                            }
+                        )
+                    }
                 }
             }
         ) { paddingValues ->
@@ -291,9 +397,10 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     allQuickWins = filteredQuickWins,
                                     dismissedCheckNames = dismissedCheckNames,
                                     onRefresh = {
-                                        viewModel.performScan()
+                                        isPullRefresh = true
+                                        viewModel.performScan(UserScan.Rescan)
                                     },
-                                    isRefreshing = scanState is PrivacyScanState.Scanning,
+                                    isRefreshing = isRefreshing && isPullRefresh,
                                     onNavigateToManualChecks = {
                                         navigationState.selectTab(NavigationTab.ACTIONS)
                                     }
@@ -313,7 +420,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     onMarkCheckDone = { checkType ->
                                         scope.launch {
                                             maintenanceManager.markCheckCompleted(checkType)
-                                            viewModel.performScan()
+                                            viewModel.performScan(UserScan.ManualDone(checkType))
                                         }
                                     },
                                     onQuickWinSelected = { quickWin ->
@@ -345,9 +452,25 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                                     onRunSdkScan = { viewModel.runSdkScan() },
                                     onNavigateToManualChecks = {
                                         navigationState.selectTab(NavigationTab.ACTIONS)
-                                    }
+                                    },
+                                    isBreakdownRequested = navigationState.isBreakdownRequested,
+                                    isSettled = pagerState.settledPage == NavigationTab.DETAILS.ordinal,
+                                    onBreakdownShown = { navigationState.onBreakdownShown() }
                                 )
                             }
+                        }
+                        // On top of the content, so it never shifts the layout. Header colour behind
+                        // the whole bar (its track has gaps), Cream like the tab indicator: onPrimary
+                        // white vanishes against the light content below.
+                        if (isRefreshing) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.TopCenter)
+                                    .background(MaterialTheme.colorScheme.primary),
+                                color = Cream,
+                                trackColor = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
 
@@ -449,7 +572,7 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                 onMarkDone = {
                     scope.launch {
                         maintenanceManager.markCheckCompleted(checkType)
-                        viewModel.performScan()
+                        viewModel.performScan(UserScan.ManualDone(checkType))
                         showManualCheckDetail = null
                     }
                 }
@@ -467,7 +590,12 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
                     dismissalManager.dismiss(quickWin)
                     showQuickWinDetail = null
                 }
-            }
+            },
+            onCheckAgain = {
+                quickWin.relatedCheck?.let { viewModel.performScan(UserScan.CheckAgain(it)) }
+            },
+            isChecking = isRefreshing,
+            snackbarHeight = with(LocalDensity.current) { snackbarHeightPx.toDp() }
         )
     }
 
@@ -479,16 +607,37 @@ fun MainScreen(viewModel: PrivacyViewModel = viewModel()) {
             onConfirmed = {
                 scope.launch {
                     maintenanceManager.markCheckCompleted(ManualCheckType.ADVERTISING_ID_CHECK)
-                    viewModel.performScan()
+                    viewModel.performScan(UserScan.AdIdConfirmed)
                     showAdIdVerification = false
                 }
             },
             onReset = {
                 scope.launch {
                     maintenanceManager.resetAdIdCheck()
-                    viewModel.performScan()
+                    viewModel.performScan(UserScan.AdIdReset)
                 }
             }
+        )
+    }
+
+    // Result snackbar: above every overlay screen, and above the bottom bar when that shows.
+    val isOverlayShown = showScoringSystemScreen || navigationState.showHistoryScreen ||
+        showSettingsScreen || showManualCheckDetail != null || showQuickWinDetail != null ||
+        showAdIdVerification
+    val bottomBarPadding = with(LocalDensity.current) { bottomBarHeightPx.toDp() }
+    Box(modifier = Modifier.fillMaxSize()) {
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .then(
+                    if (isOverlayShown || scanState !is PrivacyScanState.Success) {
+                        Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                    } else {
+                        Modifier.padding(bottom = bottomBarPadding)
+                    }
+                )
+                .onSizeChanged { snackbarHeightPx = it.height }
         )
     }
 }

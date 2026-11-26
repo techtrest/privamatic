@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.accentOnSurface
 import com.techtrest.privamatic.accentOutlinedButtonColors
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.ActionType
 import com.techtrest.privamatic.data.model.ManualCheckState
 import com.techtrest.privamatic.data.model.ManualCheckType
@@ -170,7 +171,9 @@ fun ManualCheckDetailScreen(
                     onClick = {
                         IntentHelper.launchActionIntent(
                             context = context,
-                            actionType = getSettingsActionType(checkState.type)
+                            actionType = getSettingsActionType(checkState.type),
+                            // A review can change a scanned check (Location: Background location).
+                            onReturn = UserScan.FixReturn(null)
                         )
                     },
                     modifier = Modifier.weight(1f),

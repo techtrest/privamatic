@@ -35,21 +35,32 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.techtrest.privamatic.R
 import com.techtrest.privamatic.accentOnSurface
+import com.techtrest.privamatic.accentOutlinedButtonColors
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.QuickWin
 import com.techtrest.privamatic.ui.utils.IntentHelper
 
 /**
  * Full-screen detail view for a Quick Win.
  * Shows title, description, step-by-step instructions, and dismiss option.
+ *
+ * [snackbarHeight]: the result snackbar at the bottom, 0 when none shows. The content ends above it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +68,9 @@ fun QuickWinDetailScreen(
     quickWin: QuickWin,
     onBackClick: () -> Unit,
     onDismiss: () -> Unit,
+    onCheckAgain: () -> Unit,
+    isChecking: Boolean,
+    snackbarHeight: Dp,
     modifier: Modifier = Modifier
 ) {
     BackHandler {
@@ -64,6 +78,19 @@ fun QuickWinDetailScreen(
     }
 
     val context = LocalContext.current
+
+    // Check again is at the end: a result that arrives while the page is open scrolls to it, so
+    // the snackbar never hides it. One already there when the page opens leaves it at its top.
+    val scrollState = rememberScrollState()
+    var lastSnackbarHeight by remember { mutableStateOf(snackbarHeight) }
+    LaunchedEffect(snackbarHeight) {
+        val isNewResult = snackbarHeight > lastSnackbarHeight
+        lastSnackbarHeight = snackbarHeight
+        if (isNewResult) {
+            withFrameNanos { } // laid out with the new height
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -105,7 +132,8 @@ fun QuickWinDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .padding(bottom = snackbarHeight)
+                .verticalScroll(scrollState)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -204,7 +232,7 @@ fun QuickWinDetailScreen(
                             context = context,
                             actionType = actionType,
                             packageName = quickWin.relatedCheck?.packageName,
-                            rescanOnReturn = true
+                            onReturn = UserScan.FixReturn(quickWin.relatedCheck)
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -220,9 +248,23 @@ fun QuickWinDetailScreen(
                             ?: stringResource(R.string.label_common_open_settings)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
+            OutlinedButton(
+                onClick = onCheckAgain,
+                enabled = !isChecking,
+                modifier = Modifier.fillMaxWidth(),
+                colors = accentOutlinedButtonColors()
+            ) {
+                Text(
+                    stringResource(
+                        if (isChecking) R.string.label_check_again_checking
+                        else R.string.label_check_again
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

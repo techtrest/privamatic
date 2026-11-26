@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
+import com.techtrest.privamatic.data.UserScan
 import com.techtrest.privamatic.data.model.ActionType
 
 /**
@@ -15,17 +16,17 @@ import com.techtrest.privamatic.data.model.ActionType
 object IntentHelper {
 
     /**
-     * Set when a fix deep link (Quick Win or check row) opened Settings; MainScreen rescans
-     * once when the app resumes, so the score reflects the fix. In memory only: if the process
-     * dies meanwhile, the next launch scans anyway.
+     * Set when a fix deep link (Quick Win, check row or manual check) opened Settings;
+     * MainScreen rescans once when the app resumes, so the score reflects the fix. In memory
+     * only: if the process dies meanwhile, the next launch scans anyway.
      */
     @Volatile
-    private var rescanPending = false
+    private var pendingReturn: UserScan.FixReturn? = null
 
-    /** True once after a fix deep link was launched; clears the flag. */
-    fun consumeRescanOnReturn(): Boolean {
-        val pending = rescanPending
-        rescanPending = false
+    /** The scan to run on return, once after a fix deep link was launched; clears it. */
+    fun consumeRescanOnReturn(): UserScan.FixReturn? {
+        val pending = pendingReturn
+        pendingReturn = null
         return pending
     }
 
@@ -36,7 +37,7 @@ object IntentHelper {
         context: Context,
         actionType: ActionType,
         packageName: String? = null,
-        rescanOnReturn: Boolean = false
+        onReturn: UserScan.FixReturn? = null
     ) {
         val intent = createIntent(actionType, packageName)
         if (intent == null) {
@@ -46,13 +47,13 @@ object IntentHelper {
 
         try {
             context.startActivity(intent)
-            if (rescanOnReturn) rescanPending = true
+            if (onReturn != null) pendingReturn = onReturn
         } catch (e: ActivityNotFoundException) {
             val fallback = createFallbackIntent(actionType)
             if (fallback != null) {
                 try {
                     context.startActivity(fallback)
-                    if (rescanOnReturn) rescanPending = true
+                    if (onReturn != null) pendingReturn = onReturn
                     showToast(context, "Opening general settings (specific page not available)")
                 } catch (e2: ActivityNotFoundException) {
                     showToast(context, "Unable to open settings on this device")

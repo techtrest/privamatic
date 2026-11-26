@@ -98,6 +98,9 @@ fun DetailsScreen(
     sdkScanState: SdkScanState,
     onRunSdkScan: () -> Unit,
     onNavigateToManualChecks: () -> Unit,
+    isBreakdownRequested: Boolean,
+    isSettled: Boolean,
+    onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Dark primary is the lighter brand green (#00854A): onPrimary at 0.8 alpha only reaches
@@ -149,7 +152,10 @@ fun DetailsScreen(
             DetailsTab.CHECKS -> ChecksTab(
                 privacyScore = privacyScore,
                 trustedPackages = trustedPackages,
-                onNavigateToManualChecks = onNavigateToManualChecks
+                onNavigateToManualChecks = onNavigateToManualChecks,
+                isBreakdownRequested = isBreakdownRequested,
+                isSettled = isSettled,
+                onBreakdownShown = onBreakdownShown
             )
             DetailsTab.APPS -> AppsContent(
                 flaggedApps = flaggedApps,
@@ -177,14 +183,20 @@ private fun ChecksTab(
     privacyScore: PrivacyScore,
     trustedPackages: Set<String>,
     onNavigateToManualChecks: () -> Unit,
+    isBreakdownRequested: Boolean,
+    isSettled: Boolean,
+    onBreakdownShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val viewPrefs = remember { DetailsViewPreferences(context) }
-    var view by remember { mutableStateOf(viewPrefs.getChecksView()) }
+    var savedView by remember { mutableStateOf(viewPrefs.getChecksView()) }
+    // While the pager still moves here, a Breakdown request only shows; a dropped one leaves no trace
+    val view = if (isBreakdownRequested) ChecksView.BREAKDOWN else savedView
     fun showView(newView: ChecksView) {
-        view = newView
+        savedView = newView
         viewPrefs.setChecksView(newView)
+        onBreakdownShown()
     }
 
     // Hoisted out of the list so expansion and scroll position survive the view toggle, and
@@ -197,6 +209,13 @@ private fun ChecksTab(
     // so a plain toggle back to the list never replays it.
     var highlightedCheck by remember { mutableStateOf<PrivacyCheck?>(null) }
     val listState = rememberLazyListState()
+
+    LaunchedEffect(isBreakdownRequested, isSettled) {
+        if (isBreakdownRequested && isSettled) {
+            highlightedCheck = null
+            showView(ChecksView.BREAKDOWN)
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         ChecksHeader(
