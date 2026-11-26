@@ -2,32 +2,29 @@
 
 - Format: 3
 - Project: Privamatic
-- Run: 18
+- Run: 19
 - Branch: feat/rescan-in-place
-- Commit: c54b705
-- Time: 2026-11-25T21:25:45+01:00
-- Deviations: 6 (the words are in status.json, not in this public file)
+- Commit: 16f5858
+- Time: 2026-11-26T20:07:44+01:00
+- Deviations: none
 
 ## Where we are
-v1.6 run 2+3 (`feat/rescan-in-place`): external review round 1 is answered. Seven findings were proven and fixed, one Low is rejected with evidence (resolutions at the end of `docs/reviews/feat-rescan-in-place-findings-1.md`). 312 unit tests pass (280 before), the debug build assembles, and the scan path passed its re-check on the Pixel 8.
-The lost result after leaving the app and the covered Check again button were seen on the old build first, then checked on the new one. The fix for the interrupted move to Details failed its first phone check; the second round passed.
-Not verified on a phone: a failed scan, a trust change during a scan (no app to trust on the Pixel 8), a tab tap interrupting the snackbar's move to Details, and TalkBack.
-Found: tapping a tab while the pages still move to another tab can leave the app stuck between two pages (seen with slow animations; the same lines are on `master`). Not changed.
-Found: if the trusted list can't be read when the app starts, the app crashes (code reading, on `master` too). Not changed.
-Found: a Dashboard tap right after the snackbar's Details had no visible effect; not explained. The review is asked about it.
-The Pixel 8 is as it was before, with the new debug build installed and today's scans in its history.
+v1.6 run 2+3 (`feat/rescan-in-place`, rescan in place with a result snackbar) is done and merged into master. It is not pushed.
+External review round 2 found no High, one Medium and two Lows. The Medium and one Low are in the tab-swiping code, which already had two fix rounds; they are parked into the existing "stuck pager" item for one pager-navigation run later. The other Low is fixed: "Advertising ID confirmed" now shows only when that check really passes; two new tests failed before the fix and pass after it. 314 unit tests pass and the debug build assembles.
+Resolutions are in `docs/reviews/feat-rescan-in-place-findings-2.md`. This last change is unit-level; it was not checked on a phone.
+TalkBack over the result snackbar is still not checked on a phone; it is open in STATE.md for a later release check.
 
 ## Blocked on you
-Run external review round 2 of feat/rescan-in-place in Cursor. Files: `docs/reviews/feat-rescan-in-place.diff` and `docs/reviews/feat-rescan-in-place-prompt-2.md`; save the result as `docs/reviews/feat-rescan-in-place-findings-2.md`.
+None
 
 ## Red flags
 None
 
 ## Pending decisions
-1. Call 8: "I've checked this" on AI-app rows? The spec says no for now. It has to be decided before v1.6.1 run 10.
+None
 
 ## Next step for chat
-Review round 2 findings for run 2+3, then merge. After that comes run 4 (`feat/fix-list`), which needs the S8 and the Pixel 8.
+Start v1.6 run 4 (fix list).
 
 ## Unapplied ROADMAP UPDATE blocks
 None

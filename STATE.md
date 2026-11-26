@@ -25,10 +25,12 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 
 ## Next
 
-- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov); review round 1 (2 High, 2 Medium, 4 Low) is fixed (one Low rejected) and re-checked on the Pixel 8 (25 Nov). It waits for external review round 2 in Cursor, then merge; after that run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
+- [ ] [L] v1.6 "the loop" (spec `docs/decisions/v1.6-fix-to-result.md`, sections 6–7): runs 1, 2+3 as one branch, 4, 5, 6, 9, release; about 12.25 evenings. Run 1 is merged. Run 2+3 `feat/rescan-in-place` is built and through its Pixel 8 gate (24 Nov); review round 1 (2 High, 2 Medium, 4 Low) is fixed (one Low rejected) and re-checked on the Pixel 8 (25 Nov). External review round 2 (no High, 1 Medium, 2 Low) is resolved and the branch is merged into local `master` (26 Nov, not pushed); next is run 4 `feat/fix-list` (needs the S8 for screen lock and the Pixel 8; ask Oliver which phone is free before any device step).
 - [x] [S] (25 Nov, c07–c13) Run 2+3: on long Quick Win pages the result snackbar covers Check again (below the fold) for up to 10 s; fix in the review round, e.g. keep Check again in view after a result or lift the snackbar above it (Oliver, 24 Nov)
 - [x] [S] (24 Nov, b18) Run 2+3 copy: when the uninstall Quick Win's trailing rescan sentence goes, make its steps consistent: step 2 "Tap 'Uninstall'" quoted like step 1, no full stops on the steps (Oliver, 23 Nov).
 - [ ] [S] Tab tap while the pager still moves to another tab: it can stay stuck between two pages (seen 25 Nov with slow animations; same lines on `master`).
+  Also covers run 2+3 review round 2 M1 (swipe recovery in the drag→fling gap) and L2 (`isSettled` ignores `isScrollInProgress`): one pager-navigation run (Oliver, 26 Nov).
+- [ ] [S] TalkBack pass over the scan result snackbar and the Quick Win page closing in the same frame: not verified on a phone (run 2+3, rounds 1–2); do it at a later release check.
 - [ ] [L] v1.6.1 "explaining": runs 7, 8, 10, 11, release; about 8 evenings. Run 10 waits for Oliver's call 8 (AI-app rows), still open; decide it before run 10.
 - [ ] [S] LG G2 as a third test phone: waits for HQ's shared guard engine.
 - [ ] [S] Live check of the serials-from-file hook: a Pixel 9 `pm clear` is denied (still open; so far proven only by feeding JSON to the hook, 2026-11-05).
@@ -104,6 +106,17 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-26 — v1.6 run 2+3: review round 2 resolved, merged (`feat/rescan-in-place`)
+
+- [x] Inbox empty; Oliver pasted one ROADMAP block in the chat: applied (stuck-pager item now also covers round 2 M1 and L2).
+- [x] Round 2 (`docs/reviews/feat-rescan-in-place-findings-2.md`): no High, 1 Medium, 2 Low; resolutions added to the file.
+  - M1, L2: parked into the stuck-pager item (L8 pager code had two fix rounds already; Oliver, 26 Nov).
+  - L3: proven first, two new `ScanFeedbackTest` cases (Advertising ID fail → unknown, fail → partial, on a confirm) failed on the old code (`was: AdIdConfirmed(…)`), pass after the fix (`16f5858`).
+  - Test renamed to what it guards: no second trusted-list read after a finished scan.
+- [x] Gate (unit-level change, no phone): `compileDebugKotlin`, `testDebugUnitTest --rerun` 314 tests, 0 failures, `assembleDebug` pass (APK 2026-11-26 20:06, `6aa0b44f…`; not installed).
+- [x] Own diff review against `master`: no blocking problems. No round 3 (one condition and a rename; Oliver).
+- [x] Merged into local `master` with `--no-ff`; not pushed.
+
 ### 2026-11-25 — v1.6 run 2+3: external review round 1 (`feat/rescan-in-place`)
 
 - [x] Inbox empty; Oliver: no ROADMAP block this time. Findings: 2 High, 2 Medium, 4 Low.
@@ -127,7 +140,7 @@ It is the real guard. The allow and deny lists are a convenience.
   - [x] Final state: Wi-Fi scanning 0, animator scale null, review dates restored (equal hash), Checks list view, score 53, crash buffer empty, final build installed (`92b4065a…`, versionCode 11). Today's scans stay in its history.
   - [ ] Not verified on a phone: a failed scan, a trust change during a scan (Trusted is empty), a tab tap interrupting the snackbar's move (the tap had no visible effect, not explained; covered by unit tests only), TalkBack, "+5 pts" for a due review (seen 24 Nov).
 - [x] Gate after the second L8 round: `compileDebugKotlin`, `testDebugUnitTest --rerun` 312, 0 failures, `assembleDebug` pass.
-- [ ] External review round 2: files written, waits for Oliver.
+- [x] External review round 2: files written; resolved 26 Nov (run above).
 - [x] Found: one device call held an escaped `$(…)`, ran in the sandbox and started its own adb server there; the agent stopped, a plain `adb devices -l` showed the Pixel 8 as `device`, the run went on. After an install over an existing task the first start can stack a second activity: force-stop before the install.
 - [x] Found, not changed (Next): a tab tap while the pager still moves leaves it stuck between two pages (c36–c38, animations 10 times slower; same lines on `master`, not checked on a `master` build). App start with an unreadable trusted list crashes (code reading, on `master` too; ROADMAP Later).
 
