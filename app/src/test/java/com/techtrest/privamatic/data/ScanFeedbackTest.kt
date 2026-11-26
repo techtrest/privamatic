@@ -212,6 +212,26 @@ class ScanFeedbackTest {
         )
     )
 
+    @Test
+    fun `an Ad ID check that can't be read after confirming is improved, not confirmed`() = assertEquals(
+        ScanOutcome.CheckImproved(PrivacyCheck.ADVERTISING_ID, 5, 100),
+        between(
+            score(fail(PrivacyCheck.ADVERTISING_ID, 5)),
+            score(unknown(PrivacyCheck.ADVERTISING_ID)),
+            UserScan.AdIdConfirmed
+        )
+    )
+
+    @Test
+    fun `an Ad ID check that still costs points after confirming is improved, not confirmed`() = assertEquals(
+        ScanOutcome.CheckImproved(PrivacyCheck.ADVERTISING_ID, 3, 98),
+        between(
+            score(fail(PrivacyCheck.ADVERTISING_ID, 5)),
+            score(fail(PrivacyCheck.ADVERTISING_ID, 2)),
+            UserScan.AdIdConfirmed
+        )
+    )
+
     // A check on one side only
 
     @Test

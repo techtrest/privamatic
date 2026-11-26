@@ -211,7 +211,7 @@ class PrivacyViewModelScanTest {
     }
 
     @Test
-    fun `a superseded scan failing after its result is shown leaves the newer scan alone`() = scanTest {
+    fun `a finished scan reads the trusted list no second time, so the next scan runs undisturbed`() = scanTest {
         val gate = Gate(IOException("DataStore"))
         val second = Gate()
         scans += { fixed }

@@ -108,7 +108,8 @@ object ScanFeedback {
                 } else {
                     ScanOutcome.Gain(points, score, hasLosses = false)
                 }
-            trigger == UserScan.AdIdConfirmed && single?.check == PrivacyCheck.ADVERTISING_ID ->
+            // Confirmed only when the check passes; unreadable or partial falls through to Improved
+            trigger == UserScan.AdIdConfirmed && single?.check == PrivacyCheck.ADVERTISING_ID && single.isFixed ->
                 ScanOutcome.AdIdConfirmed(points, score)
             single != null && single.isFixed -> ScanOutcome.CheckFixed(single.check, points, score)
             single != null -> ScanOutcome.CheckImproved(single.check, points, score)
