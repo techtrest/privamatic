@@ -89,6 +89,20 @@
 
 ## Devices
 - Every adb call uses `-s <serial>`. Never bare `adb` (only `adb devices` / `adb devices -l` are fine).
+- Device steps go through the `device-verify` agent where possible. Its file (`.claude/agents/device-verify.md`, "Device commands")
+  lists the exact adb forms that reach a phone; any other shape runs in the sandbox, starts its own adb server and hangs.
+  The same rules hold for the main session:
+  - Every adb command starts with `adb -s <serial>` as its first word. No `cd … &&`, no env assignments, no `$(…)` or backticks,
+    no pipes, no redirects, no heredocs, no `;` / `&&` / `||` chains around it. One adb command per Bash call;
+    read or filter its output in a separate step, from the tool result or a saved file.
+  - Never `wait-for-device`. After a reboot, poll `adb -s <serial> get-state` and `adb -s <serial> shell getprop sys.boot_completed`
+    with plain single commands. Stop any adb call that hasn't returned within about a minute, and report.
+  - A phone shown as `no permissions`, `unauthorized` or `offline`: stop and ask Oliver to re-plug or unlock it.
+    No retries, no adb variations (HQ device rule, 24 Nov).
+  - Never run server-wide adb commands: `kill-server`, `start-server`, `reconnect`, `root`, `unroot`, `remount`, `tcpip`, `usb`, `disconnect`.
+  - Only touch phones Oliver confirmed are free in this run.
+  - The screenshot path (`/sdcard/Download/PV_shot.png` and its fixed pull) carries screenshots only. If a check needs app data
+    (databases, preferences), stop and report what it needs instead of copying it off the phone.
 - The serials are in `.claude/devices.local` (gitignored, one per machine) as `TEST_DEVICE_SERIAL` (Pixel 8), `DAILY_PHONE_SERIAL` (Pixel 9) and `LEGACY_TEST_SERIAL` (Samsung S8).
   - At session start, read that file and type its values literally into adb commands; the guard hook can't resolve variables.
   - Never write a serial into a tracked file. Use the role name instead, also in evidence and in pasted `adb devices` output.
@@ -103,7 +117,7 @@
   - When asked: install the debug build with `install --user 0`.
   - Never: `uninstall`, `pm clear`, `rm`, `run-as`, `input`, `settings put`, `pm disable`.
   - Never touch `com.techtrest.privamatic` (the F-Droid install).
-  - If it shows `offline` or `unauthorized`: stop and ask Oliver to unlock it. No retry loops.
+  - If it shows `offline`, `unauthorized` or `no permissions`: stop and ask Oliver to unlock or re-plug it. No retries.
 - **Any other or unknown device**: treat as protected, ask first.
 
 ## Secrets
