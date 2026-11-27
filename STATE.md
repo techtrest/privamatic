@@ -48,7 +48,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
-- [ ] [S] Install the proposed device-verify rules: copy `scripts/device-verify.md.proposed` over `.claude/agents/device-verify.md` (the sandbox keeps `.claude/agents` read-only; Oliver). Then the two ROADMAP device-verify items tick.
+- [x] [S] (done 27 Nov, Oliver) Install the proposed device-verify rules: copy `scripts/device-verify.md.proposed` over `.claude/agents/device-verify.md` (the sandbox keeps `.claude/agents` read-only; Oliver). Then the two ROADMAP device-verify items tick.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
@@ -115,6 +115,7 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Gate: grep for `cd `, `$(`, `| `, `wait-for-device`, `kill-server` in both files: hits only in the "never" rules and the report table header; every adb example starts with `adb -s` or is `adb devices [-l]`. `compileDebugKotlin` pass (UP-TO-DATE, docs only). No external review (docs-only).
 - [x] Found: the guard hook reads adb words inside a heredoc's text as commands, so STATE edits that mention adb go through Edit, not a shell heredoc.
 - [ ] Not verified on a device: the agent following the new rules (needs the file installed and a device-verify run).
+- [x] Oliver installed the proposed device-verify rules (copied scripts/device-verify.md.proposed over .claude/agents/device-verify.md, 27 Nov) and restarted the session so they load (2026-11-27). Committed and the proposed copy deleted on `chore/install-device-verify-rules`.
 
 ### 2026-11-26 — v1.6 run 2+3: review round 2 resolved, merged (`feat/rescan-in-place`)
 
