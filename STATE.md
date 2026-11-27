@@ -48,6 +48,7 @@ Inside the sandbox `.claude/hooks`, `.claude/agents`, `.claude/skills`, the sett
 - [ ] [M] Widget opacity on Android 8–11 does nothing (review round 1 M1, rejected for this release by Oliver). `setImageAlpha` acts on
   the ImageView's image, but the card is its background (also on `master`). Card draws opaque, so readable. Confirmed on the S8 (2026-11-07: 76 and 100 draw identically), so it can be fixed and verified there; no API 30 emulator needed.
 - [ ] [M] Legacy-rules and real-D2D check (optional): same bmgr cycle on an API 30 emulator, plus one phone-to-phone transfer.
+- [ ] [S] Install the proposed device-verify rules: copy `scripts/device-verify.md.proposed` over `.claude/agents/device-verify.md` (the sandbox keeps `.claude/agents` read-only; Oliver). Then the two ROADMAP device-verify items tick.
 - [ ] [S] device-verify can't restore a named wallpaper: the picker has no recents list. Reapplying the lock screen's photo to Home works
   while the lock screen still has it.
 
@@ -106,6 +107,15 @@ It is the real guard. The allow and deny lists are a convenience.
 
 ## Runs
 
+### 2026-11-27 — device-verify rules tightened (`chore/device-verify-rules`, no phone)
+
+- [x] Inbox empty; Oliver: no ROADMAP block this time. Pixel 8 busy: no device commands this run.
+- [x] Rules written once in the agent file ("Device commands": shape, waiting, phone not ready, screenshot path) and in CLAUDE.md's device section: adb is the first word, no `cd`/env/`$(…)`/pipes/redirects/heredocs/chains; never `wait-for-device`, poll `get-state` and `sys.boot_completed` after a reboot, stop a call after about a minute; `no permissions`/`unauthorized`/`offline` → stop and ask Oliver; no server-wide adb commands; only phones Oliver confirmed free; screenshot path for screenshots only, app data → stop and report.
+- [x] `.claude/agents/` is read-only in the sandbox (`touch`: Read-only file system), so the agent file is proposed as `scripts/device-verify.md.proposed`; CLAUDE.md edited directly.
+- [x] Gate: grep for `cd `, `$(`, `| `, `wait-for-device`, `kill-server` in both files: hits only in the "never" rules and the report table header; every adb example starts with `adb -s` or is `adb devices [-l]`. `compileDebugKotlin` pass (UP-TO-DATE, docs only). No external review (docs-only).
+- [x] Found: the guard hook reads adb words inside a heredoc's text as commands, so STATE edits that mention adb go through Edit, not a shell heredoc.
+- [ ] Not verified on a device: the agent following the new rules (needs the file installed and a device-verify run).
+
 ### 2026-11-26 — v1.6 run 2+3: review round 2 resolved, merged (`feat/rescan-in-place`)
 
 - [x] Inbox empty; Oliver pasted one ROADMAP block in the chat: applied (stuck-pager item now also covers round 2 M1 and L2).
@@ -117,32 +127,5 @@ It is the real guard. The allow and deny lists are a convenience.
 - [x] Own diff review against `master`: no blocking problems. No round 3 (one condition and a rename; Oliver).
 - [x] Merged into local `master` with `--no-ff`; not pushed.
 
-### 2026-11-25 — v1.6 run 2+3: external review round 1 (`feat/rescan-in-place`)
-
-- [x] Inbox empty; Oliver: no ROADMAP block this time. Findings: 2 High, 2 Medium, 4 Low.
-- [x] Proven first, on the unfixed logic (view model collaborators made constructor parameters, no logic change): 24 of 312 tests failed, each with the finding's symptom.
-  - H1: 5 in `PrivacyViewModelScanTest` (real view model): a superseded scan failing ended the newer scan's progress; a trusted list that can't be read crashed (`IOException` reached the uncaught handler).
-  - H2: 10 in `ScanFeedbackTest`: `ChecksFixed(count=0)`, both checks' points on one name, "No change" over a new issue.
-  - M4: a cancelled scan left the history list on its own point. Also found: a superseded scan that notices late published its result; a scan failing with someone else's cancellation left "Checking…" on for good.
-  - L5: snackbar 97, screen 100. L6: 3 in `ScanEventTest`. L8: 2 in `AppNavigationStateTest`.
-- [x] Fixed: H1, H2, M3, M4, L5 (fell out of H1: the failure path and the publish use the trusted set the app already holds, so nothing is read from storage there; one widget refresh), L6, L8; snackbar item: the Quick Win page ends above the snackbar and scrolls to Check again when a result arrives.
-- [x] L7 rejected: all 13 `QuickWin(…)` constructions in `QuickWinsDetector` (the only ones in the app) set a non-null `relatedCheck`.
-- [x] M3: kept result pinned by a test; the loss of a background result reproduced on the pre-fix build.
-- [x] Reviewer's test gaps: 800 ms minimum (view model and `runScan`), `RunScanTest` asserts the failure was reached. Mutations caught: minimum 0, `runScan` without its delay, each of the three cancellation guards removed.
-- [x] Gate: `compileDebugKotlin`, `testDebugUnitTest --rerun` 312 tests, 0 failures (280 before), `assembleDebug` pass (APK 20:12:58, `8940b5fd…`).
-- [x] Own diff review against `master`: no blocking problems.
-- [x] Oliver (25 Nov): Pixel 8 free; keep "1 better, 1 worse"; ROADMAP block applied (Later: app start with an unreadable trusted list).
-- [x] Pixel 8 (device-verify, 20:34–21:17; pre-fix build `5eee7dfe…`, then `8940b5fd…`, then `92b4065a…`; screens c0 = pre-fix, c). Main session looked at the key screens.
-  - [x] Pre-fix: M3 (stopped 240 ms after the tap, no snackbar on return) and the covered Check again (54 px) reproduced.
-  - [x] Fixed: No change (c02), loss and Details → Breakdown (c04, c05), Not fixed yet by return, page button and snackbar button (c07–c10), fixed and page closed (c14), page opened during a rescan closes (c15, c16), background loss and no change shown once on return (stop at most 272 / 267 ms after the tap; c17b–c19b), Mark as done, not due (c20).
-  - [x] Snackbar item: Check again 104 px above the snackbar in four dumps, also on Replace Chrome (c13); a hand scroll stays (c11); no strip afterwards (c12).
-  - [x] L8: first fix FAILED (swipe during the move: Checks in Breakdown, c24); second round (saved only once settled): 2 of 2 in LIST (c33, c34), completed moves still save Breakdown (c30–c32).
-  - [x] Final state: Wi-Fi scanning 0, animator scale null, review dates restored (equal hash), Checks list view, score 53, crash buffer empty, final build installed (`92b4065a…`, versionCode 11). Today's scans stay in its history.
-  - [ ] Not verified on a phone: a failed scan, a trust change during a scan (Trusted is empty), a tab tap interrupting the snackbar's move (the tap had no visible effect, not explained; covered by unit tests only), TalkBack, "+5 pts" for a due review (seen 24 Nov).
-- [x] Gate after the second L8 round: `compileDebugKotlin`, `testDebugUnitTest --rerun` 312, 0 failures, `assembleDebug` pass.
-- [x] External review round 2: files written; resolved 26 Nov (run above).
-- [x] Found: one device call held an escaped `$(…)`, ran in the sandbox and started its own adb server there; the agent stopped, a plain `adb devices -l` showed the Pixel 8 as `device`, the run went on. After an install over an existing task the first start can stack a second activity: force-stop before the install.
-- [x] Found, not changed (Next): a tab tap while the pager still moves leaves it stuck between two pages (c36–c38, animations 10 times slower; same lines on `master`, not checked on a `master` build). App start with an unreadable trusted list crashes (code reading, on `master` too; ROADMAP Later).
-
-The 2026-11-24 v1.6 run 2+3 build and first Pixel 8 gate, the 2026-11-23 v1.6 run 1 (stock-safe advice), v1.6 spec decisions run, v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
+The 2026-11-25 v1.6 run 2+3 external review round 1, the 2026-11-24 v1.6 run 2+3 build and first Pixel 8 gate, the 2026-11-23 v1.6 run 1 (stock-safe advice), v1.6 spec decisions run, v1.6 spec design run and v1.5.3 release run, the 2026-11-22 overnight readout run, the 2026-11-22 BootReceiver re-arm run, the 2026-11-22 guard serial assignments run, the 2026-11-21 snapshot fix build, review and evening Pixel 8 runs, the 2026-11-21 snapshot alarm time design run, the 2026-11-21 48 h change cap run, the 2026-11-20 HQ section v1.3 run, the 2026-11-18 runs (wrap-up, review branch stays checked out, widget hardening review), the 2026-11-17 runs (device-verify under the sandbox, HQ section v1.2), the 2026-11-10 sandbox run (with its 11-11 follow-up and tiny pass), the 2026-11-07 run (legacy test device) and the 2026-11-05 runs (private device details, second layer and branch cleanup, inbox `STATE:` lines): `docs/state-archive/2026-11.md`.
 Earlier runs of this feature (2026-10-24 review round 1 and merge, build rounds 2–3, 2026-10-23, 2026-10-22 rounds A–D, 2026-10-21 design run) and the 2026-10-25 release, keyboard and tracker-contract runs: `docs/state-archive/2026-10.md`.
